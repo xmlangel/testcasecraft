@@ -519,7 +519,8 @@ public class TranslationManagementService {
     TranslationKey translationKey =
         translationKeyRepository
             .findByKeyName(keyName.trim())
-            .orElseThrow(() -> new IllegalArgumentException("Translation key does not exist: " + keyName));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Translation key does not exist: " + keyName));
 
     if (!translationKey.getIsActive()) {
       throw new IllegalStateException("Translation key is disabled: " + keyName);
@@ -528,7 +529,9 @@ public class TranslationManagementService {
     Language language =
         languageRepository
             .findByCode(languageCode.trim())
-            .orElseThrow(() -> new IllegalArgumentException("Language code does not exist: " + languageCode));
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException("Language code does not exist: " + languageCode));
 
     if (!language.getIsActive()) {
       throw new IllegalStateException("Language is disabled: " + languageCode);
@@ -591,10 +594,12 @@ public class TranslationManagementService {
           e.getMessage());
 
       if (e.getMessage() != null && e.getMessage().contains("constraint")) {
-        throw new IllegalStateException("Database constraint violation: an identical translation may already exist");
+        throw new IllegalStateException(
+            "Database constraint violation: an identical translation may already exist");
       }
 
-      throw new RuntimeException("An error occurred while saving the translation: " + e.getMessage(), e);
+      throw new RuntimeException(
+          "An error occurred while saving the translation: " + e.getMessage(), e);
     }
   }
 
@@ -811,7 +816,8 @@ public class TranslationManagementService {
         try {
           String[] fields = parseCsvLine(line);
           if (fields.length < 3) {
-            errors.add("Line " + lineNumber + ": missing required fields (keyName, languageCode, value)");
+            errors.add(
+                "Line " + lineNumber + ": missing required fields (keyName, languageCode, value)");
             errorCount++;
             continue;
           }

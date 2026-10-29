@@ -27,7 +27,9 @@ public class ProjectUser {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  @Comment(value = "프로젝트 식별자: 이 멤버가 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)", on = "project_id")
+  @Comment(
+      value = "프로젝트 식별자: 이 멤버가 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)",
+      on = "project_id")
   @ManyToOne(optional = false)
   @JoinColumn(name = "project_id")
   @JsonBackReference("project-users")
@@ -38,7 +40,11 @@ public class ProjectUser {
   @JoinColumn(name = "user_id")
   private User user;
 
-  @Comment(value = "프로젝트 역할 코드: 이 멤버가 프로젝트에서 맡는 역할을 나타내는 코드 (값 영역: PROJECT_MANAGER, LEAD_DEVELOPER, DEVELOPER, CONTRIBUTOR, TESTER, VIEWER)", on = "role_in_project")
+  @Comment(
+      value =
+          "프로젝트 역할 코드: 이 멤버가 프로젝트에서 맡는 역할을 나타내는 코드 (값 영역: PROJECT_MANAGER, LEAD_DEVELOPER,"
+              + " DEVELOPER, CONTRIBUTOR, TESTER, VIEWER)",
+      on = "role_in_project")
   @Enumerated(EnumType.STRING)
   @Column(name = "role_in_project", nullable = false, length = 30)
   private ProjectRole roleInProject; // PROJECT_MANAGER, CONTRIBUTOR, VIEWER

@@ -79,5 +79,6 @@ public class LlmTemplate {
 
   /** 마지막 수정 시간 */
   @Comment("최종 수정 일시: 이 행이 마지막으로 변경된 일시")
-  @LastModifiedDate private LocalDateTime lastModifiedDate;
+  @LastModifiedDate
+  private LocalDateTime lastModifiedDate;
 }

@@ -234,8 +234,8 @@ public class ProjectSecurityService {
   /**
    * 테스트케이스 버전이 속한 프로젝트에 현재 사용자가 접근(조회)할 수 있는지. 관리자가 아니면 미존재 시 거부한다.
    *
-   * <p>ICT-442 로 검사를 붙인 조회 경로의 판정(버전·결과·플랜·실행·차터)은 시스템 관리자를 먼저 통과시킨다. 관리자가 없는 ID 로 부르면 404 나 빈
-   * 결과를 받던 기존 동작을 그대로 두기 위해서다.
+   * <p>ICT-442 로 검사를 붙인 조회 경로의 판정(버전·결과·플랜·실행·차터)은 시스템 관리자를 먼저 통과시킨다. 관리자가 없는 ID 로 부르면 404 나 빈 결과를
+   * 받던 기존 동작을 그대로 두기 위해서다.
    */
   public boolean canAccessTestCaseVersion(String versionId) {
     return securityContextUtil.isSystemAdmin()
@@ -316,8 +316,8 @@ public class ProjectSecurityService {
    * <p>결과 조회 서비스는 실행 ID 나 플랜 ID 가 있으면 projectId 를 보지 않고 그 ID 로만 조회한다. 그래서 projectId 하나만 검사하면 자기
    * 프로젝트 ID 에 남의 실행 ID 를 붙여 우회할 수 있다. 넘어온 ID 를 모두 검사한다.
    *
-   * <p>시스템 관리자는 항상 통과한다(전체 조회 포함). 그 밖의 사용자는 범위를 정하는 ID 가 하나도 없으면 거부한다. 전체 조회가 되기 때문이다. 빈
-   * 문자열은 없는 것으로 본다.
+   * <p>시스템 관리자는 항상 통과한다(전체 조회 포함). 그 밖의 사용자는 범위를 정하는 ID 가 하나도 없으면 거부한다. 전체 조회가 되기 때문이다. 빈 문자열은 없는
+   * 것으로 본다.
    */
   public boolean canAccessResultScope(
       String projectId, Collection<String> testPlanIds, Collection<String> testExecutionIds) {

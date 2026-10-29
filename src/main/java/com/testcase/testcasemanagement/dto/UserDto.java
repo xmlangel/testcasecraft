@@ -28,7 +28,9 @@ public class UserDto {
     @NotBlank private String name;
     @NotBlank private String password;
 
-    @Pattern(regexp = "ADMIN|MANAGER|TESTER", message = "role must be one of ADMIN, MANAGER, TESTER.")
+    @Pattern(
+        regexp = "ADMIN|MANAGER|TESTER",
+        message = "role must be one of ADMIN, MANAGER, TESTER.")
     private String role;
 
     private String timezone; // 사용자 시간대
@@ -44,7 +46,9 @@ public class UserDto {
     @NotBlank @Email private String email;
     @NotBlank private String name;
 
-    @Pattern(regexp = "ADMIN|MANAGER|TESTER", message = "role must be one of ADMIN, MANAGER, TESTER.")
+    @Pattern(
+        regexp = "ADMIN|MANAGER|TESTER",
+        message = "role must be one of ADMIN, MANAGER, TESTER.")
     private String role;
 
     private Boolean isActive;
@@ -212,7 +216,9 @@ public class UserDto {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class ChangeRoleRequest {
     @NotBlank
-    @Pattern(regexp = "ADMIN|MANAGER|TESTER", message = "role must be one of ADMIN, MANAGER, TESTER.")
+    @Pattern(
+        regexp = "ADMIN|MANAGER|TESTER",
+        message = "role must be one of ADMIN, MANAGER, TESTER.")
     private String role;
   }
 

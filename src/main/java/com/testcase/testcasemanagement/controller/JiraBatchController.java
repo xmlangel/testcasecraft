@@ -156,7 +156,12 @@ public class JiraBatchController {
     } catch (Exception e) {
       log.error("배치 작업 통계 조회 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "A server error occurred while retrieving statistics."));
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "A server error occurred while retrieving statistics."));
     }
   }
 
@@ -174,7 +179,12 @@ public class JiraBatchController {
     } catch (Exception e) {
       log.error("배치 통계 정리 API 오류", e);
       return ResponseEntity.internalServerError()
-          .body(Map.of("success", false, "message", "A server error occurred while cleaning up statistics."));
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "A server error occurred while cleaning up statistics."));
     }
   }
 

@@ -117,7 +117,8 @@ public class RequirementReportService {
     }
     if (planId == null) {
       throw new ResourceNotValidException(
-          "This execution is not linked to a test plan.", Map.of("executionId", String.valueOf(executionId)));
+          "This execution is not linked to a test plan.",
+          Map.of("executionId", String.valueOf(executionId)));
     }
     final String resolvedPlanId = planId;
     TestPlan plan =

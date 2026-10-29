@@ -25,13 +25,17 @@ public class Translation {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  @Comment(value = "번역 키 식별자: 이 번역의 소스 문자열을 가리키는 값 (값 영역: translation_keys.id 참조, UUID 36자)", on = "translation_key_id")
+  @Comment(
+      value = "번역 키 식별자: 이 번역의 소스 문자열을 가리키는 값 (값 영역: translation_keys.id 참조, UUID 36자)",
+      on = "translation_key_id")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "translation_key_id", nullable = false)
   @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
   private TranslationKey translationKey;
 
-  @Comment(value = "언어 식별자: 이 번역의 대상 언어를 가리키는 값 (값 영역: languages.id 참조, UUID 36자)", on = "language_id")
+  @Comment(
+      value = "언어 식별자: 이 번역의 대상 언어를 가리키는 값 (값 영역: languages.id 참조, UUID 36자)",
+      on = "language_id")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "language_id", nullable = false)
   @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})

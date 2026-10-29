@@ -33,12 +33,15 @@ public class UserActivity {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @Comment("활동 유형: 구체적인 활동 종류 (값 영역: LOGIN, LOGOUT, PROJECT_ACCESS, TESTCASE_CREATE, TESTCASE_UPDATE 등)")
+  @Comment(
+      "활동 유형: 구체적인 활동 종류 (값 영역: LOGIN, LOGOUT, PROJECT_ACCESS, TESTCASE_CREATE, TESTCASE_UPDATE 등)")
   @Column(name = "activity_type", nullable = false, length = 50)
   private String
       activityType; // LOGIN, LOGOUT, PROJECT_ACCESS, TESTCASE_CREATE, TESTCASE_UPDATE, etc.
 
-  @Comment("활동 분류: 활동이 속한 상위 카테고리 (값 영역: AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, ORGANIZATION_MANAGEMENT, SYSTEM_ADMINISTRATION, USER_PROFILE)")
+  @Comment(
+      "활동 분류: 활동이 속한 상위 카테고리 (값 영역: AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT,"
+          + " ORGANIZATION_MANAGEMENT, SYSTEM_ADMINISTRATION, USER_PROFILE)")
   @Column(name = "activity_category", nullable = false, length = 30)
   private String activityCategory; // AUTHENTICATION, PROJECT_MANAGEMENT, TEST_MANAGEMENT, SYSTEM
 

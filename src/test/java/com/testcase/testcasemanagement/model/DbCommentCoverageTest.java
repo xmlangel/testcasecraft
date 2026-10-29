@@ -6,8 +6,8 @@ import static org.testng.Assert.assertTrue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import java.lang.reflect.Field;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,12 +39,13 @@ import org.testng.annotations.Test;
 /**
  * DB 테이블·컬럼 설명(COMMENT)과 데이터 사전 검사.
  *
- * <p>스키마를 {@code ddl-auto: update} 로 만들기 때문에 엔티티에 {@code @Comment} 가 없으면 DB 에도 설명이 생기지 않는다(2026-10-14
- * 실측: 테이블 68개·컬럼 650개 전부 설명 없음). 작성 규칙은 {@code docs/database/DB_COMMENT_CONVENTION.md} 를 따른다.
+ * <p>스키마를 {@code ddl-auto: update} 로 만들기 때문에 엔티티에 {@code @Comment} 가 없으면 DB 에도 설명이 생기지
+ * 않는다(2026-10-14 실측: 테이블 68개·컬럼 650개 전부 설명 없음). 작성 규칙은 {@code
+ * docs/database/DB_COMMENT_CONVENTION.md} 를 따른다.
  *
  * <p>DB 설명은 한국어 한 가지로 둔다. ISO/IEC 11179 는 언어별 이름·정의를 따로 관리하므로, 영어 이름·정의는 데이터 사전 {@code
- * db/comments/data-dictionary.csv} 에 별도 열로 둔다. 데이터 사전의 한국어 열과 {@code db/comments/db-comments.sql} 은 엔티티에서
- * 생성하며, 영어 열은 사람이 채운다. 다시 만들려면 환경 변수 {@code DBCOMMENTS_WRITE=true} 를 주고 실행한다. 이미 채운 영어 열은
+ * db/comments/data-dictionary.csv} 에 별도 열로 둔다. 데이터 사전의 한국어 열과 {@code db/comments/db-comments.sql} 은
+ * 엔티티에서 생성하며, 영어 열은 사람이 채운다. 다시 만들려면 환경 변수 {@code DBCOMMENTS_WRITE=true} 를 주고 실행한다. 이미 채운 영어 열은
  * 유지되고, 새로 생긴 행과 한국어 열이 바뀐 행은 영어 열이 비어 이 테스트가 실패한다.
  */
 public class DbCommentCoverageTest {
@@ -194,7 +195,14 @@ public class DbCommentCoverageTest {
                 ? new TreeSet<>(domainItems(matcher.group(3)))
                 : Set.of();
         if (!domain.equals(constants)) {
-          invalid.add(entity.getSimpleName() + "." + field.getName() + " 설명=" + domain + " enum=" + constants);
+          invalid.add(
+              entity.getSimpleName()
+                  + "."
+                  + field.getName()
+                  + " 설명="
+                  + domain
+                  + " enum="
+                  + constants);
         }
       }
     }
@@ -251,7 +259,8 @@ public class DbCommentCoverageTest {
       }
       List<String> previous = existing.get(object.key());
       // 한국어 열이 바뀐 행은 영어 열을 비워, 번역을 다시 채우기 전까지 영어 열 검사가 실패하게 한다.
-      boolean koreanUnchanged = previous != null && previous.subList(2, 5).equals(row.subList(2, 5));
+      boolean koreanUnchanged =
+          previous != null && previous.subList(2, 5).equals(row.subList(2, 5));
       row.addAll(koreanUnchanged ? previous.subList(5, 8) : List.of("", "", ""));
       rows.add(row);
     }
@@ -265,7 +274,8 @@ public class DbCommentCoverageTest {
     assertEquals(records.get(0), DICTIONARY_HEADER, DICTIONARY_FILE + " 의 머리행이 다르다.");
     Map<String, List<String>> rows = new LinkedHashMap<>();
     for (List<String> record : records.subList(1, records.size())) {
-      assertEquals(record.size(), DICTIONARY_HEADER.size(), DICTIONARY_FILE + " 의 열 수가 다른 행: " + record);
+      assertEquals(
+          record.size(), DICTIONARY_HEADER.size(), DICTIONARY_FILE + " 의 열 수가 다른 행: " + record);
       rows.put(record.get(0) + (record.get(1).isEmpty() ? "" : "." + record.get(1)), record);
     }
     return rows;

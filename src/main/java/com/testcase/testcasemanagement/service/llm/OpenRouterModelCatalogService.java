@@ -134,7 +134,8 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
     return verdict(
         modelId,
         Availability.ACCOUNT_LIMIT,
-        "Could not check because the account's daily free quota is exhausted. " + resetPhrase(limit.getResetAt()));
+        "Could not check because the account's daily free quota is exhausted. "
+            + resetPhrase(limit.getResetAt()));
   }
 
   /**
@@ -170,7 +171,9 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
       log.error("❌ 모델 목록 조회 실패 (상태코드: {})", e.getStatusCode(), e);
       if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
         throw new LlmClient.LlmClientException(
-            "OpenRouter authentication failed (401/403). Check that the registered API key is correct.", e);
+            "OpenRouter authentication failed (401/403). Check that the registered API key is"
+                + " correct.",
+            e);
       }
       throw new LlmClient.LlmClientException(
           "Failed to retrieve OpenRouter model list (status code: " + e.getStatusCode() + ")", e);
@@ -178,7 +181,8 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
       throw e;
     } catch (Exception e) {
       log.error("❌ 모델 목록 조회 실패", e);
-      throw new LlmClient.LlmClientException("Failed to retrieve OpenRouter model list: " + e.getMessage(), e);
+      throw new LlmClient.LlmClientException(
+          "Failed to retrieve OpenRouter model list: " + e.getMessage(), e);
     }
 
     if (response == null || !(response.get("data") instanceof List<?> rawList)) {
@@ -223,12 +227,15 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
           return verdict(
               modelId,
               Availability.ACCOUNT_LIMIT,
-              "The account's daily free request quota has been used up. Choosing another free model will not resolve this. " + resetPhrase(kind.reset()));
+              "The account's daily free request quota has been used up. Choosing another free model"
+                  + " will not resolve this. "
+                  + resetPhrase(kind.reset()));
         }
         return verdict(
             modelId,
             Availability.RATE_LIMITED,
-            "The free shared pool for this model is busy right now. Check again shortly or choose another model."
+            "The free shared pool for this model is busy right now. Check again shortly or choose"
+                + " another model."
                 + (detail.isEmpty() ? "" : " " + detail));
       }
       if (status == 401) {
@@ -239,7 +246,8 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
         return verdict(
             modelId,
             Availability.UNAVAILABLE,
-            "This model cannot be called with this key (403)." + (detail.isEmpty() ? "" : " " + detail));
+            "This model cannot be called with this key (403)."
+                + (detail.isEmpty() ? "" : " " + detail));
       }
       return verdict(
           modelId,
@@ -252,7 +260,8 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
     }
 
     log.debug("가용성 확인 실패: model={}", modelId, error);
-    return verdict(modelId, Availability.UNAVAILABLE, "Check failed: " + firstLine(error.getMessage()));
+    return verdict(
+        modelId, Availability.UNAVAILABLE, "Check failed: " + firstLine(error.getMessage()));
   }
 
   /** API Key 가 유효한지 확인한다. 목록 경로는 인증을 요구하지 않으므로 인증이 필요한 경로로 본다. */
@@ -268,7 +277,9 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
     } catch (WebClientResponseException e) {
       if (e.getStatusCode().value() == 401 || e.getStatusCode().value() == 403) {
         throw new LlmClient.LlmClientException(
-            "OpenRouter rejected this API key (" + e.getStatusCode().value() + "). Check the key again.",
+            "OpenRouter rejected this API key ("
+                + e.getStatusCode().value()
+                + "). Check the key again.",
             e);
       }
       throw new LlmClient.LlmClientException(
@@ -276,7 +287,8 @@ public class OpenRouterModelCatalogService extends AbstractLlmModelCatalog {
     } catch (LlmClient.LlmClientException e) {
       throw e;
     } catch (Exception e) {
-      throw new LlmClient.LlmClientException("Failed to verify OpenRouter API key: " + e.getMessage(), e);
+      throw new LlmClient.LlmClientException(
+          "Failed to verify OpenRouter API key: " + e.getMessage(), e);
     }
   }
 

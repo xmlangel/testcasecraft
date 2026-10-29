@@ -66,7 +66,8 @@ public class GoogleConfigController {
       return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     } catch (Exception e) {
       log.error("Google 설정 저장 실패: ", e);
-      return ResponseEntity.internalServerError().body(Map.of("message", "A server error occurred while saving the configuration."));
+      return ResponseEntity.internalServerError()
+          .body(Map.of("message", "A server error occurred while saving the configuration."));
     }
   }
 

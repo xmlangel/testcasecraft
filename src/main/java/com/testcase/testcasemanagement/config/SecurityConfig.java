@@ -183,10 +183,17 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/actuator/**")
                     .hasRole("ADMIN")
-                    // Swagger UI 및 API 문서 허용
+                    // Swagger UI 화면과 UI 설정(swagger-config)은 공개한다. 둘 다 API 구조를 담지 않는다.
+                    // API 명세(/api-docs)는 시스템 관리자(ADMIN)만 본다. 화면이 앱의 accessToken 을
+                    // 실어 보낸다 (OpenApiConfig.swaggerIndexTransformer).
                     .requestMatchers(
-                        "/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**")
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/api-docs/swagger-config",
+                        "/v3/api-docs/swagger-config")
                     .permitAll()
+                    .requestMatchers("/api-docs", "/api-docs/**", "/v3/api-docs", "/v3/api-docs/**")
+                    .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/apiauth/me")
                     .authenticated()
                     // 스케줄러 조회·변경 모두 아래 /api/admin/** 규칙으로 ADMIN 을 요구한다.

@@ -50,14 +50,17 @@ public class EmailVerificationToken {
   private LocalDateTime expiresAt;
 
   @Comment("사용 일시: 이 토큰으로 검증이 완료된 일시")
-  @Column private LocalDateTime usedAt;
+  @Column
+  private LocalDateTime usedAt;
 
   @Comment("발송 상태: 인증 메일 발송 결과, 비어 있으면 상태 기록 이전에 발급된 토큰 (값 영역: PENDING, SENT, FAILED)")
   @Enumerated(EnumType.STRING)
   @Column(name = "send_status", length = 20)
   private SendStatus sendStatus;
 
-  @Comment("발송 오류 코드: 발송이 실패한 원인의 분류 (값 영역: CONNECT_FAILED, AUTH_FAILED, TIMEOUT, REJECTED, SEND_FAILED)")
+  @Comment(
+      "발송 오류 코드: 발송이 실패한 원인의 분류 (값 영역: CONNECT_FAILED, AUTH_FAILED, TIMEOUT, REJECTED,"
+          + " SEND_FAILED)")
   @Enumerated(EnumType.STRING)
   @Column(name = "send_error_code", length = 30)
   private SendErrorCode sendErrorCode;

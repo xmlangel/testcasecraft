@@ -2,15 +2,19 @@ package com.testcase.testcasemanagement.config;
 
 import com.testcase.testcasemanagement.model.LlmConfig.LlmProvider;
 import jakarta.persistence.EntityManager;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * {@code llm_config.provider} 의 CHECK 제약을 현재 enum 값과 맞춘다.
@@ -22,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>제공자를 더할 때마다 사람이 SQL 을 돌리게 하면 잊기 마련이므로, 부팅할 때 제약과 enum 을 대조해 어긋나면 다시 만든다. 값이 이미 맞으면 아무것도 하지
  * 않으므로 매 부팅 실행돼도 멱등하다.
  *
- * <p>Postgres 를 전제로 한 SQL 이다. 다른 DB 로 옮기면 이 러너를 손봐야 한다.
+ * <p>Postgres 를 전제로 한 SQL 이다. 다른 DB(예: 테스트용 H2)에서는 대조할 방법이 없으므로 건너뛴다.
  */
 @Component
 @Order(5)
@@ -33,34 +37,59 @@ public class LlmProviderConstraintRunner implements CommandLineRunner {
   private static final String CONSTRAINT_NAME = "llm_config_provider_check";
 
   private final EntityManager entityManager;
+  private final DataSource dataSource;
+  private final TransactionTemplate transactionTemplate;
 
-  public LlmProviderConstraintRunner(EntityManager entityManager) {
+  public LlmProviderConstraintRunner(
+      EntityManager entityManager,
+      DataSource dataSource,
+      PlatformTransactionManager transactionManager) {
     this.entityManager = entityManager;
+    this.dataSource = dataSource;
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
   }
 
   @Override
-  @Transactional
   public void run(String... args) {
+    if (!isPostgres()) {
+      log.debug("PostgreSQL 이 아니므로 provider CHECK 제약 대조를 건너뛴다.");
+      return;
+    }
+
+    // 트랜잭션을 try 안에서 연다. run() 에 @Transactional 을 붙이면 쿼리 실패로 rollback-only 가 된
+    // 트랜잭션이 run() 이 끝날 때 커밋되며 UnexpectedRollbackException 을 던져, catch 가 있어도 부팅이 멈춘다.
     try {
-      String existing = currentDefinition();
-      if (existing == null) {
-        log.debug("provider CHECK 제약이 없다. Hibernate 가 만들 것이므로 손대지 않는다.");
-        return;
-      }
-
-      if (coversAllProviders(existing)) {
-        log.debug("provider CHECK 제약이 enum 과 일치한다. 그대로 둔다.");
-        return;
-      }
-
-      log.warn("⚠️ provider CHECK 제약이 enum 과 어긋난다. 다시 만든다. 기존={}", existing);
-      recreateConstraint();
-      log.info("✅ provider CHECK 제약 갱신 완료: {}", providerNames());
-
+      transactionTemplate.executeWithoutResult(status -> syncConstraint());
     } catch (Exception e) {
       // 제약 갱신에 실패해도 부팅은 계속한다. 기존 제공자는 그대로 쓸 수 있고, 새 제공자만 저장이
       // 막힌다. 부팅을 멈추면 그것이 더 큰 장애다.
       log.error("❌ provider CHECK 제약 갱신 실패. 새 제공자 저장이 막힐 수 있다.", e);
+    }
+  }
+
+  private void syncConstraint() {
+    String existing = currentDefinition();
+    if (existing == null) {
+      log.debug("provider CHECK 제약이 없다. Hibernate 가 만들 것이므로 손대지 않는다.");
+      return;
+    }
+
+    if (coversAllProviders(existing)) {
+      log.debug("provider CHECK 제약이 enum 과 일치한다. 그대로 둔다.");
+      return;
+    }
+
+    log.warn("⚠️ provider CHECK 제약이 enum 과 어긋난다. 다시 만든다. 기존={}", existing);
+    recreateConstraint();
+    log.info("✅ provider CHECK 제약 갱신 완료: {}", providerNames());
+  }
+
+  private boolean isPostgres() {
+    try (Connection connection = dataSource.getConnection()) {
+      return "PostgreSQL".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName());
+    } catch (SQLException e) {
+      log.warn("DB 종류를 확인하지 못해 provider CHECK 제약 대조를 건너뛴다.", e);
+      return false;
     }
   }
 

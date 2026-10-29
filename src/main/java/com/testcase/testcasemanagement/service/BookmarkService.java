@@ -65,7 +65,8 @@ public class BookmarkService {
         .ifPresent(
             c -> {
               throw new ResponseStatusException(
-                  HttpStatus.CONFLICT, "A bookmark collection with the same name already exists: " + name);
+                  HttpStatus.CONFLICT,
+                  "A bookmark collection with the same name already exists: " + name);
             });
     BookmarkCollection collection =
         BookmarkCollection.builder()
@@ -91,7 +92,8 @@ public class BookmarkService {
           .ifPresent(
               c -> {
                 throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "A bookmark collection with the same name already exists: " + name);
+                    HttpStatus.CONFLICT,
+                    "A bookmark collection with the same name already exists: " + name);
               });
       collection.setName(name);
     }
@@ -104,7 +106,8 @@ public class BookmarkService {
     User user = currentUser();
     BookmarkCollection collection = ownedCollection(collectionId, user.getId());
     if (collection.isDefault()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The default favorites collection cannot be deleted.");
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "The default favorites collection cannot be deleted.");
     }
     itemRepository.deleteByCollection_Id(collectionId);
     collectionRepository.delete(collection);
@@ -128,7 +131,8 @@ public class BookmarkService {
     TestCase testCase = findTestCase(request.getTestCaseId());
     validateSameProject(collection, testCase);
     if (itemRepository.existsByCollection_IdAndTestCase_Id(collectionId, testCase.getId())) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "This case is already in the collection.");
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "This case is already in the collection.");
     }
     BookmarkItem item =
         BookmarkItem.builder()
@@ -163,7 +167,8 @@ public class BookmarkService {
     validateProjectExists(projectId);
     TestCase testCase = findTestCase(testCaseId);
     if (!projectId.equals(projectIdOf(testCase))) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The case does not belong to the project.");
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "The case does not belong to the project.");
     }
     BookmarkCollection defaultCollection = ensureDefaultCollection(user, projectId);
     return itemRepository
@@ -214,7 +219,10 @@ public class BookmarkService {
   private User currentUser() {
     return securityContextUtil
         .getCurrentUser()
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication is required."));
+        .orElseThrow(
+            () ->
+                new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED, "Authentication is required."));
   }
 
   private Project validateProjectExists(String projectId) {
@@ -264,7 +272,8 @@ public class BookmarkService {
     String collectionProjectId =
         collection.getProject() != null ? collection.getProject().getId() : null;
     if (collectionProjectId != null && !collectionProjectId.equals(projectIdOf(testCase))) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The case does not belong to the collection's project.");
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "The case does not belong to the collection's project.");
     }
   }
 

@@ -250,7 +250,8 @@ public class TranslationManagementController {
 
       Map<String, Object> errorResponse = new HashMap<>();
       errorResponse.put("success", false);
-      errorResponse.put("message", "An error occurred while saving the translation: " + e.getMessage());
+      errorResponse.put(
+          "message", "An error occurred while saving the translation: " + e.getMessage());
       errorResponse.put("error", e.getClass().getSimpleName());
 
       return ResponseEntity.badRequest().body(errorResponse);

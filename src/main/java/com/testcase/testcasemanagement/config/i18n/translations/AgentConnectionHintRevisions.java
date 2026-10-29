@@ -15,12 +15,11 @@ import org.springframework.stereotype.Component;
 /**
  * 이미 심어진 안내 문구를 새 문구로 정정한다.
  *
- * <p>번역 시드는 값이 이미 있으면 건너뛴다. 사용자가 번역 관리 화면에서 고친 문구를 기동할 때마다
- * 지우지 않으려는 설계이고 그 동작은 옳다. 그런데 그 탓에 우리가 문구를 고쳐도 이미 돌던 곳에는
- * 옛 문구가 그대로 남는다. 도커로 배포하므로 SQL 을 손으로 돌릴 사람이 없다.
+ * <p>번역 시드는 값이 이미 있으면 건너뛴다. 사용자가 번역 관리 화면에서 고친 문구를 기동할 때마다 지우지 않으려는 설계이고 그 동작은 옳다. 그런데 그 탓에 우리가 문구를
+ * 고쳐도 이미 돌던 곳에는 옛 문구가 그대로 남는다. 도커로 배포하므로 SQL 을 손으로 돌릴 사람이 없다.
  *
- * <p><b>옛 값과 정확히 같을 때만 바꾼다.</b> 한 글자라도 다르면 누군가 손을 댄 것이므로 남긴다.
- * 그래서 이 클래스는 여러 번 돌아도 안전하고, 정정이 끝난 뒤에는 아무 일도 하지 않는다.
+ * <p><b>옛 값과 정확히 같을 때만 바꾼다.</b> 한 글자라도 다르면 누군가 손을 댄 것이므로 남긴다. 그래서 이 클래스는 여러 번 돌아도 안전하고, 정정이 끝난 뒤에는
+ * 아무 일도 하지 않는다.
  */
 @Slf4j
 @Component
@@ -48,25 +47,44 @@ public class AgentConnectionHintRevisions {
               "en",
               "Enter a URL that starts with http or https.",
               "The address the product server uses to reach the agent. With both in Docker, use"
-                  + " http://host.docker.internal:8090 — the product is a container too, so localhost"
-                  + " points at itself. Running the product outside Docker, use"
+                  + " http://host.docker.internal:8090 — the product is a container too, so"
+                  + " localhost points at itself. Running the product outside Docker, use"
                   + " http://localhost:8090."),
           new Revision(
-              "agentConnection.field.serverUrlHint", "ko",
-              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 씁니다 — http://agent:8090. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 적고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다.",
-              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 넣습니다. 예를 들어 http://agent:8090 입니다. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 넣고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다."),
+              "agentConnection.field.serverUrlHint",
+              "ko",
+              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 씁니다 —"
+                  + " http://agent:8090. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른"
+                  + " 곳에 따로 띄웠다면 그 주소를 적고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는"
+                  + " http://host.docker.internal:8090 입니다.",
+              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 넣습니다. 예를 들어"
+                  + " http://agent:8090 입니다. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다."
+                  + " 다른 곳에 따로 띄웠다면 그 주소를 넣고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는"
+                  + " http://host.docker.internal:8090 입니다."),
           new Revision(
-              "agentConnection.field.browserUrlHint", "ko",
-              "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 적습니다 — 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다.",
-              "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 넣습니다. 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다."),
+              "agentConnection.field.browserUrlHint",
+              "ko",
+              "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 적습니다 —"
+                  + " 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다.",
+              "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 넣습니다."
+                  + " 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다."),
           new Revision(
-              "agentConnection.field.serverUrlHint", "ko",
-              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 둘 다 도커로 띄웠다면 http://host.docker.internal:8090 을 넣습니다 — 제품도 컨테이너라 localhost 는 자기 자신을 가리킵니다. 제품을 도커 밖에서 돌리면 http://localhost:8090 입니다.",
-              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 씁니다 — http://agent:8090. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른 곳에 따로 띄웠다면 그 주소를 적고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는 http://host.docker.internal:8090 입니다."),
+              "agentConnection.field.serverUrlHint",
+              "ko",
+              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 둘 다 도커로 띄웠다면 http://host.docker.internal:8090 을 넣습니다 —"
+                  + " 제품도 컨테이너라 localhost 는 자기 자신을 가리킵니다. 제품을 도커 밖에서 돌리면 http://localhost:8090"
+                  + " 입니다.",
+              "제품 서버가 에이전트로 나갈 때 쓰는 주소입니다. 같은 docker compose 에 함께 올렸다면 서비스 이름을 그대로 씁니다 —"
+                  + " http://agent:8090. 제품은 컨테이너 안에 있어 localhost 가 자기 자신을 가리키므로 그 값은 통하지 않습니다. 다른"
+                  + " 곳에 따로 띄웠다면 그 주소를 적고, 같은 기계의 도커 밖에 있으면 리눅스는 호스트 IP, 맥·윈도우는"
+                  + " http://host.docker.internal:8090 입니다."),
           new Revision(
-              "agentConnection.field.browserUrlHint", "ko",
-              "실행 버튼이 여는 주소입니다. 위에 host.docker.internal 을 넣었다면 여기에 http://localhost:8090 을 넣습니다 — 그 이름은 컨테이너 안에서만 풀리고 사람의 브라우저는 알지 못합니다. 두 주소가 같으면 비워 둡니다.",
-              "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 적습니다 — 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다."),
+              "agentConnection.field.browserUrlHint",
+              "ko",
+              "실행 버튼이 여는 주소입니다. 위에 host.docker.internal 을 넣었다면 여기에 http://localhost:8090 을 넣습니다 — 그"
+                  + " 이름은 컨테이너 안에서만 풀리고 사람의 브라우저는 알지 못합니다. 두 주소가 같으면 비워 둡니다.",
+              "실행 버튼이 여는 주소입니다. 위 주소는 컨테이너끼리 부르는 이름이라 사람의 브라우저는 알지 못합니다. 여기에는 사람이 열 수 있는 주소를 적습니다 —"
+                  + " 같은 기계에서 보면 http://localhost:8090 입니다. 두 주소가 같으면 비워 둡니다."),
           new Revision(
               "agentConnection.field.isActiveRunStep1",
               "ko",
@@ -108,8 +126,7 @@ public class AgentConnectionHintRevisions {
           new Revision(
               "agentConnection.field.browserUrlHint",
               "ko",
-              "비워 두면 위 주소를 그대로 씁니다. 서버가 닿는 주소와 브라우저가 닿는 주소가 다를 때만 채웁니다 — 실행 버튼은 이"
-                  + " 주소를 엽니다.",
+              "비워 두면 위 주소를 그대로 씁니다. 서버가 닿는 주소와 브라우저가 닿는 주소가 다를 때만 채웁니다 — 실행 버튼은 이" + " 주소를 엽니다.",
               "실행 버튼이 여는 주소입니다. 위에 host.docker.internal 을 넣었다면 여기에 http://localhost:8090 을"
                   + " 넣습니다 — 그 이름은 컨테이너 안에서만 풀리고 사람의 브라우저는 알지 못합니다. 두 주소가 같으면 비워 둡니다."),
           new Revision(
@@ -137,8 +154,7 @@ public class AgentConnectionHintRevisions {
               "agentConnection.field.defaultProfileHint",
               "ko",
               "에이전트 앱에 등록한 프로필 식별자입니다. 정책과 컨텍스트가 그 안에 있습니다.",
-              "에이전트 앱에 등록한 프로필 식별자입니다. 정책과 컨텍스트가 그 안에 있고, 처음 설치하면 local 하나가 들어"
-                  + " 있습니다."),
+              "에이전트 앱에 등록한 프로필 식별자입니다. 정책과 컨텍스트가 그 안에 있고, 처음 설치하면 local 하나가 들어" + " 있습니다."),
           new Revision(
               "agentConnection.field.defaultProfileHint",
               "en",

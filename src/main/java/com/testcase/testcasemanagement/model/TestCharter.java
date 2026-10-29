@@ -46,7 +46,9 @@ public class TestCharter {
   @Column(columnDefinition = "VARCHAR(36)", updatable = false)
   private String id;
 
-  @Comment(value = "프로젝트 식별자: 이 테스트 차터가 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)", on = "project_id")
+  @Comment(
+      value = "프로젝트 식별자: 이 테스트 차터가 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)",
+      on = "project_id")
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;

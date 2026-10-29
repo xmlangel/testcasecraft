@@ -18,9 +18,9 @@ import org.testng.annotations.Test;
 /**
  * 프로젝트 데이터를 돌려주는 컨트롤러의 조회 엔드포인트가 프로젝트 접근을 검사하는지 소스에서 확인한다(ICT-442).
  *
- * <p>조회 API 다수에 프로젝트 소속 검사가 빠져 있어, 테스터 역할만 있으면 어느 프로젝트의 결과·버전·차터든 조회됐다. 같은 형태가 다시 생기지 않도록
- * "조회 엔드포인트에 projectSecurityService 술어나 관리자 전용 역할이 없으면 실패" 라는 규칙 하나로 대상 컨트롤러 전체를 덮는다. 쓰기 쪽 짝은
- * {@link WriteEndpointAuthorizationTest} 다.
+ * <p>조회 API 다수에 프로젝트 소속 검사가 빠져 있어, 테스터 역할만 있으면 어느 프로젝트의 결과·버전·차터든 조회됐다. 같은 형태가 다시 생기지 않도록 "조회
+ * 엔드포인트에 projectSecurityService 술어나 관리자 전용 역할이 없으면 실패" 라는 규칙 하나로 대상 컨트롤러 전체를 덮는다. 쓰기 쪽 짝은 {@link
+ * WriteEndpointAuthorizationTest} 다.
  *
  * <p>예외는 {@link #ALLOWED} 에 사유와 함께 적는다. 사유를 적을 수 없으면 그것은 예외가 아니라 결함이다.
  */
@@ -75,16 +75,13 @@ public class ReadEndpointAuthorizationTest {
     ALLOWED.put(
         "TestResultApiController.java GET /filter/test-executions",
         "서비스 계층에서 검사한다 — TestExecutionService 의 실행 목록 조회가 canAccessProject 를 확인한다");
-    ALLOWED.put(
-        "TestResultEditController.java GET /statistics",
-        "편집 건수 집계만 돌려준다. 편집 내용은 담지 않는다");
+    ALLOWED.put("TestResultEditController.java GET /statistics", "편집 건수 집계만 돌려준다. 편집 내용은 담지 않는다");
     ALLOWED.put(
         "TestResultEditController.java GET /pending-approvals",
         "승인·적용 엔드포인트와 같은 시스템 역할(ADMIN·MANAGER)로 막는다. 승인 권한이 프로젝트 단위가 아니다");
     ALLOWED.put("TestResultEditController.java GET /my-edits", "본인이 쓴 편집본만 조회한다");
     ALLOWED.put("TestResultEditController.java GET /status-info", "상태 코드 설명 상수다. 프로젝트 데이터가 없다");
-    ALLOWED.put(
-        "TestResultAttachmentController.java GET /user/my", "본인이 올린 첨부만 조회한다");
+    ALLOWED.put("TestResultAttachmentController.java GET /user/my", "본인이 올린 첨부만 조회한다");
     ALLOWED.put(
         "TestResultAttachmentController.java GET /admin/storage-info",
         "스토리지 전체 용량 정보다. 프로젝트 데이터가 없다");
@@ -124,8 +121,7 @@ public class ReadEndpointAuthorizationTest {
     }
 
     assertTrue(
-        violations.isEmpty(),
-        "프로젝트 접근 검사가 빠진 조회 엔드포인트가 있다:\n  " + String.join("\n  ", violations));
+        violations.isEmpty(), "프로젝트 접근 검사가 빠진 조회 엔드포인트가 있다:\n  " + String.join("\n  ", violations));
   }
 
   @Test(description = "예외 목록의 모든 항목에 사유가 붙어 있다")
@@ -166,8 +162,7 @@ public class ReadEndpointAuthorizationTest {
     while (m.find()) {
       String verb = m.group(1).toUpperCase();
       String path = m.group(2) == null ? "" : m.group(2);
-      boolean read =
-          "GET".equals(verb) || READ_POSTS.contains(fileName + " " + verb + " " + path);
+      boolean read = "GET".equals(verb) || READ_POSTS.contains(fileName + " " + verb + " " + path);
       if (!read) {
         continue;
       }

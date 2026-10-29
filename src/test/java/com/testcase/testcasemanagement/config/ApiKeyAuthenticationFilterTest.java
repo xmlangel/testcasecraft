@@ -119,7 +119,8 @@ public class ApiKeyAuthenticationFilterTest {
   @Test
   public void keyWithoutIssuer_returns401() throws Exception {
     when(request.getHeader("X-API-KEY")).thenReturn(RAW_KEY);
-    when(repository.findByApiKeyAndIsActiveTrue(HASHED_KEY)).thenReturn(Optional.of(activeKey(null)));
+    when(repository.findByApiKeyAndIsActiveTrue(HASHED_KEY))
+        .thenReturn(Optional.of(activeKey(null)));
 
     filter.doFilter(request, response, filterChain);
 

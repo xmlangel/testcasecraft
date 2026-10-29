@@ -426,10 +426,8 @@ public class KoreanLoginDashboardAndProjectTranslations {
         "testcase.folderList.editFolder", languageCode, "폴더 정보 편집", createdBy);
     createTranslationIfNotExists(
         "testcase.folderList.backToList", languageCode, "케이스 목록으로 돌아가기", createdBy);
-    createTranslationIfNotExists(
-        "testcase.nav.prev", languageCode, "이전 케이스", createdBy);
-    createTranslationIfNotExists(
-        "testcase.nav.next", languageCode, "다음 케이스", createdBy);
+    createTranslationIfNotExists("testcase.nav.prev", languageCode, "이전 케이스", createdBy);
+    createTranslationIfNotExists("testcase.nav.next", languageCode, "다음 케이스", createdBy);
     createTranslationIfNotExists(
         "testcase.tree.virtual.allCases", languageCode, "모든 테스트케이스", createdBy);
     createTranslationIfNotExists(

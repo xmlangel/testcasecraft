@@ -261,7 +261,8 @@ public class TestCaseTreeMoveService {
       for (int i = 0; i < siblings.size(); i++) {
         if (beforeId.equals(siblings.get(i).getId())) return i;
       }
-      throw new MoveValidationException("beforeId is not a child of the target parent: " + beforeId);
+      throw new MoveValidationException(
+          "beforeId is not a child of the target parent: " + beforeId);
     }
     // afterId
     for (int i = 0; i < siblings.size(); i++) {
@@ -301,7 +302,8 @@ public class TestCaseTreeMoveService {
     TestCase parent =
         testCaseRepository
             .findById(targetParentId)
-            .orElseThrow(() -> new MoveNotFoundException("Target parent not found: " + targetParentId));
+            .orElseThrow(
+                () -> new MoveNotFoundException("Target parent not found: " + targetParentId));
 
     // 같은 프로젝트
     if (!parent.getProject().getId().equals(movingNode.getProject().getId())) {

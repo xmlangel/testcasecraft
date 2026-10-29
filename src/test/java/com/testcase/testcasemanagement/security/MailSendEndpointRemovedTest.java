@@ -20,8 +20,8 @@ import org.testng.annotations.Test;
 /**
  * ICT-443: 범용 메일 발송 API(POST /api/mail/send)가 다시 생기지 않는지 확인한다.
  *
- * <p>그 API 는 테스터 권한만으로 요청 본문의 발신자를 그대로 써서 회사 SMTP 로 메일을 보냈다. 컨트롤러 전체의 요청 매핑을 모아 같은 경로가 없는지 보고,
- * 발신자를 호출자가 정하는 서비스 메서드가 남아 있지 않은지 본다.
+ * <p>그 API 는 테스터 권한만으로 요청 본문의 발신자를 그대로 써서 회사 SMTP 로 메일을 보냈다. 컨트롤러 전체의 요청 매핑을 모아 같은 경로가 없는지 보고, 발신자를
+ * 호출자가 정하는 서비스 메서드가 남아 있지 않은지 본다.
  */
 public class MailSendEndpointRemovedTest {
 
@@ -61,7 +61,9 @@ public class MailSendEndpointRemovedTest {
     for (BeanDefinition definition : scanner.findCandidateComponents(BASE_PACKAGE)) {
       Class<?> type =
           Class.forName(
-              definition.getBeanClassName(), false, MailSendEndpointRemovedTest.class.getClassLoader());
+              definition.getBeanClassName(),
+              false,
+              MailSendEndpointRemovedTest.class.getClassLoader());
       List<String> prefixes =
           mappingPaths(AnnotatedElementUtils.findMergedAnnotation(type, RequestMapping.class));
       for (Method method : type.getDeclaredMethods()) {

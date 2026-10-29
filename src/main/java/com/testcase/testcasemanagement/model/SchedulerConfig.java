@@ -98,7 +98,8 @@ public class SchedulerConfig {
 
   /** 마지막 수정 시간 */
   @Comment("마지막 수정 일시: 이 행이 마지막으로 변경된 일시")
-  @LastModifiedDate private LocalDateTime lastModifiedDate;
+  @LastModifiedDate
+  private LocalDateTime lastModifiedDate;
 
   /** 스케줄 타입 Enum */
   public enum ScheduleType {

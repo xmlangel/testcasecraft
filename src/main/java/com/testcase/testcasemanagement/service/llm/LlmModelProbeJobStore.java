@@ -56,7 +56,8 @@ public class LlmModelProbeJobStore {
             .filter(e -> e.job.getStatus() == LlmModelProbeJob.Status.RUNNING)
             .count();
     if (running >= MAX_RUNNING_JOBS) {
-      throw new IllegalStateException("There are " + running + " probe jobs running. Wait for one to finish and try again.");
+      throw new IllegalStateException(
+          "There are " + running + " probe jobs running. Wait for one to finish and try again.");
     }
 
     String jobId = UUID.randomUUID().toString();

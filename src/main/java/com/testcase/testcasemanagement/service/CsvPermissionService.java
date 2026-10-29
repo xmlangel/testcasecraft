@@ -66,7 +66,8 @@ public class CsvPermissionService {
           // 파싱 실패한 라인은 오류로 기록하고 계속 진행
           BulkPermissionChangeDto errorChange = new BulkPermissionChangeDto();
           errorChange.setValid(false);
-          errorChange.setValidationMessage("Line " + lineNumber + " failed to parse: " + e.getMessage());
+          errorChange.setValidationMessage(
+              "Line " + lineNumber + " failed to parse: " + e.getMessage());
           changes.add(errorChange);
         }
       }
@@ -151,10 +152,16 @@ public class CsvPermissionService {
       if (change.getResourceType() != null) {
         if ("ORGANIZATION".equals(change.getResourceType())
             && !isValidOrganizationRole(change.getNewRole())) {
-          validationErrors.append("Invalid organization role: ").append(change.getNewRole()).append("; ");
+          validationErrors
+              .append("Invalid organization role: ")
+              .append(change.getNewRole())
+              .append("; ");
         } else if ("PROJECT".equals(change.getResourceType())
             && !isValidProjectRole(change.getNewRole())) {
-          validationErrors.append("Invalid project role: ").append(change.getNewRole()).append("; ");
+          validationErrors
+              .append("Invalid project role: ")
+              .append(change.getNewRole())
+              .append("; ");
         }
       }
     }

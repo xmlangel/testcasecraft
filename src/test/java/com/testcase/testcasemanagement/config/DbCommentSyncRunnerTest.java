@@ -40,7 +40,8 @@ public class DbCommentSyncRunnerTest {
     String url = "jdbc:h2:mem:" + UUID.randomUUID() + ";DATABASE_TO_LOWER=TRUE";
     dataSource = new SingleConnectionDataSource(DriverManager.getConnection(url), true);
     try (Statement statement = dataSource.getConnection().createStatement()) {
-      statement.execute("CREATE TABLE widgets (id INT PRIMARY KEY, name VARCHAR(50), code VARCHAR(10))");
+      statement.execute(
+          "CREATE TABLE widgets (id INT PRIMARY KEY, name VARCHAR(50), code VARCHAR(10))");
       statement.execute("COMMENT ON COLUMN widgets.code IS '위젯 코드: 이미 같은 설명'");
       statement.execute("COMMENT ON COLUMN widgets.id IS '스크립트에 없는 설명'");
     }
@@ -84,7 +85,8 @@ public class DbCommentSyncRunnerTest {
 
   @Test
   public void DB_에_연결할_수_없어도_부팅을_막지_않는다() {
-    DataSource broken = new SingleConnectionDataSource("jdbc:h2:tcp://127.0.0.1:1/none", "", "", true);
+    DataSource broken =
+        new SingleConnectionDataSource("jdbc:h2:tcp://127.0.0.1:1/none", "", "", true);
 
     new DbCommentSyncRunner(broken).run();
   }
@@ -93,7 +95,9 @@ public class DbCommentSyncRunnerTest {
   public void 실제_스크립트를_모두_해석한다() throws Exception {
     String script =
         new String(
-            new ClassPathResource(DbCommentSyncRunner.SCRIPT_LOCATION).getInputStream().readAllBytes(),
+            new ClassPathResource(DbCommentSyncRunner.SCRIPT_LOCATION)
+                .getInputStream()
+                .readAllBytes(),
             StandardCharsets.UTF_8);
     long statements = script.lines().filter(line -> line.startsWith("COMMENT ON ")).count();
 
@@ -102,13 +106,13 @@ public class DbCommentSyncRunnerTest {
   }
 
   private String tableComment() throws SQLException {
-    return query(
-        "SELECT remarks FROM information_schema.tables WHERE table_name = 'widgets'");
+    return query("SELECT remarks FROM information_schema.tables WHERE table_name = 'widgets'");
   }
 
   private String columnComment(String column) throws SQLException {
     return query(
-        "SELECT remarks FROM information_schema.columns WHERE table_name = 'widgets' AND column_name = '"
+        "SELECT remarks FROM information_schema.columns WHERE table_name = 'widgets' AND"
+            + " column_name = '"
             + column
             + "'");
   }

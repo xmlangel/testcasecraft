@@ -227,7 +227,8 @@ public class OrganizationServiceTest {
       organizationService.getOrganization(orgId);
       fail("AccessDeniedException이 발생해야 함");
     } catch (AccessDeniedException exception) {
-      assertEquals("You do not have permission to access this organization.", exception.getMessage());
+      assertEquals(
+          "You do not have permission to access this organization.", exception.getMessage());
     }
     verify(organizationRepository, never()).findById(any());
   }
@@ -295,7 +296,8 @@ public class OrganizationServiceTest {
       organizationService.deleteOrganization(orgId, false);
       fail("AccessDeniedException이 발생해야 함");
     } catch (AccessDeniedException exception) {
-      assertEquals("You do not have permission to delete this organization.", exception.getMessage());
+      assertEquals(
+          "You do not have permission to delete this organization.", exception.getMessage());
     }
     verify(organizationRepository, never()).delete(any());
   }

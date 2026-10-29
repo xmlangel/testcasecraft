@@ -116,7 +116,8 @@ public class TestCaseService {
     // 프로젝트 편집 권한 검사 (생성 권한)
     if (testCaseDto.getProjectId() != null && !testCaseDto.getProjectId().isEmpty()) {
       if (!projectSecurityService.canEditProject(testCaseDto.getProjectId())) {
-        throw new AccessDeniedException("No permission to edit the project: " + testCaseDto.getProjectId());
+        throw new AccessDeniedException(
+            "No permission to edit the project: " + testCaseDto.getProjectId());
       }
     }
 
@@ -244,7 +245,8 @@ public class TestCaseService {
 
     // 프로젝트 편집 권한 검사
     if (!projectSecurityService.canEditProject(testCase.getProject().getId())) {
-      throw new AccessDeniedException("No permission to edit the project: " + testCase.getProject().getId());
+      throw new AccessDeniedException(
+          "No permission to edit the project: " + testCase.getProject().getId());
     }
 
     if (TestCaseConstants.TYPE_FOLDER.equals(testCase.getType())
@@ -434,7 +436,8 @@ public class TestCaseService {
     // 프로젝트 편집 권한 검사 (수정 권한)
     if (testCaseDto.getProjectId() != null && !testCaseDto.getProjectId().isEmpty()) {
       if (!projectSecurityService.canEditProject(testCaseDto.getProjectId())) {
-        throw new AccessDeniedException("No permission to edit the project: " + testCaseDto.getProjectId());
+        throw new AccessDeniedException(
+            "No permission to edit the project: " + testCaseDto.getProjectId());
       }
     }
 
@@ -774,7 +777,8 @@ public class TestCaseService {
     TestCase entity = findById(id);
     if (entity.getProject() != null
         && !projectSecurityService.canAccessProject(entity.getProject().getId())) {
-      throw new AccessDeniedException("No permission to access the project: " + entity.getProject().getId());
+      throw new AccessDeniedException(
+          "No permission to access the project: " + entity.getProject().getId());
     }
     return toDtoWithParentName(entity);
   }
@@ -848,7 +852,8 @@ public class TestCaseService {
 
     if (config.getFieldMappings() == null || config.getFieldMappings().isEmpty()) {
       throw new CsvImportException(
-          "Field mapping information is required", Collections.singletonList(Map.of("error", "No field mappings")));
+          "Field mapping information is required",
+          Collections.singletonList(Map.of("error", "No field mappings")));
     }
 
     if (!projectOpt.isPresent()) {
@@ -1043,7 +1048,9 @@ public class TestCaseService {
 
           if (nameDuplicateCount > 0) {
             String msg =
-                String.format("Row %d: '%s' already exists in the folder. (Duplicate name)", i + 1, tc.getName());
+                String.format(
+                    "Row %d: '%s' already exists in the folder. (Duplicate name)",
+                    i + 1, tc.getName());
             errors.add(
                 Map.of(
                     "row",
@@ -1053,7 +1060,8 @@ public class TestCaseService {
                     "message",
                     msg,
                     "guide",
-                    "To modify an existing item, enter its 'DisplayID' or rename the item in the sheet."));
+                    "To modify an existing item, enter its 'DisplayID' or rename the item in the"
+                        + " sheet."));
             continue; // 중복 시 해당 행 스킵
           }
 
@@ -1085,7 +1093,10 @@ public class TestCaseService {
     // [중간 단계: 오류 발생 시 즉시 중단 및 롤백]
     // 하나라도 오류가 발견되면 전체 저장을 수행하지 않습니다.
     if (!errors.isEmpty()) {
-      StringBuilder fullMessage = new StringBuilder("Errors were found while importing from Google Sheets, so the entire operation was aborted.\n");
+      StringBuilder fullMessage =
+          new StringBuilder(
+              "Errors were found while importing from Google Sheets, so the entire operation was"
+                  + " aborted.\n");
       fullMessage.append("- If there is any error, no data is saved.\n");
       fullMessage.append("- Duplicate names are not allowed.\n");
       fullMessage.append("- To update existing items, keep the 'DisplayID' column values.\n\n");
@@ -1502,7 +1513,8 @@ public class TestCaseService {
             if (dto.getVersion() != null
                 && entity.getVersion() != null
                 && !dto.getVersion().equals(entity.getVersion())) {
-              throw new RuntimeException("The data was modified by another user. Please refresh and try again.");
+              throw new RuntimeException(
+                  "The data was modified by another user. Please refresh and try again.");
             }
 
             // 업데이트 로직 (updateEntityFromDto 호출)
@@ -2536,12 +2548,14 @@ public class TestCaseService {
         testCaseRepository.save(tc);
         saved.add(tc);
       } catch (Exception e) {
-        errors.add(Map.of("row", i + 2, "message", "Failed to create test case: " + e.getMessage()));
+        errors.add(
+            Map.of("row", i + 2, "message", "Failed to create test case: " + e.getMessage()));
       }
     }
 
     if (!errors.isEmpty()) {
-      throw new CsvImportException("Error occurred during import (" + errors.size() + " errors)", errors);
+      throw new CsvImportException(
+          "Error occurred during import (" + errors.size() + " errors)", errors);
     }
     return saved;
   }
@@ -2617,7 +2631,8 @@ public class TestCaseService {
 
       if (name.isEmpty()) {
         errors.add(
-            new ImportValidationResultDto.ValidationError(rowNum, "name", "Name is required", name));
+            new ImportValidationResultDto.ValidationError(
+                rowNum, "name", "Name is required", name));
         rowValid = false;
       }
       if (!type.isEmpty() && !VALID_TYPES.contains(type)) {

@@ -297,7 +297,9 @@ public class AuthController {
               Map.of(
                   "errorCode", "AUTHENTICATION_REQUIRED",
                   "message", "Authentication required. Please log in and try again.",
-                  "details", "The JWT token is invalid or has expired. Check localStorage and log in again."));
+                  "details",
+                      "The JWT token is invalid or has expired. Check localStorage and log in"
+                          + " again."));
     }
 
     String username = authentication.getName();
@@ -442,7 +444,8 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("message", "An error occurred while refreshing the token: " + e.getMessage()));
+          .body(
+              Map.of("message", "An error occurred while refreshing the token: " + e.getMessage()));
     }
   }
 
@@ -604,7 +607,8 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("message", "An error occurred while validating the token: " + e.getMessage()));
+          .body(
+              Map.of("message", "An error occurred while validating the token: " + e.getMessage()));
     }
   }
 
@@ -648,7 +652,10 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(500)
-          .body(Map.of("message", "An error occurred while updating the language setting: " + e.getMessage()));
+          .body(
+              Map.of(
+                  "message",
+                  "An error occurred while updating the language setting: " + e.getMessage()));
     }
   }
 
@@ -694,7 +701,12 @@ public class AuthController {
 
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(Map.of("success", false, "message", "An error occurred while sending the email: " + e.getMessage()));
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "An error occurred while sending the email: " + e.getMessage()));
     }
   }
 }

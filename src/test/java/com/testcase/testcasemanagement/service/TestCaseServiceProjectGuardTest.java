@@ -151,8 +151,7 @@ public class TestCaseServiceProjectGuardTest {
     when(testCaseRepository.findById("tc-a")).thenReturn(Optional.of(storedCase("tc-a", projectA)));
     TestCaseDto request = dto("tc-a", PROJECT_B);
 
-    Assert.assertThrows(
-        AccessDeniedException.class, () -> service.updateTestCase("tc-a", request));
+    Assert.assertThrows(AccessDeniedException.class, () -> service.updateTestCase("tc-a", request));
     verify(testCaseRepository, never()).save(any(TestCase.class));
   }
 

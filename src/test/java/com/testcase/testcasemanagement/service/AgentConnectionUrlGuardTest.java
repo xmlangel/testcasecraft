@@ -2,8 +2,8 @@ package com.testcase.testcasemanagement.service;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
-import static org.testng.Assert.expectThrows;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 
 import com.testcase.testcasemanagement.model.AgentConnection;
 import java.util.List;
@@ -13,8 +13,8 @@ import org.testng.annotations.Test;
 /**
  * 에이전트 주소 검증 가드.
  *
- * <p>사용자가 주소를 직접 넣고 서버가 그 주소를 호출하는 구조라 SSRF 위험이 있다. 에이전트는 내부망에 있는 것이 정상이라 사설 IP 를 통째로 막을 수 없으므로,
- * 대신 스킴·계정정보·질의문자열·메타데이터 호스트를 저장 시점에 좁힌다. 이 시험이 그 경계를 고정한다.
+ * <p>사용자가 주소를 직접 넣고 서버가 그 주소를 호출하는 구조라 SSRF 위험이 있다. 에이전트는 내부망에 있는 것이 정상이라 사설 IP 를 통째로 막을 수 없으므로, 대신
+ * 스킴·계정정보·질의문자열·메타데이터 호스트를 저장 시점에 좁힌다. 이 시험이 그 경계를 고정한다.
  */
 public class AgentConnectionUrlGuardTest {
 
@@ -28,30 +28,31 @@ public class AgentConnectionUrlGuardTest {
 
   @Test
   public void 정상주소를_받는다() {
-    assertEquals(service.validateAndNormalizeUrl("https://qa-agent.internal:8090"),
+    assertEquals(
+        service.validateAndNormalizeUrl("https://qa-agent.internal:8090"),
         "https://qa-agent.internal:8090");
-    assertEquals(service.validateAndNormalizeUrl("http://localhost:8090"),
-        "http://localhost:8090");
-    assertEquals(service.validateAndNormalizeUrl("https://agent.example.com"),
-        "https://agent.example.com");
+    assertEquals(service.validateAndNormalizeUrl("http://localhost:8090"), "http://localhost:8090");
+    assertEquals(
+        service.validateAndNormalizeUrl("https://agent.example.com"), "https://agent.example.com");
   }
 
   @Test
   public void 사설주소는_허용한다() {
     // 에이전트가 내부망에 있는 것이 정상 배치다. 여기서 막으면 기능을 쓸 수 없다.
-    assertEquals(service.validateAndNormalizeUrl("http://10.0.3.14:8090"),
-        "http://10.0.3.14:8090");
-    assertEquals(service.validateAndNormalizeUrl("http://192.168.1.20:8090"),
-        "http://192.168.1.20:8090");
+    assertEquals(service.validateAndNormalizeUrl("http://10.0.3.14:8090"), "http://10.0.3.14:8090");
+    assertEquals(
+        service.validateAndNormalizeUrl("http://192.168.1.20:8090"), "http://192.168.1.20:8090");
   }
 
   @Test
   public void 뒤_슬래시와_경로를_정리한다() {
-    assertEquals(service.validateAndNormalizeUrl("https://agent.example.com/"),
-        "https://agent.example.com");
-    assertEquals(service.validateAndNormalizeUrl("https://agent.example.com/qa/"),
+    assertEquals(
+        service.validateAndNormalizeUrl("https://agent.example.com/"), "https://agent.example.com");
+    assertEquals(
+        service.validateAndNormalizeUrl("https://agent.example.com/qa/"),
         "https://agent.example.com/qa");
-    assertEquals(service.validateAndNormalizeUrl("  https://agent.example.com  "),
+    assertEquals(
+        service.validateAndNormalizeUrl("  https://agent.example.com  "),
         "https://agent.example.com");
   }
 
@@ -73,7 +74,10 @@ public class AgentConnectionUrlGuardTest {
   @Test
   public void 스킴을_제한한다() {
     for (String bad :
-        List.of("file:///etc/passwd", "gopher://x.example.com", "ftp://x.example.com",
+        List.of(
+            "file:///etc/passwd",
+            "gopher://x.example.com",
+            "ftp://x.example.com",
             "agent.example.com")) {
       IllegalArgumentException e =
           expectThrows(IllegalArgumentException.class, () -> service.validateAndNormalizeUrl(bad));
@@ -83,11 +87,14 @@ public class AgentConnectionUrlGuardTest {
 
   @Test
   public void 계정정보와_질의문자열을_거부한다() {
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.validateAndNormalizeUrl("http://user:pw@agent.example.com"));
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.validateAndNormalizeUrl("https://agent.example.com?next=http://evil.com"));
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.validateAndNormalizeUrl("https://agent.example.com#frag"));
   }
 
@@ -96,7 +103,8 @@ public class AgentConnectionUrlGuardTest {
     assertThrows(IllegalArgumentException.class, () -> service.validateAndNormalizeUrl(null));
     assertThrows(IllegalArgumentException.class, () -> service.validateAndNormalizeUrl("   "));
     assertThrows(IllegalArgumentException.class, () -> service.validateAndNormalizeUrl("http://"));
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.validateAndNormalizeUrl("https://[not a host]"));
   }
 
@@ -125,14 +133,13 @@ public class AgentConnectionUrlGuardTest {
 
     assertEquals(conn.effectiveBrowserUrl(), "http://host.docker.internal:8090");
     assertTrue(
-        service.buildDeepLink(conn, null, List.of())
+        service
+            .buildDeepLink(conn, null, List.of())
             .startsWith("http://host.docker.internal:8090/runs/new"));
 
     conn.setBrowserUrl("   ");
     assertEquals(
-        conn.effectiveBrowserUrl(),
-        "http://host.docker.internal:8090",
-        "공백만 있으면 없는 것으로 본다");
+        conn.effectiveBrowserUrl(), "http://host.docker.internal:8090", "공백만 있으면 없는 것으로 본다");
   }
 
   @Test
@@ -166,8 +173,12 @@ public class AgentConnectionUrlGuardTest {
     conn.setConnectionVerified(true);
     assertTrue(conn.isRunnable());
 
-    AgentConnection fresh = AgentConnection.builder().projectId("p").name("n")
-        .serverUrl("https://a.example.com").build();
+    AgentConnection fresh =
+        AgentConnection.builder()
+            .projectId("p")
+            .name("n")
+            .serverUrl("https://a.example.com")
+            .build();
     assertEquals(fresh.getIsActive(), Boolean.FALSE, "빌더 기본값도 꺼짐이어야 한다");
     assertTrue(!fresh.isRunnable());
   }

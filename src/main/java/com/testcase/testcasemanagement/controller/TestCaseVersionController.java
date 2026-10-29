@@ -47,7 +47,9 @@ public class TestCaseVersionController {
     } catch (Exception e) {
       log.error("버전 히스토리 조회 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.<List<TestCaseVersionDto>>error("Failed to retrieve version history: " + e.getMessage()));
+          .body(
+              ApiResponse.<List<TestCaseVersionDto>>error(
+                  "Failed to retrieve version history: " + e.getMessage()));
     }
   }
 
@@ -67,7 +69,9 @@ public class TestCaseVersionController {
     } catch (Exception e) {
       log.error("현재 버전 조회 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.<TestCaseVersionDto>error("Failed to retrieve current version: " + e.getMessage()));
+          .body(
+              ApiResponse.<TestCaseVersionDto>error(
+                  "Failed to retrieve current version: " + e.getMessage()));
     }
   }
 
@@ -87,7 +91,9 @@ public class TestCaseVersionController {
     } catch (Exception e) {
       log.error("버전 상세 조회 실패: versionId={}, error={}", versionId, e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.<TestCaseVersionDto>error("Failed to retrieve version details: " + e.getMessage()));
+          .body(
+              ApiResponse.<TestCaseVersionDto>error(
+                  "Failed to retrieve version details: " + e.getMessage()));
     }
   }
 
@@ -104,7 +110,8 @@ public class TestCaseVersionController {
       log.error("프로젝트 현재 버전들 조회 실패: projectId={}, error={}", projectId, e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(
-              ApiResponse.<List<TestCaseVersionDto>>error("Failed to retrieve current versions of the project: " + e.getMessage()));
+              ApiResponse.<List<TestCaseVersionDto>>error(
+                  "Failed to retrieve current versions of the project: " + e.getMessage()));
     }
   }
 
@@ -136,7 +143,9 @@ public class TestCaseVersionController {
     } catch (Exception e) {
       log.error("수동 버전 생성 실패: testCaseId={}, error={}", testCaseId, e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.<TestCaseVersionDto>error("Failed to create manual version: " + e.getMessage()));
+          .body(
+              ApiResponse.<TestCaseVersionDto>error(
+                  "Failed to create manual version: " + e.getMessage()));
     }
   }
 
@@ -158,7 +167,9 @@ public class TestCaseVersionController {
     } catch (Exception e) {
       log.error("버전 복원 실패: versionId={}, error={}", versionId, e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.<TestCaseVersionDto>error("Failed to restore version: " + e.getMessage()));
+          .body(
+              ApiResponse.<TestCaseVersionDto>error(
+                  "Failed to restore version: " + e.getMessage()));
     }
   }
 
@@ -192,7 +203,9 @@ public class TestCaseVersionController {
           e.getMessage(),
           e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.<Map<String, Object>>error("Failed to compare versions: " + e.getMessage()));
+          .body(
+              ApiResponse.<Map<String, Object>>error(
+                  "Failed to compare versions: " + e.getMessage()));
     }
   }
 
@@ -236,7 +249,9 @@ public class TestCaseVersionController {
     } catch (Exception e) {
       log.error("임시 버전 정리 실패: cutoffDate={}, error={}", cutoffDate, e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body(ApiResponse.<Integer>error("Failed to clean up temporary versions: " + e.getMessage()));
+          .body(
+              ApiResponse.<Integer>error(
+                  "Failed to clean up temporary versions: " + e.getMessage()));
     }
   }
 

@@ -9,12 +9,25 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.springdoc.core.properties.SwaggerUiConfigProperties;
+import org.springdoc.core.properties.SwaggerUiOAuthProperties;
+import org.springdoc.core.providers.ObjectMapperProvider;
+import org.springdoc.webmvc.ui.SwaggerIndexPageTransformer;
+import org.springdoc.webmvc.ui.SwaggerIndexTransformer;
+import org.springdoc.webmvc.ui.SwaggerWelcomeCommon;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.web.servlet.resource.ResourceTransformerChain;
+import org.springframework.web.servlet.resource.TransformedResource;
 
 /** OpenAPI/Swagger 설정 */
 @Configuration
@@ -71,4 +84,45 @@ public class OpenApiConfig {
         .components(components)
         .servers(List.of(localServer));
   }
+
+  /**
+   * Swagger UI 가 앱에 로그인한 브라우저의 accessToken 을 모든 요청에 실어 보내게 한다.
+   *
+   * <p>/api-docs 는 시스템 관리자(ADMIN)만 열람할 수 있는데(SecurityConfig), 토큰이 쿠키가 아니라 localStorage 에 있어 브라우저가
+   * 자동으로 보내지 않는다. 명세를 불러오는 첫 요청부터 헤더가 필요하므로 Authorize 버튼으로는 해결되지 않는다. Authorize 로 직접 넣은 값이 있으면 그것을
+   * 우선한다.
+   */
+  @Bean
+  @ConditionalOnProperty(name = "springdoc.swagger-ui.enabled", matchIfMissing = true)
+  public SwaggerIndexTransformer swaggerIndexTransformer(
+      SwaggerUiConfigProperties swaggerUiConfig,
+      SwaggerUiOAuthProperties swaggerUiOAuthProperties,
+      SwaggerWelcomeCommon swaggerWelcomeCommon,
+      ObjectMapperProvider objectMapperProvider) {
+    return new SwaggerIndexPageTransformer(
+        swaggerUiConfig, swaggerUiOAuthProperties, swaggerWelcomeCommon, objectMapperProvider) {
+      @Override
+      public Resource transform(
+          HttpServletRequest request, Resource resource, ResourceTransformerChain chain)
+          throws IOException {
+        Resource transformed = super.transform(request, resource, chain);
+        if (!request.getRequestURI().endsWith("/swagger-initializer.js")) {
+          return transformed;
+        }
+        String js =
+            new String(transformed.getInputStream().readAllBytes(), StandardCharsets.UTF_8)
+                .replace("SwaggerUIBundle({", "SwaggerUIBundle({\n" + ACCESS_TOKEN_INTERCEPTOR);
+        return new TransformedResource(transformed, js.getBytes(StandardCharsets.UTF_8));
+      }
+    };
+  }
+
+  private static final String ACCESS_TOKEN_INTERCEPTOR =
+      "    requestInterceptor: (req) => {\n"
+          + "      const token = window.localStorage.getItem('accessToken');\n"
+          + "      if (token && !req.headers.Authorization) {\n"
+          + "        req.headers.Authorization = 'Bearer ' + token;\n"
+          + "      }\n"
+          + "      return req;\n"
+          + "    },\n";
 }

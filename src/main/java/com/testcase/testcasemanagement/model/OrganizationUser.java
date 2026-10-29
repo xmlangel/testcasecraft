@@ -27,7 +27,9 @@ public class OrganizationUser {
   @GeneratedValue(strategy = GenerationType.UUID)
   private String id;
 
-  @Comment(value = "조직 식별자: 이 멤버가 속한 조직을 가리키는 값 (값 영역: organizations.id 참조, UUID 36자)", on = "organization_id")
+  @Comment(
+      value = "조직 식별자: 이 멤버가 속한 조직을 가리키는 값 (값 영역: organizations.id 참조, UUID 36자)",
+      on = "organization_id")
   @JsonBackReference("organization-members")
   @ManyToOne(optional = false)
   @JoinColumn(name = "organization_id")
@@ -38,7 +40,9 @@ public class OrganizationUser {
   @JoinColumn(name = "user_id")
   private User user;
 
-  @Comment(value = "조직 역할 코드: 이 멤버가 조직에서 맡는 역할을 나타내는 코드 (값 영역: OWNER, ADMIN, MEMBER)", on = "role_in_organization")
+  @Comment(
+      value = "조직 역할 코드: 이 멤버가 조직에서 맡는 역할을 나타내는 코드 (값 영역: OWNER, ADMIN, MEMBER)",
+      on = "role_in_organization")
   @Enumerated(EnumType.STRING)
   @Column(name = "role_in_organization", nullable = false, length = 20)
   private OrganizationRole roleInOrganization; // OWNER, ADMIN, MEMBER

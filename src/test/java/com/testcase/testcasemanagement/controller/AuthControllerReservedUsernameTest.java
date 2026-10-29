@@ -32,8 +32,8 @@ import org.testng.annotations.Test;
 /**
  * ICT-441: 회원가입이 예약 사용자명(service-account 로 시작)을 거부하는지 확인한다.
  *
- * <p>예전 API 키 인증은 가상 계정 service-account 로, 지라 연동 토큰 교환은 service-account:키이름 으로 인증했다. 같은
- * 이름으로 가입할 수 있으면 다른 사람이 발급한 키 호출이 가입자 계정으로 실행된다.
+ * <p>예전 API 키 인증은 가상 계정 service-account 로, 지라 연동 토큰 교환은 service-account:키이름 으로 인증했다. 같은 이름으로 가입할 수
+ * 있으면 다른 사람이 발급한 키 호출이 가입자 계정으로 실행된다.
  */
 public class AuthControllerReservedUsernameTest {
 

@@ -143,7 +143,8 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
       throw e;
     } catch (Exception e) {
       log.error("❌ NVIDIA 모델 목록 조회 실패", e);
-      throw new LlmClient.LlmClientException("Failed to retrieve NVIDIA model list: " + e.getMessage(), e);
+      throw new LlmClient.LlmClientException(
+          "Failed to retrieve NVIDIA model list: " + e.getMessage(), e);
     }
 
     if (response == null || !(response.get("data") instanceof List<?> rawList)) {
@@ -174,32 +175,45 @@ public class NvidiaModelCatalogService extends AbstractLlmModelCatalog {
       int status = e.getStatusCode().value();
       if (status == 404) {
         // NVIDIA 목록에는 있으나 이 계정에서 쓸 수 없는 모델이다. 실측에서 가장 많은 사유였다.
-        return verdict(modelId, Availability.UNAVAILABLE, "This model is not available for this account (404).");
+        return verdict(
+            modelId,
+            Availability.UNAVAILABLE,
+            "This model is not available for this account (404).");
       }
       if (status == 401 || status == 403) {
         return verdict(modelId, Availability.UNAVAILABLE, "API key was rejected (" + status + ").");
       }
       if (status == 400) {
         // 텍스트 입력을 받지 않는 모델(문서 파싱 등)이 여기로 온다.
-        return verdict(modelId, Availability.UNAVAILABLE, "This model does not accept chat-format input (400).");
+        return verdict(
+            modelId,
+            Availability.UNAVAILABLE,
+            "This model does not accept chat-format input (400).");
       }
       if (status == 429) {
-        return verdict(modelId, Availability.RATE_LIMITED, "Request was rate limited (429). Try again shortly.");
+        return verdict(
+            modelId,
+            Availability.RATE_LIMITED,
+            "Request was rate limited (429). Try again shortly.");
       }
       if (status == 503) {
         // 그 모델의 워커가 혼잡한 상태다. 모델 자체는 쓸 수 있으므로 다시 확인할 여지를 남긴다.
         return verdict(
-            modelId, Availability.RATE_LIMITED, "The server for this model is busy right now (503). Try again shortly.");
+            modelId,
+            Availability.RATE_LIMITED,
+            "The server for this model is busy right now (503). Try again shortly.");
       }
       return verdict(modelId, Availability.UNAVAILABLE, "Call failed (" + status + ").");
     }
 
     if (isTimeout(error)) {
-      return timeoutVerdict(modelId, "A model called for the first time takes time to prepare. Try again shortly.");
+      return timeoutVerdict(
+          modelId, "A model called for the first time takes time to prepare. Try again shortly.");
     }
 
     log.debug("NVIDIA 가용성 확인 실패: model={}", modelId, error);
-    return verdict(modelId, Availability.UNAVAILABLE, "Check failed: " + firstLine(error.getMessage()));
+    return verdict(
+        modelId, Availability.UNAVAILABLE, "Check failed: " + firstLine(error.getMessage()));
   }
 
   /**

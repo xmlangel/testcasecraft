@@ -42,7 +42,9 @@ public class TestPlan {
   @Column(name = "test_case_id")
   private List<String> testCaseIds;
 
-  @Comment(value = "프로젝트 식별자: 이 테스트 플랜이 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)", on = "project_id")
+  @Comment(
+      value = "프로젝트 식별자: 이 테스트 플랜이 속한 프로젝트를 가리키는 값 (값 영역: projects.id 참조, UUID 36자)",
+      on = "project_id")
   @ManyToOne(optional = false)
   @JoinColumn(name = "project_id", nullable = false)
   private Project project;

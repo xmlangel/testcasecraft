@@ -270,7 +270,8 @@ public class UserPermissionService {
     // 권한 충돌 검증
     List<PermissionConflictDto> conflicts = validatePermissionChanges(changes);
     if (!conflicts.isEmpty()) {
-      throw new RuntimeException("Permission conflicts were found. Please resolve the conflicts first.");
+      throw new RuntimeException(
+          "Permission conflicts were found. Please resolve the conflicts first.");
     }
 
     for (BulkPermissionChangeDto change : changes) {

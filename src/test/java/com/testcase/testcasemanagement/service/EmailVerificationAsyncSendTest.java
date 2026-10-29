@@ -51,7 +51,8 @@ public class EmailVerificationAsyncSendTest {
 
     MailSettings settings = new MailSettings();
     settings.setMailEnabled(true);
-    when(mailSettingsRepository.findFirstByOrderByCreatedAtDesc()).thenReturn(Optional.of(settings));
+    when(mailSettingsRepository.findFirstByOrderByCreatedAtDesc())
+        .thenReturn(Optional.of(settings));
     User user = new User();
     user.setId("u1");
     user.setName("tester");
@@ -66,7 +67,8 @@ public class EmailVerificationAsyncSendTest {
               saved.set(token);
               return token;
             });
-    when(tokenRepository.findById("req-1")).thenAnswer(invocation -> Optional.ofNullable(saved.get()));
+    when(tokenRepository.findById("req-1"))
+        .thenAnswer(invocation -> Optional.ofNullable(saved.get()));
   }
 
   private EmailVerificationService service(Executor executor) {
@@ -76,7 +78,8 @@ public class EmailVerificationAsyncSendTest {
 
   @Test
   public void 발송에_성공하면_SENT_로_기록한다() {
-    CommonResponse response = service(Runnable::run).createVerificationToken("u1", "a@example.com", null);
+    CommonResponse response =
+        service(Runnable::run).createVerificationToken("u1", "a@example.com", null);
 
     assertTrue(response.isSuccess());
     assertEquals(response.getRequestId(), "req-1");
@@ -91,7 +94,8 @@ public class EmailVerificationAsyncSendTest {
         .when(mailSender)
         .send(any(), anyString(), anyString(), anyString(), any());
 
-    CommonResponse response = service(Runnable::run).createVerificationToken("u1", "a@example.com", null);
+    CommonResponse response =
+        service(Runnable::run).createVerificationToken("u1", "a@example.com", null);
 
     // 접수는 성공이고, 실패는 조회 결과로 전달된다
     assertTrue(response.isSuccess());
@@ -144,14 +148,17 @@ public class EmailVerificationAsyncSendTest {
   public void 실패_원인을_예외_사슬에서_분류한다() {
     assertEquals(
         EmailVerificationService.classify(
-            new MailSendException("connect failed", new MessagingException("x", new ConnectException()))),
+            new MailSendException(
+                "connect failed", new MessagingException("x", new ConnectException()))),
         SendErrorCode.CONNECT_FAILED);
     assertEquals(
         EmailVerificationService.classify(new AuthenticationFailedException("535")),
         SendErrorCode.AUTH_FAILED);
     assertEquals(
         EmailVerificationService.classify(
-            new MailSendException(Map.<Object, Exception>of(new Object(), new MessagingException("x", new ConnectException())))),
+            new MailSendException(
+                Map.<Object, Exception>of(
+                    new Object(), new MessagingException("x", new ConnectException())))),
         SendErrorCode.CONNECT_FAILED);
     assertEquals(
         EmailVerificationService.classify(new MailSendException("550 rejected")),

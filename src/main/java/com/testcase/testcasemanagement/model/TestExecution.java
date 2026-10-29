@@ -65,6 +65,7 @@ public class TestExecution {
 
   @Comment("시작 일시: 이 테스트 실행을 시작한 일시")
   private LocalDateTime startDate;
+
   @Comment("종료 일시: 이 테스트 실행을 완료한 일시")
   private LocalDateTime endDate;
 
@@ -81,7 +82,9 @@ public class TestExecution {
       name = "test_execution_tags",
       joinColumns = @JoinColumn(name = "test_execution_id"))
   @Comment("테스트 실행 태그: 테스트 실행에 붙인 분류 태그")
-  @Comment(value = "테스트 실행 식별자: 태그가 붙은 테스트 실행 (값 영역: test_executions.id 참조)", on = "test_execution_id")
+  @Comment(
+      value = "테스트 실행 식별자: 태그가 붙은 테스트 실행 (값 영역: test_executions.id 참조)",
+      on = "test_execution_id")
   @Comment(value = "태그: 사용자가 붙인 태그 문자열", on = "tag")
   @Column(name = "tag", length = 100)
   private java.util.Set<String> tags;
@@ -93,11 +96,13 @@ public class TestExecution {
 
   @Comment("QA 총평 수정자: QA 총평을 마지막으로 수정한 사용자명")
   private String qaSummaryUpdatedBy;
+
   @Comment("QA 총평 수정 일시: QA 총평이 마지막으로 변경된 일시")
   private LocalDateTime qaSummaryUpdatedAt;
 
   @Comment("생성 일시: 이 행이 처음 저장된 일시")
   private LocalDateTime createdAt;
+
   @Comment("수정 일시: 이 행이 마지막으로 변경된 일시")
   private LocalDateTime updatedAt;
 }
