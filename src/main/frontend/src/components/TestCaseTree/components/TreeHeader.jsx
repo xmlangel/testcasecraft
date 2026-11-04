@@ -56,6 +56,7 @@ const TreeHeader = ({
   onFilterChange,
   automationFilter = AUTOMATION_FILTER.ALL,
   onAutomationFilterChange,
+  hiddenCheckedCount = 0,
   onCheckAll,
   onRefresh,
   onOpenAddMenu,
@@ -365,6 +366,22 @@ const TreeHeader = ({
             {t("testcase.tree.automationFilter.manual", "수동")}
           </ToggleButton>
         </ToggleButtonGroup>
+      )}
+
+      {/* ICT-489: 플랜 케이스 선택 중 필터 밖에 남은 선택을 알린다 */}
+      {selectable && hiddenCheckedCount > 0 && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: "block", mt: 0.5 }}
+          data-testid="tree-hidden-checked-notice"
+        >
+          {t(
+            "testcase.tree.hiddenChecked",
+            "필터 밖에서 선택된 케이스 {count}건도 함께 저장됩니다",
+            { count: hiddenCheckedCount },
+          )}
+        </Typography>
       )}
     </Box>
   );

@@ -275,3 +275,92 @@ describe("useTestCaseTree — 자동화 필터 (ICT-488)", () => {
     expect(result.current.automationFilterActive).toBe(false);
   });
 });
+
+/**
+ * ICT-489: 테스트 플랜 케이스 선택(selectable)에서 자동화 필터.
+ * 걸러진 케이스만 골라 담을 수 있어야 하고, 필터 밖에 남은 선택은 건수로 알려야 한다.
+ */
+describe("useTestCaseTree — 플랜 케이스 선택 자동화 필터 (ICT-489)", () => {
+  const testCases = [
+    { id: "f1", projectId: "p", type: "folder", name: "결제", parentId: null },
+    {
+      id: "a1",
+      projectId: "p",
+      type: "testcase",
+      name: "자동 결제",
+      parentId: "f1",
+      isAutomated: true,
+    },
+    {
+      id: "m1",
+      projectId: "p",
+      type: "testcase",
+      name: "수동 결제",
+      parentId: "f1",
+      isAutomated: false,
+    },
+  ];
+  const baseProps = {
+    projectId: "p",
+    testCases,
+    fetchProjectTestCases: vi.fn(),
+    selectable: true,
+    selectedIds: undefined,
+    selectedTestCaseId: null,
+    setActiveTestCase: vi.fn(),
+    onSelectTestCase: undefined,
+    userRole: "PROJECT_MANAGER",
+    filterText: "",
+    automationFilter: "automated",
+    folderOnlyView: false,
+  };
+
+  it("자동화만 걸고 전체 선택하면 자동화 케이스만 플랜 선택으로 넘어간다", () => {
+    const onSelectionChange = vi.fn();
+    const { result } = renderHook((props) => useTestCaseTree(props), {
+      initialProps: { ...baseProps, onSelectionChange },
+    });
+    act(() => {
+      result.current.handleCheckAll({ target: { checked: true } });
+    });
+    expect(onSelectionChange).toHaveBeenLastCalledWith(["a1"]);
+  });
+
+  it("필터 중 폴더를 체크해도 수동 케이스는 따라오지 않는다", () => {
+    const onSelectionChange = vi.fn();
+    const { result } = renderHook((props) => useTestCaseTree(props), {
+      initialProps: { ...baseProps, onSelectionChange },
+    });
+    act(() => {
+      result.current.updateCheckedState("f1", true);
+    });
+    const selected = onSelectionChange.mock.lastCall[0];
+    expect(selected).toContain("a1");
+    expect(selected).not.toContain("m1");
+  });
+
+  it("필터 밖에 남은 선택 케이스 수를 센다 (폴더는 세지 않는다)", () => {
+    const { result } = renderHook((props) => useTestCaseTree(props), {
+      initialProps: {
+        ...baseProps,
+        onSelectionChange: vi.fn(),
+        selectedIds: ["f1", "a1", "m1"],
+      },
+    });
+    expect(result.current.hiddenCheckedCount).toBe(1);
+  });
+
+  it("일반 트리(selectable 아님)에서는 세지 않는다", () => {
+    const { result } = renderHook((props) => useTestCaseTree(props), {
+      initialProps: {
+        ...baseProps,
+        selectable: false,
+        onSelectionChange: vi.fn(),
+      },
+    });
+    act(() => {
+      result.current.updateCheckedState("m1", true);
+    });
+    expect(result.current.hiddenCheckedCount).toBe(0);
+  });
+});

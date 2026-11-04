@@ -193,6 +193,11 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.tree.automationFilter.manual", "testcase", "트리 자동화 필터: 수동", "수동");
     createTranslationKeyIfNotExists(
+        "testcase.tree.hiddenChecked",
+        "testcase",
+        "플랜 케이스 선택: 필터 밖 선택 안내 (ICT-489)",
+        "필터 밖에서 선택된 케이스 {count}건도 함께 저장됩니다");
+    createTranslationKeyIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 모드 제목", "고급 스프레드시트");
 
     // 모드별 설명

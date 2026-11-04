@@ -1008,6 +1008,11 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.tree.automationFilter.manual", languageCode, "Manual", createdBy);
     createTranslationIfNotExists(
+        "testcase.tree.hiddenChecked",
+        languageCode,
+        "{count} selected case(s) outside the filter will also be saved",
+        createdBy);
+    createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title",
         languageCode,
         "Advanced Spreadsheet",

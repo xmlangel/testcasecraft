@@ -110,3 +110,37 @@ describe("TreeHeader 자동화 필터 (ICT-488)", () => {
     expect(screen.queryByTestId("tree-automation-filter")).toBeNull();
   });
 });
+
+describe("TreeHeader 필터 밖 선택 안내 (ICT-489)", () => {
+  const props = {
+    userRole: "PROJECT_MANAGER",
+    isAllChecked: false,
+    isIndeterminate: false,
+    totalFolderCount: 1,
+    totalTestCaseCount: 3,
+    checkedIds: ["m1"],
+    orderEditMode: false,
+    orderChanged: false,
+    folderOnlyView: false,
+    onToggleViewMode: vi.fn(),
+    onCheckAll: vi.fn(),
+    onRefresh: vi.fn(),
+    onOpenAddMenu: vi.fn(),
+    onOrderEditMode: vi.fn(),
+    onOrderSave: vi.fn(),
+    onOrderCancel: vi.fn(),
+    onBatchDelete: vi.fn(),
+  };
+
+  it("플랜 케이스 선택에서 필터 밖 선택이 있으면 안내한다", () => {
+    render(<TreeHeader {...props} selectable hiddenCheckedCount={2} />);
+    expect(screen.getByTestId("tree-hidden-checked-notice")).toHaveTextContent(
+      "필터 밖에서 선택된 케이스 {count}건도 함께 저장됩니다",
+    );
+  });
+
+  it("필터 밖 선택이 없으면 안내하지 않는다", () => {
+    render(<TreeHeader {...props} selectable hiddenCheckedCount={0} />);
+    expect(screen.queryByTestId("tree-hidden-checked-notice")).toBeNull();
+  });
+});

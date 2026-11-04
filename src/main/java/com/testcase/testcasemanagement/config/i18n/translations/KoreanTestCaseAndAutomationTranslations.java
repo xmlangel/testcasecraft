@@ -600,6 +600,11 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.tree.automationFilter.manual", languageCode, "수동", createdBy);
     createTranslationIfNotExists(
+        "testcase.tree.hiddenChecked",
+        languageCode,
+        "필터 밖에서 선택된 케이스 {count}건도 함께 저장됩니다",
+        createdBy);
+    createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title", languageCode, "고급 스프레드시트", createdBy);
     createTranslationIfNotExists(
         "testcase.inputMode.form.description",

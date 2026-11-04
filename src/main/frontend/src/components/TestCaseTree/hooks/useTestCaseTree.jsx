@@ -124,6 +124,19 @@ export const useTestCaseTree = ({
     [filteredTestCases, queryScopedIds, totalFolderCount],
   );
 
+  // ICT-489: 플랜 케이스 선택(selectable)에서 필터 밖에 남아 있는 선택 케이스 수.
+  // 화면에는 안 보이지만 저장하면 플랜에 들어가므로 헤더에서 알려준다.
+  const hiddenCheckedCount = useMemo(() => {
+    if (!selectable || !queryScopedIds) return 0;
+    const caseIds = new Set(
+      filteredTestCases
+        .filter((tc) => tc && tc.type === "testcase")
+        .map((tc) => tc.id),
+    );
+    return checkedIds.filter((id) => caseIds.has(id) && !queryScopedIds.has(id))
+      .length;
+  }, [selectable, queryScopedIds, filteredTestCases, checkedIds]);
+
   const checkedTargetCount = useMemo(() => {
     const checked = new Set(checkedIds);
     return checkTargetIds.filter((id) => checked.has(id)).length;
@@ -299,6 +312,7 @@ export const useTestCaseTree = ({
     totalFolderCount,
     queryScopedIds,
     automationFilterActive,
+    hiddenCheckedCount,
     checkTargetIds,
     matchedTestCaseCount,
     matchedFolderCount,

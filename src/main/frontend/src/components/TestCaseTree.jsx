@@ -565,6 +565,7 @@ const TestCaseTree = ({
         onFilterChange={setFilterText}
         automationFilter={automationFilter}
         onAutomationFilterChange={setAutomationFilter}
+        hiddenCheckedCount={treeState.hiddenCheckedCount}
         onCheckAll={treeState.handleCheckAll}
         onRefresh={actions.handleRefresh}
         onOpenAddMenu={handleOpenAddMenu}
