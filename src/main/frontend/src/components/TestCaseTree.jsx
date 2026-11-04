@@ -37,6 +37,7 @@ import TreeHeader from "./TestCaseTree/components/TreeHeader.jsx";
 import TreeContextMenu from "./TestCaseTree/components/TreeContextMenu.jsx";
 import TreeDialogs from "./TestCaseTree/components/TreeDialogs.jsx";
 import TreeVirtualNodes from "./TestCaseTree/components/TreeVirtualNodes.jsx";
+import { AUTOMATION_FILTER } from "./TestCaseTree/utils/treeFilter.js";
 import TestCaseBulkOperations from "./TestCase/TestCaseBulkOperations.jsx";
 import testCaseService from "../services/testCaseService.js";
 import {
@@ -107,6 +108,10 @@ const TestCaseTree = ({
 
   // ── 0.5. 트리 필터 (이름 부분 일치, 조상/하위 경로 유지) ──────────────────
   const [filterText, setFilterText] = useState("");
+  // ICT-488: 자동화 여부 필터 (전체·자동화·수동). 검색어와 AND 로 묶인다.
+  const [automationFilter, setAutomationFilter] = useState(
+    AUTOMATION_FILTER.ALL,
+  );
 
   // ── 1. 트리 상태 (초기 orderMap은 빈 객체; actions에서 sync됨) ──────────────
   const treeState = useTestCaseTree({
@@ -122,6 +127,7 @@ const TestCaseTree = ({
     userRole: projectRole,
     // ICT-431: 검색으로 좁힌 상태에서는 선택 대상도 걸린 항목으로 제한된다
     filterText,
+    automationFilter,
     folderOnlyView,
   });
 
@@ -142,6 +148,10 @@ const TestCaseTree = ({
     inputMode,
     setInputMode,
     onSelectTestCase,
+    // ICT-488: 자동화 필터 중 일괄 삭제는 필터에 걸린 케이스로 한정한다
+    deleteScopeIds: treeState.automationFilterActive
+      ? treeState.queryScopedIds
+      : null,
     folderOnlyView,
   });
 
@@ -553,6 +563,8 @@ const TestCaseTree = ({
         onToggleViewMode={handleToggleViewMode}
         filterText={filterText}
         onFilterChange={setFilterText}
+        automationFilter={automationFilter}
+        onAutomationFilterChange={setAutomationFilter}
         onCheckAll={treeState.handleCheckAll}
         onRefresh={actions.handleRefresh}
         onOpenAddMenu={handleOpenAddMenu}

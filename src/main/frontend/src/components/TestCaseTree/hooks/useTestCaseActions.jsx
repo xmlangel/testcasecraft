@@ -1,5 +1,5 @@
 // src/components/TestCaseTree/hooks/useTestCaseActions.jsx
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   getAncestorIds,
@@ -28,6 +28,7 @@ export const useTestCaseActions = ({
   inputMode,
   setInputMode,
   onSelectTestCase,
+  deleteScopeIds = null,
   folderOnlyView = false,
 }) => {
   const [newItemData, setNewItemData] = useState(null);
@@ -220,15 +221,25 @@ export const useTestCaseActions = ({
 
   // ── 일괄 삭제 ─────────────────────────────────────────────────────────────
 
+  // ICT-488: 자동화 필터 중에는 필터에 걸린 케이스만 지운다. 폴더나 필터 밖 항목이
+  // 체크돼 있어도 지우지 않는다 — 폴더를 지우면 필터 밖 케이스까지 함께 지워지기 때문이다.
+  const deletableCheckedIds = useMemo(
+    () =>
+      deleteScopeIds
+        ? checkedIds.filter((id) => deleteScopeIds.has(id))
+        : checkedIds,
+    [checkedIds, deleteScopeIds],
+  );
+
   const handleConfirmBatchDelete = useCallback(async () => {
     try {
       // 선택된 항목 중 부모만 삭제 (자식은 백엔드 Cascade로 자동 삭제)
-      const parentOnlyIds = checkedIds.filter((id) => {
+      const parentOnlyIds = deletableCheckedIds.filter((id) => {
         const item = filteredTestCases.find((tc) => tc.id === id);
         if (!item) return false;
         let currentParentId = item.parentId;
         while (currentParentId) {
-          if (checkedIds.includes(currentParentId)) return false;
+          if (deletableCheckedIds.includes(currentParentId)) return false;
           const parent = filteredTestCases.find(
             (tc) => tc.id === currentParentId,
           );
@@ -267,7 +278,7 @@ export const useTestCaseActions = ({
       }, 0);
     }
   }, [
-    checkedIds,
+    deletableCheckedIds,
     filteredTestCases,
     deleteTestCase,
     inputMode,
@@ -539,7 +550,7 @@ export const useTestCaseActions = ({
 
   const getBatchDeleteItems = useCallback(() => {
     const allItems = new Map();
-    checkedIds.forEach((id) => {
+    deletableCheckedIds.forEach((id) => {
       const item = filteredTestCases.find((tc) => tc.id === id);
       if (item) {
         if (!allItems.has(item.id)) {
@@ -566,7 +577,7 @@ export const useTestCaseActions = ({
       }
     });
     return Array.from(allItems.values());
-  }, [checkedIds, filteredTestCases]);
+  }, [deletableCheckedIds, filteredTestCases]);
 
   const getSingleDeleteItems = useCallback(() => {
     if (!itemToDeleteId) return [];

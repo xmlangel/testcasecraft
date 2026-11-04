@@ -185,6 +185,14 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.tree.automated", "testcase", "자동화 케이스 표시 (ICT-487)", "자동화");
     createTranslationKeyIfNotExists(
+        "testcase.tree.automationFilter.title", "testcase", "트리 자동화 필터 (ICT-488)", "자동화 여부");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.automationFilter.all", "testcase", "트리 자동화 필터: 전체", "전체");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.automationFilter.automated", "testcase", "트리 자동화 필터: 자동화", "자동화");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.automationFilter.manual", "testcase", "트리 자동화 필터: 수동", "수동");
+    createTranslationKeyIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 모드 제목", "고급 스프레드시트");
 
     // 모드별 설명

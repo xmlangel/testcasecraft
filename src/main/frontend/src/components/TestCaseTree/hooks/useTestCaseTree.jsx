@@ -2,7 +2,12 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { getAncestorIds, getAllChildIds } from "../../../utils/treeUtils.jsx";
 import { isViewer } from "../utils/permissionUtils.js";
-import { collectQueryScopedIds } from "../utils/treeFilter.js";
+import {
+  collectQueryScopedIds,
+  collectAutomationScopedIds,
+  intersectScopedIds,
+  AUTOMATION_FILTER,
+} from "../utils/treeFilter.js";
 
 /**
  * 테스트케이스 트리 UI 상태 관리 훅
@@ -22,6 +27,7 @@ export const useTestCaseTree = ({
   onSelectTestCase,
   userRole,
   filterText = "",
+  automationFilter = AUTOMATION_FILTER.ALL,
   folderOnlyView = false,
 }) => {
   const [expanded, setExpanded] = useState([]);
@@ -62,15 +68,24 @@ export const useTestCaseTree = ({
 
   // ICT-431: 검색 결과에 속하는 노드 집합(자신 또는 조상이 걸린 것).
   // 검색이 없으면 null = 제한 없음. 폴더 전용 뷰에서는 케이스가 화면에 없으므로 뺀다.
+  // ICT-488: 자동화 필터는 케이스에만 걸린다. 검색어와 함께 쓰면 두 조건을 모두 만족해야 한다(AND).
+  // 폴더 전용 뷰에는 케이스가 없으므로 적용하지 않는다.
+  const automationFilterActive =
+    !folderOnlyView && automationFilter !== AUTOMATION_FILTER.ALL;
   const queryScopedIds = useMemo(
     () =>
-      collectQueryScopedIds(
+      intersectScopedIds(
+        collectQueryScopedIds(
+          folderOnlyView
+            ? filteredTestCases.filter((tc) => tc && tc.type === "folder")
+            : filteredTestCases,
+          filterText,
+        ),
         folderOnlyView
-          ? filteredTestCases.filter((tc) => tc && tc.type === "folder")
-          : filteredTestCases,
-        filterText,
+          ? null
+          : collectAutomationScopedIds(filteredTestCases, automationFilter),
       ),
-    [filteredTestCases, filterText, folderOnlyView],
+    [filteredTestCases, filterText, automationFilter, folderOnlyView],
   );
 
   // 전체 선택 대상.
@@ -283,6 +298,7 @@ export const useTestCaseTree = ({
     totalTestCaseCount,
     totalFolderCount,
     queryScopedIds,
+    automationFilterActive,
     checkTargetIds,
     matchedTestCaseCount,
     matchedFolderCount,

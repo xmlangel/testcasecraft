@@ -592,6 +592,14 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.viewMode.view", languageCode, "보기", createdBy);
     createTranslationIfNotExists("testcase.tree.automated", languageCode, "자동화", createdBy);
     createTranslationIfNotExists(
+        "testcase.tree.automationFilter.title", languageCode, "자동화 여부", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.all", languageCode, "전체", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.automated", languageCode, "자동화", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.manual", languageCode, "수동", createdBy);
+    createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title", languageCode, "고급 스프레드시트", createdBy);
     createTranslationIfNotExists(
         "testcase.inputMode.form.description",

@@ -1000,6 +1000,14 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.viewMode.view", languageCode, "View", createdBy);
     createTranslationIfNotExists("testcase.tree.automated", languageCode, "Automated", createdBy);
     createTranslationIfNotExists(
+        "testcase.tree.automationFilter.title", languageCode, "Automation", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.all", languageCode, "All", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.automated", languageCode, "Automated", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.manual", languageCode, "Manual", createdBy);
+    createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title",
         languageCode,
         "Advanced Spreadsheet",

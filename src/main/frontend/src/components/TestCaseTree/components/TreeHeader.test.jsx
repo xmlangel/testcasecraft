@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import TreeHeader from "./TreeHeader.jsx";
 
 vi.mock("../../../context/I18nContext.jsx", () => ({
@@ -58,5 +58,55 @@ describe("TreeHeader 카운트 표시 (ICT-431)", () => {
     expect(screen.getByTestId("tree-testcase-count")).toHaveTextContent(
       "17/340",
     );
+  });
+});
+
+describe("TreeHeader 자동화 필터 (ICT-488)", () => {
+  const props = {
+    userRole: "PROJECT_MANAGER",
+    selectable: false,
+    isAllChecked: false,
+    isIndeterminate: false,
+    totalFolderCount: 1,
+    totalTestCaseCount: 3,
+    checkedIds: [],
+    orderEditMode: false,
+    orderChanged: false,
+    folderOnlyView: false,
+    onToggleViewMode: vi.fn(),
+    filterText: "",
+    onFilterChange: vi.fn(),
+    onCheckAll: vi.fn(),
+    onRefresh: vi.fn(),
+    onOpenAddMenu: vi.fn(),
+    onOrderEditMode: vi.fn(),
+    onOrderSave: vi.fn(),
+    onOrderCancel: vi.fn(),
+    onBatchDelete: vi.fn(),
+  };
+
+  it("자동화 버튼을 누르면 automated 로 바꾸도록 알린다", () => {
+    const onAutomationFilterChange = vi.fn();
+    render(
+      <TreeHeader
+        {...props}
+        automationFilter="all"
+        onAutomationFilterChange={onAutomationFilterChange}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("tree-automation-filter-automated"));
+    expect(onAutomationFilterChange).toHaveBeenCalledWith("automated");
+  });
+
+  it("폴더 전용 뷰에서는 필터를 숨긴다", () => {
+    render(
+      <TreeHeader
+        {...props}
+        folderOnlyView
+        automationFilter="all"
+        onAutomationFilterChange={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("tree-automation-filter")).toBeNull();
   });
 });
