@@ -22,6 +22,7 @@ import {
   Edit as EditIcon,
   Star as StarIcon,
   StarBorder as StarBorderIcon,
+  SmartToy as SmartToyIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { buildFolderCaseCountMap } from "../../utils/treeUtils.jsx";
@@ -351,7 +352,37 @@ const FolderCaseList = ({
                       </TableCell>
                     )}
                     <TableCell>
-                      <TruncatedText text={item.name} />
+                      {!isChildFolder && item.isAutomated === true ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            minWidth: 0,
+                          }}
+                        >
+                          <Tooltip
+                            title={t("testcase.tree.automated", "자동화")}
+                            arrow
+                          >
+                            <SmartToyIcon
+                              data-testid={`folder-case-automated-icon-${item.id}`}
+                              aria-label={t(
+                                "testcase.tree.automated",
+                                "자동화",
+                              )}
+                              sx={{
+                                fontSize: 16,
+                                color: "secondary.main",
+                                flexShrink: 0,
+                              }}
+                            />
+                          </Tooltip>
+                          <TruncatedText text={item.name} />
+                        </Box>
+                      ) : (
+                        <TruncatedText text={item.name} />
+                      )}
                     </TableCell>
                     <TableCell>
                       <TruncatedText

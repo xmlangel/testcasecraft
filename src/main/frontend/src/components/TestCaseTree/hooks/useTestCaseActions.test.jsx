@@ -101,3 +101,59 @@ describe("useTestCaseActions.moveNodeOrder (트리 순서 변경)", () => {
     expect(result.current.orderChanged).toBe(false);
   });
 });
+
+/**
+ * ICT-488: 자동화 필터 중 일괄 삭제는 필터에 걸린 케이스로 한정한다.
+ * 폴더가 체크돼 있어도 지우지 않는다 — 폴더를 지우면 필터 밖 케이스가 함께 지워진다.
+ */
+describe("useTestCaseActions 일괄 삭제 범위 (ICT-488)", () => {
+  const filteredTestCases = [
+    { id: "f1", parentId: null, type: "folder", name: "폴더" },
+    { id: "a1", parentId: "f1", type: "testcase", name: "자동" },
+    { id: "m1", parentId: "f1", type: "testcase", name: "수동" },
+  ];
+
+  const setup = (deleteScopeIds) => {
+    const deleteTestCase = vi.fn().mockResolvedValue(undefined);
+    const view = renderHook(() =>
+      useTestCaseActions({
+        projectId: "proj",
+        filteredTestCases,
+        addTestCase: vi.fn(),
+        updateTestCase: vi.fn(),
+        updateTestCaseLocal: vi.fn(),
+        deleteTestCase,
+        fetchProjectTestCases: vi.fn(),
+        projectRole: "PROJECT_MANAGER",
+        t: (_key, def) => def,
+        setExpanded: vi.fn(),
+        checkedIds: ["f1", "a1"],
+        setCheckedIds: vi.fn(),
+        inputMode: undefined,
+        setInputMode: vi.fn(),
+        onSelectTestCase: vi.fn(),
+        deleteScopeIds,
+      }),
+    );
+    return { ...view, deleteTestCase };
+  };
+
+  it("범위가 없으면 체크된 폴더째 지운다 (기존 동작)", async () => {
+    const { result, deleteTestCase } = setup(null);
+    await act(async () => {
+      await result.current.handleConfirmBatchDelete();
+    });
+    expect(deleteTestCase.mock.calls.map((c) => c[0])).toEqual(["f1"]);
+  });
+
+  it("범위가 있으면 범위 안 케이스만 지우고 폴더는 남긴다", async () => {
+    const { result, deleteTestCase } = setup(new Set(["a1"]));
+    expect(result.current.getBatchDeleteItems().map((i) => i.id)).toEqual([
+      "a1",
+    ]);
+    await act(async () => {
+      await result.current.handleConfirmBatchDelete();
+    });
+    expect(deleteTestCase.mock.calls.map((c) => c[0])).toEqual(["a1"]);
+  });
+});

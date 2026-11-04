@@ -87,6 +87,8 @@ const TabPanel = (props) => {
   );
 };
 
+const VIEW_MODE_STORAGE_KEY = "testcase-manager-form-view-mode";
+
 const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   const {
     testCases,
@@ -333,6 +335,7 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     [projectId, updateTestCase],
   );
 
+  // 자동 저장은 역할로만 막는다. 보기 모드로 바꿔도 전환 전에 입력한 변경분은 저장된다.
   const isViewerForAutoSave = isViewerProjectRole(projectRole);
 
   const { autoSaveStatus, autoSaveError, markSaved } = useAutoSave({
@@ -366,8 +369,19 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
     );
   };
 
-  const isViewer = isViewerProjectRole(projectRole);
+  // 편집/보기 전환 (ICT-486). 케이스를 옮겨 다녀도 유지되도록 localStorage 에 둔다.
+  const [viewMode, setViewMode] = useState(() =>
+    localStorage.getItem(VIEW_MODE_STORAGE_KEY) === "view" ? "view" : "edit",
+  );
+  const handleViewModeChange = (next) => {
+    setViewMode(next);
+    localStorage.setItem(VIEW_MODE_STORAGE_KEY, next);
+  };
+  const isRoleViewer = isViewerProjectRole(projectRole);
   const isFolder = testCase?.type === "folder";
+  // 새 케이스 작성 중과 폴더 폼에는 보기 모드를 적용하지 않는다 (폴더 폼에는 전환 토글이 없다).
+  const isViewer =
+    isRoleViewer || (viewMode === "view" && !!testCaseId && !isFolder);
 
   // 현재 버전 정보 조회
   const fetchCurrentVersion = async (tcId) => {
@@ -1489,6 +1503,10 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
           onAddNew={handleAddNew}
           autoSaveStatus={autoSaveStatus}
           autoSaveError={autoSaveError}
+          viewMode={viewMode}
+          onViewModeChange={
+            !isRoleViewer && testCaseId ? handleViewModeChange : undefined
+          }
           /* RAG 등록 뱃지를 헤더 액션 행에 인라인 배치 — 별도 행 제거로 본문 영역 확보 */
           ragSlot={
             testCaseId && !isFolder ? (

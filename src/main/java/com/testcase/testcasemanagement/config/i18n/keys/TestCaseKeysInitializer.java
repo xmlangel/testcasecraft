@@ -179,6 +179,25 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.inputMode.spreadsheet.title", "testcase", "스프레드시트 모드 제목", "스프레드시트");
     createTranslationKeyIfNotExists(
+        "testcase.viewMode.title", "testcase", "케이스 폼 편집/보기 전환 (ICT-486)", "보기 모드 선택");
+    createTranslationKeyIfNotExists("testcase.viewMode.edit", "testcase", "케이스 폼 편집 모드 버튼", "편집");
+    createTranslationKeyIfNotExists("testcase.viewMode.view", "testcase", "케이스 폼 보기 모드 버튼", "보기");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.automated", "testcase", "자동화 케이스 표시 (ICT-487)", "자동화");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.automationFilter.title", "testcase", "트리 자동화 필터 (ICT-488)", "자동화 여부");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.automationFilter.all", "testcase", "트리 자동화 필터: 전체", "전체");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.automationFilter.automated", "testcase", "트리 자동화 필터: 자동화", "자동화");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.automationFilter.manual", "testcase", "트리 자동화 필터: 수동", "수동");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.hiddenChecked",
+        "testcase",
+        "플랜 케이스 선택: 필터 밖 선택 안내 (ICT-489)",
+        "필터 밖에서 선택된 케이스 {count}건도 함께 저장됩니다");
+    createTranslationKeyIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 모드 제목", "고급 스프레드시트");
 
     // 모드별 설명

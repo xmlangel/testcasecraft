@@ -6,6 +6,8 @@ import {
   IconButton,
   InputAdornment,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -22,10 +24,12 @@ import {
   AccountTree as AccountTreeIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
+  SmartToy as SmartToyIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../../context/I18nContext.jsx";
 import { isViewer, canAdd } from "../utils/permissionUtils.js";
 import { CHROME_ICON_SX } from "../../common/iconSizes.js";
+import { AUTOMATION_FILTER } from "../utils/treeFilter.js";
 
 /**
  * 테스트케이스 트리 헤더 컴포넌트
@@ -50,6 +54,9 @@ const TreeHeader = ({
   onToggleViewMode,
   filterText,
   onFilterChange,
+  automationFilter = AUTOMATION_FILTER.ALL,
+  onAutomationFilterChange,
+  hiddenCheckedCount = 0,
   onCheckAll,
   onRefresh,
   onOpenAddMenu,
@@ -323,6 +330,58 @@ const TreeHeader = ({
             ) : null,
           }}
         />
+      )}
+
+      {/* ICT-488: 자동화 여부 필터. 케이스가 없는 폴더 전용 뷰에서는 숨긴다. */}
+      {onAutomationFilterChange && !folderOnlyView && (
+        <ToggleButtonGroup
+          value={automationFilter}
+          exclusive
+          fullWidth
+          size="small"
+          onChange={(_e, next) => {
+            if (next !== null) onAutomationFilterChange(next);
+          }}
+          aria-label={t("testcase.tree.automationFilter.title", "자동화 여부")}
+          sx={{ mt: 1, "& .MuiToggleButton-root": { py: 0.25 } }}
+          data-testid="tree-automation-filter"
+        >
+          <ToggleButton
+            value={AUTOMATION_FILTER.ALL}
+            data-testid="tree-automation-filter-all"
+          >
+            {t("testcase.tree.automationFilter.all", "전체")}
+          </ToggleButton>
+          <ToggleButton
+            value={AUTOMATION_FILTER.AUTOMATED}
+            data-testid="tree-automation-filter-automated"
+          >
+            <SmartToyIcon sx={{ fontSize: 16, mr: 0.5 }} />
+            {t("testcase.tree.automationFilter.automated", "자동화")}
+          </ToggleButton>
+          <ToggleButton
+            value={AUTOMATION_FILTER.MANUAL}
+            data-testid="tree-automation-filter-manual"
+          >
+            {t("testcase.tree.automationFilter.manual", "수동")}
+          </ToggleButton>
+        </ToggleButtonGroup>
+      )}
+
+      {/* ICT-489: 플랜 케이스 선택 중 필터 밖에 남은 선택을 알린다 */}
+      {selectable && hiddenCheckedCount > 0 && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: "block", mt: 0.5 }}
+          data-testid="tree-hidden-checked-notice"
+        >
+          {t(
+            "testcase.tree.hiddenChecked",
+            "필터 밖에서 선택된 케이스 {count}건도 함께 저장됩니다",
+            { count: hiddenCheckedCount },
+          )}
+        </Typography>
       )}
     </Box>
   );

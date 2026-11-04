@@ -21,6 +21,7 @@ import {
   History as HistoryIcon,
   MoreVert as MoreVertIcon,
   DragIndicator as DragIndicatorIcon,
+  SmartToy as SmartToyIcon,
 } from "@mui/icons-material";
 import { isFolder } from "../../../utils/treeUtils.jsx";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
@@ -222,6 +223,26 @@ const MemoizedTreeItem = React.memo(
             />
           )}
         </Box>
+
+        {/* 자동화 케이스 표시 (ICT-487): 수동 케이스는 표시하지 않는다 */}
+        {!isFolder(node) && node.isAutomated === true && (
+          <Tooltip
+            title={t("testcase.tree.automated", "자동화")}
+            arrow
+            placement="top"
+          >
+            <SmartToyIcon
+              data-testid={`tree-automated-icon-${node.id}`}
+              aria-label={t("testcase.tree.automated", "자동화")}
+              sx={{
+                fontSize: 16,
+                color: "secondary.main",
+                flexShrink: 0,
+                mr: 0.5,
+              }}
+            />
+          </Tooltip>
+        )}
 
         {/* 이름 영역: 가변 너비. 툴팁에 ID + 전체 이름 표시 (칩 제거로 행 단순화) */}
         <Tooltip
