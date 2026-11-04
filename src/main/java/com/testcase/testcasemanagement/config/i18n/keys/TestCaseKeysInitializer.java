@@ -179,6 +179,10 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists(
         "testcase.inputMode.spreadsheet.title", "testcase", "스프레드시트 모드 제목", "스프레드시트");
     createTranslationKeyIfNotExists(
+        "testcase.viewMode.title", "testcase", "케이스 폼 편집/보기 전환 (ICT-486)", "보기 모드 선택");
+    createTranslationKeyIfNotExists("testcase.viewMode.edit", "testcase", "케이스 폼 편집 모드 버튼", "편집");
+    createTranslationKeyIfNotExists("testcase.viewMode.view", "testcase", "케이스 폼 보기 모드 버튼", "보기");
+    createTranslationKeyIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title", "testcase", "고급 스프레드시트 모드 제목", "고급 스프레드시트");
 
     // 모드별 설명

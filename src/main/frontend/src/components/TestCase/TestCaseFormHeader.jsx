@@ -9,6 +9,8 @@ import {
   CircularProgress,
   Tooltip,
   Chip,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import {
   Save as SaveIcon,
@@ -17,6 +19,8 @@ import {
   Delete as DeleteIcon,
   CheckCircleOutline as CheckCircleOutlineIcon,
   ErrorOutline as ErrorOutlineIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import VersionIndicator from "./VersionIndicator.jsx";
 import { ACTION_BUTTON_SIZE } from "../common/actionButtonSize.js";
@@ -41,6 +45,8 @@ const TestCaseFormHeader = ({
   autoSaveStatus,
   autoSaveError,
   ragSlot,
+  viewMode,
+  onViewModeChange,
   // continueAdding, // Removed
   // onContinueAddingChange, // Removed
 }) => {
@@ -113,6 +119,38 @@ const TestCaseFormHeader = ({
               variant="outlined"
               sx={{ fontWeight: "bold" }}
             />
+          )}
+          {/* 편집/보기 전환 — 편집 권한이 있는 역할에만 넘겨받는다 (ICT-486) */}
+          {onViewModeChange && (
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              size="small"
+              onChange={(_e, next) => {
+                if (next !== null) onViewModeChange(next);
+              }}
+              aria-label={t("testcase.viewMode.title", "보기 모드 선택")}
+              data-testid="testcase-view-mode-toggle"
+            >
+              <ToggleButton
+                value="edit"
+                aria-label={t("testcase.viewMode.edit", "편집")}
+                data-testid="testcase-view-mode-edit"
+                sx={{ px: 1, py: 0.25 }}
+              >
+                <EditIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                {t("testcase.viewMode.edit", "편집")}
+              </ToggleButton>
+              <ToggleButton
+                value="view"
+                aria-label={t("testcase.viewMode.view", "보기")}
+                data-testid="testcase-view-mode-view"
+                sx={{ px: 1, py: 0.25 }}
+              >
+                <VisibilityIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                {t("testcase.viewMode.view", "보기")}
+              </ToggleButton>
+            </ToggleButtonGroup>
           )}
         </Box>
         {/* 테스트 케이스 추가 버튼 (상단으로 이동하여 저장 버튼과 구분) */}
@@ -234,6 +272,8 @@ TestCaseFormHeader.propTypes = {
   onVersionHistory: PropTypes.func,
   onCreateVersion: PropTypes.func,
   ragSlot: PropTypes.node,
+  viewMode: PropTypes.oneOf(["edit", "view"]),
+  onViewModeChange: PropTypes.func,
   onAddNew: PropTypes.func,
   autoSaveStatus: PropTypes.oneOf(["idle", "saving", "saved", "error"]),
   autoSaveError: PropTypes.string,
