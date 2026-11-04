@@ -64,3 +64,27 @@ describe("TestCaseFormHeader 편집/보기 전환 (ICT-486)", () => {
     expect(screen.getByTestId("testcase-view-mode-toggle")).toBeInTheDocument();
   });
 });
+
+describe("TestCaseFormHeader 자동화 표시 (ICT-487)", () => {
+  it("자동화 케이스면 TC ID 옆에 자동화 칩을 그린다", () => {
+    render(
+      <TestCaseFormHeader
+        {...baseProps}
+        testCase={{ ...baseProps.testCase, isAutomated: true }}
+      />,
+    );
+    expect(
+      screen.getByTestId("testcase-header-automated-chip"),
+    ).toBeInTheDocument();
+  });
+
+  it("수동 케이스면 칩을 그리지 않는다", () => {
+    render(
+      <TestCaseFormHeader
+        {...baseProps}
+        testCase={{ ...baseProps.testCase, isAutomated: false }}
+      />,
+    );
+    expect(screen.queryByTestId("testcase-header-automated-chip")).toBeNull();
+  });
+});

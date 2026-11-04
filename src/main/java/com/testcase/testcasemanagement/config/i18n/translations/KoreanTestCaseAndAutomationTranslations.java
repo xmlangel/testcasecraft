@@ -590,6 +590,7 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.viewMode.title", languageCode, "보기 모드 선택", createdBy);
     createTranslationIfNotExists("testcase.viewMode.edit", languageCode, "편집", createdBy);
     createTranslationIfNotExists("testcase.viewMode.view", languageCode, "보기", createdBy);
+    createTranslationIfNotExists("testcase.tree.automated", languageCode, "자동화", createdBy);
     createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title", languageCode, "고급 스프레드시트", createdBy);
     createTranslationIfNotExists(

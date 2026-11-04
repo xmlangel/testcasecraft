@@ -998,6 +998,7 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testcase.viewMode.title", languageCode, "Select view mode", createdBy);
     createTranslationIfNotExists("testcase.viewMode.edit", languageCode, "Edit", createdBy);
     createTranslationIfNotExists("testcase.viewMode.view", languageCode, "View", createdBy);
+    createTranslationIfNotExists("testcase.tree.automated", languageCode, "Automated", createdBy);
     createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title",
         languageCode,

@@ -21,6 +21,7 @@ import {
   ErrorOutline as ErrorOutlineIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
+  SmartToy as SmartToyIcon,
 } from "@mui/icons-material";
 import VersionIndicator from "./VersionIndicator.jsx";
 import { ACTION_BUTTON_SIZE } from "../common/actionButtonSize.js";
@@ -118,6 +119,17 @@ const TestCaseFormHeader = ({
               color="primary"
               variant="outlined"
               sx={{ fontWeight: "bold" }}
+            />
+          )}
+          {/* 자동화 케이스 표시 (ICT-487): TC ID 옆, 폼에서 체크를 바꾸면 바로 반영된다 */}
+          {testCase?.type === "testcase" && testCase?.isAutomated === true && (
+            <Chip
+              icon={<SmartToyIcon />}
+              label={t("testcase.tree.automated", "자동화")}
+              size="small"
+              color="secondary"
+              variant="outlined"
+              data-testid="testcase-header-automated-chip"
             />
           )}
           {/* 편집/보기 전환 — 편집 권한이 있는 역할에만 넘겨받는다 (ICT-486) */}
