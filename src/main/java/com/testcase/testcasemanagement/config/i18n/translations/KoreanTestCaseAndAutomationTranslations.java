@@ -587,6 +587,23 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.inputMode.form.title", languageCode, "개별 폼", createdBy);
     createTranslationIfNotExists(
         "testcase.inputMode.spreadsheet.title", languageCode, "스프레드시트", createdBy);
+    createTranslationIfNotExists("testcase.viewMode.title", languageCode, "보기 모드 선택", createdBy);
+    createTranslationIfNotExists("testcase.viewMode.edit", languageCode, "편집", createdBy);
+    createTranslationIfNotExists("testcase.viewMode.view", languageCode, "보기", createdBy);
+    createTranslationIfNotExists("testcase.tree.automated", languageCode, "자동화", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.title", languageCode, "자동화 여부", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.all", languageCode, "전체", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.automated", languageCode, "자동화", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.manual", languageCode, "수동", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.hiddenChecked",
+        languageCode,
+        "필터 밖에서 선택된 케이스 {count}건도 함께 저장됩니다",
+        createdBy);
     createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title", languageCode, "고급 스프레드시트", createdBy);
     createTranslationIfNotExists(

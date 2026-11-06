@@ -162,3 +162,205 @@ describe("useTestCaseTree — 검색 중 선택 (ICT-431)", () => {
     expect(result.current.checkTargetIds.sort()).toEqual(["c1", "c2"]);
   });
 });
+
+/**
+ * ICT-488: 자동화 여부 필터. 검색과 같은 범위 집합(queryScopedIds)을 써서
+ * 화면 표시·건수·전체 선택·폴더 체크가 함께 맞춰지는지 고정한다.
+ */
+describe("useTestCaseTree — 자동화 필터 (ICT-488)", () => {
+  //  결제(f1)
+  //    └ 카드 결제 성공 (c1, 자동화, tag=smoke)
+  //    └ 카드 결제 실패 (c2, 수동)
+  //  인증(f2)
+  //    └ 로그인 잠금 (c3, 값 없음 = 수동, tag=smoke)
+  const testCases = [
+    { id: "f1", projectId: "p", type: "folder", name: "결제", parentId: null },
+    {
+      id: "c1",
+      projectId: "p",
+      type: "testcase",
+      name: "카드 결제 성공",
+      parentId: "f1",
+      tags: ["smoke"],
+      isAutomated: true,
+    },
+    {
+      id: "c2",
+      projectId: "p",
+      type: "testcase",
+      name: "카드 결제 실패",
+      parentId: "f1",
+      tags: [],
+      isAutomated: false,
+    },
+    { id: "f2", projectId: "p", type: "folder", name: "인증", parentId: null },
+    {
+      id: "c3",
+      projectId: "p",
+      type: "testcase",
+      name: "로그인 잠금",
+      parentId: "f2",
+      tags: ["smoke"],
+    },
+  ];
+
+  const setup = (overrides = {}) =>
+    renderHook((props) => useTestCaseTree(props), {
+      initialProps: {
+        projectId: "p",
+        testCases,
+        fetchProjectTestCases: vi.fn(),
+        selectable: false,
+        selectedIds: undefined,
+        onSelectionChange: vi.fn(),
+        selectedTestCaseId: null,
+        setActiveTestCase: vi.fn(),
+        onSelectTestCase: undefined,
+        userRole: "PROJECT_MANAGER",
+        filterText: "",
+        automationFilter: "all",
+        folderOnlyView: false,
+        ...overrides,
+      },
+    });
+
+  it("전체면 범위 제한이 없다", () => {
+    const { result } = setup();
+    expect(result.current.queryScopedIds).toBeNull();
+    expect(result.current.automationFilterActive).toBe(false);
+  });
+
+  it("자동화를 고르면 자동화 케이스만 범위에 들고 건수도 그에 맞춘다", () => {
+    const { result } = setup({ automationFilter: "automated" });
+    expect([...result.current.queryScopedIds]).toEqual(["c1"]);
+    expect(result.current.matchedTestCaseCount).toBe(1);
+    expect(result.current.automationFilterActive).toBe(true);
+  });
+
+  it("수동을 고르면 값이 없는 예전 케이스도 수동으로 든다", () => {
+    const { result } = setup({ automationFilter: "manual" });
+    expect([...result.current.queryScopedIds].sort()).toEqual(["c2", "c3"]);
+  });
+
+  it("검색어와 함께 쓰면 두 조건을 모두 만족하는 케이스만 남는다 (AND)", () => {
+    const { result } = setup({
+      automationFilter: "manual",
+      filterText: "smoke",
+    });
+    expect([...result.current.queryScopedIds]).toEqual(["c3"]);
+  });
+
+  it("전체 선택은 보이는 케이스만 담고 폴더는 담지 않는다", () => {
+    const { result } = setup({ automationFilter: "manual" });
+    act(() => {
+      result.current.handleCheckAll({ target: { checked: true } });
+    });
+    expect(result.current.checkedIds.sort()).toEqual(["c2", "c3"]);
+  });
+
+  it("폴더를 체크하면 필터에 걸린 하위 케이스만 따라온다", () => {
+    const { result } = setup({ automationFilter: "automated" });
+    act(() => {
+      result.current.updateCheckedState("f1", true);
+    });
+    expect(result.current.checkedIds.sort()).toEqual(["c1", "f1"]);
+  });
+
+  it("폴더 전용 뷰에서는 자동화 필터를 적용하지 않는다", () => {
+    const { result } = setup({
+      automationFilter: "automated",
+      folderOnlyView: true,
+    });
+    expect(result.current.queryScopedIds).toBeNull();
+    expect(result.current.automationFilterActive).toBe(false);
+  });
+});
+
+/**
+ * ICT-489: 테스트 플랜 케이스 선택(selectable)에서 자동화 필터.
+ * 걸러진 케이스만 골라 담을 수 있어야 하고, 필터 밖에 남은 선택은 건수로 알려야 한다.
+ */
+describe("useTestCaseTree — 플랜 케이스 선택 자동화 필터 (ICT-489)", () => {
+  const testCases = [
+    { id: "f1", projectId: "p", type: "folder", name: "결제", parentId: null },
+    {
+      id: "a1",
+      projectId: "p",
+      type: "testcase",
+      name: "자동 결제",
+      parentId: "f1",
+      isAutomated: true,
+    },
+    {
+      id: "m1",
+      projectId: "p",
+      type: "testcase",
+      name: "수동 결제",
+      parentId: "f1",
+      isAutomated: false,
+    },
+  ];
+  const baseProps = {
+    projectId: "p",
+    testCases,
+    fetchProjectTestCases: vi.fn(),
+    selectable: true,
+    selectedIds: undefined,
+    selectedTestCaseId: null,
+    setActiveTestCase: vi.fn(),
+    onSelectTestCase: undefined,
+    userRole: "PROJECT_MANAGER",
+    filterText: "",
+    automationFilter: "automated",
+    folderOnlyView: false,
+  };
+
+  it("자동화만 걸고 전체 선택하면 자동화 케이스만 플랜 선택으로 넘어간다", () => {
+    const onSelectionChange = vi.fn();
+    const { result } = renderHook((props) => useTestCaseTree(props), {
+      initialProps: { ...baseProps, onSelectionChange },
+    });
+    act(() => {
+      result.current.handleCheckAll({ target: { checked: true } });
+    });
+    expect(onSelectionChange).toHaveBeenLastCalledWith(["a1"]);
+  });
+
+  it("필터 중 폴더를 체크해도 수동 케이스는 따라오지 않는다", () => {
+    const onSelectionChange = vi.fn();
+    const { result } = renderHook((props) => useTestCaseTree(props), {
+      initialProps: { ...baseProps, onSelectionChange },
+    });
+    act(() => {
+      result.current.updateCheckedState("f1", true);
+    });
+    const selected = onSelectionChange.mock.lastCall[0];
+    expect(selected).toContain("a1");
+    expect(selected).not.toContain("m1");
+  });
+
+  it("필터 밖에 남은 선택 케이스 수를 센다 (폴더는 세지 않는다)", () => {
+    const { result } = renderHook((props) => useTestCaseTree(props), {
+      initialProps: {
+        ...baseProps,
+        onSelectionChange: vi.fn(),
+        selectedIds: ["f1", "a1", "m1"],
+      },
+    });
+    expect(result.current.hiddenCheckedCount).toBe(1);
+  });
+
+  it("일반 트리(selectable 아님)에서는 세지 않는다", () => {
+    const { result } = renderHook((props) => useTestCaseTree(props), {
+      initialProps: {
+        ...baseProps,
+        selectable: false,
+        onSelectionChange: vi.fn(),
+      },
+    });
+    act(() => {
+      result.current.updateCheckedState("m1", true);
+    });
+    expect(result.current.hiddenCheckedCount).toBe(0);
+  });
+});

@@ -151,7 +151,7 @@ processResources {
 }
 
 group = 'com.testcase'
-version = '1.0.136-SNAPSHOT'
+version = '1.0.137-SNAPSHOT'
 base {
     archivesName = 'TestCaseCraft'
 }
@@ -315,7 +315,8 @@ repositories {
 // 보안 취약점 수정을 위한 버전 명시적 설정
 ext {
 	// CVE-2026-43512/41293/43515(CRITICAL) 외 3건 HIGH — 10.1.55 에서 수정
-	tomcatVersion = '10.1.55'
+	// CVE-2026-65905/65182/68525(CRITICAL) — 10.1.58, CVE-2026-65637(CRITICAL) — 10.1.59 에서 수정
+	tomcatVersion = '10.1.61'
 	commonsBeanutilsVersion = '1.11.0'
 	// CVE-2025-53864(MEDIUM, Uncontrolled Recursion) — 10.0.2+ 에서 수정
 	nimbusJoseJwtVersion = '10.9.1'
@@ -325,8 +326,15 @@ ext {
 	//   codec-compression CVE-2026-59901 (bzip2 무한루프)
 	//   codec-http2    CVE-2026-59900
 	//   codec-dns      GHSA-mfg7-5gfp-c4w3
-	nettyVersion = '4.1.136.Final'
+	// 4.1.137.Final 추가 수정: handler CVE-2026-75595(CRITICAL)·75596, codec-http CVE-2026-59903
+	nettyVersion = '4.1.139.Final'
 	googleOAuthClientVersion = '1.36.0'
+	// CVE-2026-108106/93451(HIGH)·116590 — 1.1.10.9 에서 수정 (kafka 등 전이 의존성)
+	snappyJavaVersion = '1.1.10.12'
+	// CVE-2026-102554(HIGH) — 33.7.2 에서 수정 (전이 의존성)
+	guavaVersion = '33.7.2-jre'
+	// CVE-2026-13506(HIGH)·8763(CRITICAL) — 1.85 에서 수정
+	bouncyCastleVersion = '1.86'
 }
 
 // Boot BOM 이 관리하는 버전을 CVE 픽스 버전으로 끌어올린다.
@@ -336,12 +344,16 @@ ext {
 //   CVE-2026-54512/54513 (HIGH, PTV allow-list 우회), GHSA-r7wm-3cxj-wff9(core)
 //   CVE-2026-54514/54516/54517/54518, 59888
 //   2.21.4 로는 안 빠지고 2.21.5 에서 잡히는 것: CVE-2026-54515, 59889, GHSA-mhm7-754m-9p8w
-ext['jackson-bom.version'] = '2.21.5'
+// jackson 2.21.8 — databind CVE-2026-68497/91776/91777(HIGH)·19032·83557, core CVE-2026-89407/89425(HIGH)
+//   2.21.6~2.21.7 에서 수정
+ext['jackson-bom.version'] = '2.21.8'
 // spring-security 6.5.11 — CVE-2026-47838 (HIGH, X.509 CN 파싱 오류로 사용자 사칭)
 //   SubjectDnX509PrincipalExtractor 가 deprecated 되고 SubjectX500PrincipalExtractor 로 대체됐다.
 ext['spring-security.version'] = '6.5.11'
 // logback 1.5.34 — CVE-2026-9828(1.5.33 수정) + CVE-2026-10532(1.5.34 수정), 역직렬화 허용목록 우회
 ext['logback.version'] = '1.5.34'
+// log4j-api 2.25.5 — CVE-2026-49844(MEDIUM)
+ext['log4j2.version'] = '2.25.5'
 
 // AspectJ weaver exclusion removed - JPA Auditing을 위해 필요
 // JPA Auditing (@CreatedBy, @LastModifiedBy 등)을 위해 AspectJ weaver 허용
@@ -367,6 +379,8 @@ dependencyManagement {
 		dependency "com.nimbusds:nimbus-jose-jwt:${nimbusJoseJwtVersion}"
 		dependency "com.google.oauth-client:google-oauth-client:${googleOAuthClientVersion}"
 		dependency "com.google.oauth-client:google-oauth-client-jetty:${googleOAuthClientVersion}"
+		dependency "org.xerial.snappy:snappy-java:${snappyJavaVersion}"
+		dependency "com.google.guava:guava:${guavaVersion}"
 	}
 }
 
@@ -380,8 +394,9 @@ configurations {
 
 dependencies {
 	// Vulnerability Fix: CVE-2026-5598(HIGH, Covert Timing Channel) — 1.84 에서 수정
-	implementation 'org.bouncycastle:bcpkix-jdk18on:1.84'
-	implementation 'org.bouncycastle:bcprov-jdk18on:1.84'
+	// CVE-2026-8763(CRITICAL)·13506(HIGH) — 1.85 에서 수정
+	implementation "org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}"
+	implementation "org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools' // Hot Reloading
 

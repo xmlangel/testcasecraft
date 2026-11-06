@@ -263,3 +263,56 @@ describe("TestCaseForm 부모 이동 시 태그 정리 (H1)", () => {
     confirmSpy.mockRestore();
   });
 });
+
+describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
+  beforeEach(() => {
+    updateTestCase.mockReset().mockResolvedValue({ id: "tc1" });
+    api.mockReset().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    });
+    appCtx.testCases = [
+      {
+        id: "tc1",
+        parentId: null,
+        tags: [],
+        type: "testcase",
+        name: "케이스",
+        steps: [],
+      },
+    ];
+    localStorage.removeItem("testcase-manager-form-view-mode");
+  });
+
+  it("보기 모드가 저장돼 있으면 기존 케이스의 저장 버튼을 숨긴다", async () => {
+    localStorage.setItem("testcase-manager-form-view-mode", "view");
+    render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
+
+    await screen.findByLabelText("Parent ID");
+    expect(screen.queryByTestId("testcase-save-button")).toBeNull();
+  });
+
+  it("기본은 편집 모드라 저장 버튼이 보인다", async () => {
+    render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
+
+    expect(
+      await screen.findByTestId("testcase-save-button"),
+    ).toBeInTheDocument();
+  });
+
+  it("새 케이스 작성 중에는 보기 모드여도 저장 버튼이 보인다", async () => {
+    localStorage.setItem("testcase-manager-form-view-mode", "view");
+    render(
+      <TestCaseForm
+        projectId="p1"
+        onSave={vi.fn()}
+        initialData={{ name: "신규 TC" }}
+      />,
+    );
+
+    expect(
+      await screen.findByTestId("testcase-save-button"),
+    ).toBeInTheDocument();
+  });
+});

@@ -3,6 +3,9 @@
 
 import { describe, it, expect } from "vitest";
 import {
+  AUTOMATION_FILTER,
+  collectAutomationScopedIds,
+  intersectScopedIds,
   collectQueryMatchedIds,
   collectQueryScopedIds,
   matchesTreeQuery,
@@ -138,5 +141,38 @@ describe("collectQueryMatchedIds / collectQueryScopedIds", () => {
       { id: "x1", type: "testcase", name: "고아 케이스", parentId: "gone" },
     ];
     expect(collectQueryScopedIds(orphan, "고아")).toEqual(new Set(["x1"]));
+  });
+});
+
+describe("자동화 필터 (ICT-488)", () => {
+  const items = [
+    { id: "f1", type: "folder", parentId: null },
+    { id: "a1", type: "testcase", parentId: "f1", isAutomated: true },
+    { id: "m1", type: "testcase", parentId: "f1", isAutomated: false },
+    { id: "n1", type: "testcase", parentId: "f1", isAutomated: null },
+  ];
+
+  it("전체면 null(제한 없음)을 돌려준다", () => {
+    expect(collectAutomationScopedIds(items, AUTOMATION_FILTER.ALL)).toBeNull();
+    expect(collectAutomationScopedIds(items, undefined)).toBeNull();
+  });
+
+  it("자동화는 isAutomated 가 true 인 케이스만 담고 폴더는 뺀다", () => {
+    const ids = collectAutomationScopedIds(items, AUTOMATION_FILTER.AUTOMATED);
+    expect([...ids]).toEqual(["a1"]);
+  });
+
+  it("수동은 false 와 값이 없는 예전 케이스를 함께 담는다", () => {
+    const ids = collectAutomationScopedIds(items, AUTOMATION_FILTER.MANUAL);
+    expect([...ids].sort()).toEqual(["m1", "n1"]);
+  });
+
+  it("교집합: null 은 제한 없음으로 다룬다", () => {
+    expect(intersectScopedIds(null, null)).toBeNull();
+    expect([...intersectScopedIds(new Set(["a"]), null)]).toEqual(["a"]);
+    expect([...intersectScopedIds(null, new Set(["b"]))]).toEqual(["b"]);
+    expect([
+      ...intersectScopedIds(new Set(["a", "b"]), new Set(["b", "c"])),
+    ]).toEqual(["b"]);
   });
 });

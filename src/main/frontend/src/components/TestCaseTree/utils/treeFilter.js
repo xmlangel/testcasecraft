@@ -95,3 +95,66 @@ export function collectQueryScopedIds(items, query) {
   });
   return scoped;
 }
+
+// ICT-488: 자동화 여부 필터. 판정 기준은 케이스 폼의 「자동화 여부」 체크박스와 같은 isAutomated 다.
+// 값이 없는(null) 예전 케이스는 수동으로 본다.
+export const AUTOMATION_FILTER = Object.freeze({
+  ALL: "all",
+  AUTOMATED: "automated",
+  MANUAL: "manual",
+});
+
+/**
+ * 케이스가 자동화 필터에 걸리는지 판정한다. 폴더는 항상 false 다.
+ *
+ * @param {{type?: string, isAutomated?: boolean}} node 트리 노드
+ * @param {string} filter AUTOMATION_FILTER 값
+ * @returns {boolean} 필터가 ALL 이면 케이스는 항상 true
+ */
+export function matchesAutomationFilter(node, filter) {
+  if (!node || node.type !== "testcase") return false;
+  if (filter === AUTOMATION_FILTER.AUTOMATED) return node.isAutomated === true;
+  if (filter === AUTOMATION_FILTER.MANUAL) return node.isAutomated !== true;
+  return true;
+}
+
+/**
+ * 자동화 필터에 걸린 케이스 id 집합을 만든다.
+ *
+ * 폴더는 넣지 않는다. 폴더를 선택 대상에 넣으면 일괄 삭제가 폴더째(필터 밖 케이스까지)
+ * 지우게 되므로, 폴더는 걸린 케이스까지 가는 경로로만 화면에 남는다.
+ *
+ * @param {Array<{id: string, type?: string, isAutomated?: boolean}>} items 판정 대상 노드 목록
+ * @param {string|undefined} filter AUTOMATION_FILTER 값
+ * @returns {Set<string>|null} 걸린 케이스 id 집합, 필터가 ALL 이면 null(제한 없음)
+ */
+export function collectAutomationScopedIds(items, filter) {
+  if (
+    filter !== AUTOMATION_FILTER.AUTOMATED &&
+    filter !== AUTOMATION_FILTER.MANUAL
+  ) {
+    return null;
+  }
+  const scoped = new Set();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    if (matchesAutomationFilter(item, filter)) scoped.add(item.id);
+  });
+  return scoped;
+}
+
+/**
+ * 두 범위 집합의 교집합. null 은 「제한 없음」이다.
+ *
+ * @param {Set<string>|null} a
+ * @param {Set<string>|null} b
+ * @returns {Set<string>|null}
+ */
+export function intersectScopedIds(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  const result = new Set();
+  a.forEach((id) => {
+    if (b.has(id)) result.add(id);
+  });
+  return result;
+}

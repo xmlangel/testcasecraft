@@ -995,6 +995,24 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.inputMode.spreadsheet.title", languageCode, "Spreadsheet", createdBy);
     createTranslationIfNotExists(
+        "testcase.viewMode.title", languageCode, "Select view mode", createdBy);
+    createTranslationIfNotExists("testcase.viewMode.edit", languageCode, "Edit", createdBy);
+    createTranslationIfNotExists("testcase.viewMode.view", languageCode, "View", createdBy);
+    createTranslationIfNotExists("testcase.tree.automated", languageCode, "Automated", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.title", languageCode, "Automation", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.all", languageCode, "All", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.automated", languageCode, "Automated", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.automationFilter.manual", languageCode, "Manual", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.hiddenChecked",
+        languageCode,
+        "{count} selected case(s) outside the filter will also be saved",
+        createdBy);
+    createTranslationIfNotExists(
         "testcase.inputMode.advancedSpreadsheet.title",
         languageCode,
         "Advanced Spreadsheet",
