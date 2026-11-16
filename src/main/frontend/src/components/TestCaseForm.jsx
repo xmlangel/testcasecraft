@@ -69,6 +69,7 @@ import FolderForm from "./TestCase/FolderForm.jsx";
 import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
 import RagStatusBadge from "./TestCase/RagStatusBadge.jsx";
 import { serverErrorMessage } from "../utils/apiError.js";
+import { normalizeExecutionType } from "../utils/executionType.js";
 import { ACTION_BUTTON_SIZE } from "./common/actionButtonSize.js";
 
 const TabPanel = (props) => {
@@ -499,11 +500,10 @@ const TestCaseForm = ({
           postCondition: tc.postCondition || "",
           isAutomated:
             typeof tc.isAutomated === "boolean" ? tc.isAutomated : false,
-          executionType:
-            tc.executionType ||
-            (typeof tc.isAutomated === "boolean" && tc.isAutomated
-              ? "Automation"
-              : "Manual"),
+          executionType: normalizeExecutionType(
+            tc.executionType,
+            typeof tc.isAutomated === "boolean" && tc.isAutomated,
+          ),
           testTechnique: tc.testTechnique || "",
         };
         setTestCase(loadedTestCase);
@@ -577,12 +577,11 @@ const TestCaseForm = ({
             typeof initialData.isAutomated === "boolean"
               ? initialData.isAutomated
               : false,
-          executionType:
-            initialData.executionType ||
-            (typeof initialData.isAutomated === "boolean" &&
-            initialData.isAutomated
-              ? "Automation"
-              : "Manual"),
+          executionType: normalizeExecutionType(
+            initialData.executionType,
+            typeof initialData.isAutomated === "boolean" &&
+              initialData.isAutomated,
+          ),
           testTechnique: initialData.testTechnique || "",
           parentName: "",
           priority: initialData.priority || "MEDIUM",
