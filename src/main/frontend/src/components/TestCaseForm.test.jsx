@@ -103,7 +103,8 @@ const mockNull = vi.hoisted(() => () => ({ default: () => null }));
 vi.mock("./TestCase/TestCaseVersionHistory.jsx", mockNull);
 vi.mock("./TestCase/FieldVisibilityMenu.jsx", mockNull);
 vi.mock("./TestCase/TestCaseAttachments.jsx", mockNull);
-vi.mock("./TestCase/TestCaseFormHeader.jsx", mockNull);
+// 머리(TestCaseFormHeader)는 저장 버튼이 있어 그대로 그린다(ICT-494 tl-2). 버전 표시만 뺀다.
+vi.mock("./TestCase/VersionIndicator.jsx", mockNull);
 // TestCaseFormMetadata 는 H1(부모 이동 태그정리) 테스트에서 Parent ID 편집이
 // 필요해 모킹하지 않는다(MUI 만 의존해 가볍다).
 vi.mock("./TestCase/TestCaseBasicInfo.jsx", mockNull);
@@ -316,7 +317,7 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
     ).toBeInTheDocument();
   });
 
-  it("하단 고정 바에 이전·다음 이동(footerNav)과 저장 버튼을 함께 그린다 (ICT-491)", async () => {
+  it("하단 고정 바에는 이전·다음 이동(footerNav)만 두고 저장 버튼은 위에 붙은 머리에 하나만 둔다 (ICT-491·494)", async () => {
     render(
       <TestCaseForm
         testCaseId="tc1"
@@ -328,10 +329,36 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
 
     const footer = await screen.findByTestId("testcase-form-footer");
     expect(footer).toContainElement(screen.getByTestId("footer-nav-slot"));
-    expect(footer).toContainElement(
-      await screen.findByTestId("testcase-save-button"),
-    );
     expect(footer).toHaveStyle({ position: "sticky" });
+
+    const header = screen.getByTestId("testcase-form-header");
+    const saveButtons = await screen.findAllByTestId("testcase-save-button");
+    expect(saveButtons).toHaveLength(1);
+    expect(header).toContainElement(saveButtons[0]);
+    expect(footer).not.toContainElement(saveButtons[0]);
+    expect(header).toHaveStyle({ position: "sticky" });
+    // 아래 줄에 있던 취소·버전 생성 중복이 없다
+    expect(screen.getAllByTestId("testcase-cancel-button")).toHaveLength(1);
+    expect(footer.textContent).not.toContain("버전 생성");
+  });
+
+  it("footerNav 가 없으면 하단 바를 그리지 않는다 (ICT-494)", async () => {
+    render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
+    await screen.findByTestId("testcase-form-header");
+    expect(screen.queryByTestId("testcase-form-footer")).toBeNull();
+  });
+
+  it("머리 줄에 상위가 넘긴 입력 모드 전환(headerExtra)을 함께 그린다 (ICT-494)", async () => {
+    render(
+      <TestCaseForm
+        testCaseId="tc1"
+        projectId="p1"
+        onSave={vi.fn()}
+        headerExtra={<div data-testid="input-mode-slot" />}
+      />,
+    );
+    const row = await screen.findByTestId("testcase-header-row");
+    expect(row).toContainElement(screen.getByTestId("input-mode-slot"));
   });
 
   it("단계와 전체 기대 결과를 넓은 칸에서 나란히 두는 격자 배치를 쓴다 (ICT-491)", async () => {

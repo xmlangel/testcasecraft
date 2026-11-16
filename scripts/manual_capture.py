@@ -376,8 +376,14 @@ def open_folder_edit_form(page: Page) -> None:
 
 
 def open_case_delete_dialog(page: Page) -> None:
-    """개별 폼에서 [삭제] 버튼 클릭 → 트리와 동일한 삭제 확인 다이얼로그 (§4-6, v1.0.93)."""
+    """개별 폼에서 더보기(⋮) → [삭제] 클릭 → 트리와 동일한 삭제 확인 다이얼로그 (§4-6, v1.0.93).
+
+    ICT-494 이후 삭제는 상세 머리의 더보기 메뉴 안에 있다.
+    """
     open_case_in_form_mode(page)
+    page.locator('[data-testid="testcase-header-more-button"]').first.click(
+        timeout=5_000
+    )
     page.locator('[data-testid="testcase-header-delete-button"]').first.click(
         timeout=5_000
     )

@@ -591,6 +591,72 @@ const TestCaseHybridForm = ({
     </Box>
   ) : null;
 
+  // 입력 모드 선택 — 편집 권한이 있을 때만 내보인다. 없으면 개별 폼만 쓴다.
+  // ICT-494 tl-2: 케이스 폼을 열면 이 전환을 폼 머리 한 줄에 아이콘으로(compact) 넣는다.
+  const renderInputModeToggle = (compact = false) =>
+    canEdit ? (
+      <ToggleButtonGroup
+        value={inputMode}
+        exclusive
+        onChange={(_, newMode) => {
+          if (newMode !== null) handleModeChange(newMode);
+        }}
+        aria-label={t("testcase.inputMode.title", "입력 모드 선택")}
+        size="small"
+        sx={{
+          "& .MuiToggleButton-root": {
+            px: compact ? 0.75 : 1.5,
+            fontWeight: 500,
+            borderColor: "divider",
+          },
+          "& .MuiToggleButton-root.Mui-selected": {
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+            fontWeight: 700,
+            boxShadow: 1,
+            "&:hover": { bgcolor: "primary.dark" },
+          },
+        }}
+      >
+        <Tooltip
+          title={t("testcase.inputMode.form.tooltip", "개별 폼으로 상세 입력")}
+        >
+          <ToggleButton
+            value="form"
+            aria-label={t("testcase.inputMode.form.ariaLabel", "폼 모드")}
+            data-testid="mode-individual-button"
+          >
+            <FormIcon fontSize="small" sx={{ mr: compact ? 0 : 0.75 }} />
+            {!compact && t("testcase.inputMode.form.title", "개별 폼")}
+          </ToggleButton>
+        </Tooltip>
+        <Tooltip
+          title={t(
+            "testcase.inputMode.spreadsheet.tooltip",
+            "스프레드시트로 일괄 입력",
+          )}
+        >
+          <ToggleButton
+            value="spreadsheet"
+            aria-label={t(
+              "testcase.inputMode.spreadsheet.ariaLabel",
+              "스프레드시트 모드",
+            )}
+            data-testid="mode-spreadsheet-button"
+          >
+            <SpreadsheetIcon fontSize="small" sx={{ mr: compact ? 0 : 0.75 }} />
+            {!compact &&
+              t("testcase.inputMode.spreadsheet.title", "스프레드시트")}
+          </ToggleButton>
+        </Tooltip>
+      </ToggleButtonGroup>
+    ) : null;
+  const showsCaseForm =
+    inputMode === "form" &&
+    effectiveTestCaseId !== undefined &&
+    !virtualListData &&
+    !isFolderSelected;
+
   const body = (
     <>
       {/* 선택 항목 경로 브레드크럼 (조상 폴더 클릭 시 해당 폴더로 이동) + 크게 보기 */}
@@ -681,8 +747,8 @@ const TestCaseHybridForm = ({
         </Box>
       )}
 
-      {/* 입력 모드 선택 — 편집 권한이 있을 때만 내보인다. 없으면 개별 폼만 쓴다. */}
-      {canEdit && (
+      {/* 입력 모드 선택. 케이스 폼에서는 폼 머리 줄에 들어간다(ICT-494 tl-2). */}
+      {canEdit && !showsCaseForm && (
         <Box
           sx={{
             display: "flex",
@@ -690,63 +756,7 @@ const TestCaseHybridForm = ({
             mb: 1.5,
           }}
         >
-          <ToggleButtonGroup
-            value={inputMode}
-            exclusive
-            onChange={(_, newMode) => {
-              if (newMode !== null) handleModeChange(newMode);
-            }}
-            aria-label={t("testcase.inputMode.title", "입력 모드 선택")}
-            size="small"
-            sx={{
-              "& .MuiToggleButton-root": {
-                px: 1.5,
-                fontWeight: 500,
-                borderColor: "divider",
-              },
-              "& .MuiToggleButton-root.Mui-selected": {
-                bgcolor: "primary.main",
-                color: "primary.contrastText",
-                fontWeight: 700,
-                boxShadow: 1,
-                "&:hover": { bgcolor: "primary.dark" },
-              },
-            }}
-          >
-            <Tooltip
-              title={t(
-                "testcase.inputMode.form.tooltip",
-                "개별 폼으로 상세 입력",
-              )}
-            >
-              <ToggleButton
-                value="form"
-                aria-label={t("testcase.inputMode.form.ariaLabel", "폼 모드")}
-                data-testid="mode-individual-button"
-              >
-                <FormIcon fontSize="small" sx={{ mr: 0.75 }} />
-                {t("testcase.inputMode.form.title", "개별 폼")}
-              </ToggleButton>
-            </Tooltip>
-            <Tooltip
-              title={t(
-                "testcase.inputMode.spreadsheet.tooltip",
-                "스프레드시트로 일괄 입력",
-              )}
-            >
-              <ToggleButton
-                value="spreadsheet"
-                aria-label={t(
-                  "testcase.inputMode.spreadsheet.ariaLabel",
-                  "스프레드시트 모드",
-                )}
-                data-testid="mode-spreadsheet-button"
-              >
-                <SpreadsheetIcon fontSize="small" sx={{ mr: 0.75 }} />
-                {t("testcase.inputMode.spreadsheet.title", "스프레드시트")}
-              </ToggleButton>
-            </Tooltip>
-          </ToggleButtonGroup>
+          {renderInputModeToggle()}
         </Box>
       )}
 
@@ -838,6 +848,7 @@ const TestCaseHybridForm = ({
             projectId={effectiveProjectId}
             onSave={handleFormSave}
             footerNav={caseNavBar}
+            headerExtra={renderInputModeToggle(true)}
           />
         )
       ) : inputMode === "spreadsheet" ? (

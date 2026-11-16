@@ -68,6 +68,7 @@ import { DeleteConfirmationDialog } from "./TestCase/Spreadsheet/components/Dele
 import FolderForm from "./TestCase/FolderForm.jsx";
 import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
 import RagStatusBadge from "./TestCase/RagStatusBadge.jsx";
+import useRagRegistration from "./TestCase/useRagRegistration.js";
 import { serverErrorMessage } from "../utils/apiError.js";
 import { normalizeExecutionType } from "../utils/executionType.js";
 import { ACTION_BUTTON_SIZE } from "./common/actionButtonSize.js";
@@ -96,6 +97,8 @@ const TestCaseForm = ({
   onSave,
   initialData,
   footerNav,
+  // ICT-494 tl-2: 상세 머리 한 줄에 함께 둘 요소(개별 폼·스프레드시트 전환)
+  headerExtra,
 }) => {
   const {
     testCases,
@@ -389,6 +392,21 @@ const TestCaseForm = ({
   // 새 케이스 작성 중과 폴더 폼에는 보기 모드를 적용하지 않는다 (폴더 폼에는 전환 토글이 없다).
   const isViewer =
     isRoleViewer || (viewMode === "view" && !!testCaseId && !isFolder);
+
+  // RAG 등록 상태(머리의 상태 칩)와 등록 동작(더보기 메뉴)이 같은 상태를 쓴다 (ICT-494 tl-2)
+  const handleRagVectorized = useCallback((success) => {
+    if (success) {
+      setTestCase((prev) => (prev ? { ...prev, ragVectorized: true } : prev));
+    }
+  }, []);
+  const rag = useRagRegistration({
+    testCaseId,
+    ragVectorized: testCase?.ragVectorized ?? null,
+    isLlmAvailable,
+    isFolder,
+    api,
+    onVectorized: handleRagVectorized,
+  });
 
   // 현재 버전 정보 조회
   const fetchCurrentVersion = async (tcId) => {
@@ -1513,25 +1531,13 @@ const TestCaseForm = ({
           onViewModeChange={
             !isRoleViewer && testCaseId ? handleViewModeChange : undefined
           }
-          /* RAG 등록 뱃지를 헤더 액션 행에 인라인 배치 — 별도 행 제거로 본문 영역 확보 */
-          ragSlot={
-            testCaseId && !isFolder ? (
-              <RagStatusBadge
-                testCaseId={testCaseId}
-                ragVectorized={testCase?.ragVectorized}
-                isLlmAvailable={isLlmAvailable}
-                isFolder={isFolder}
-                api={api}
-                onVectorized={(success) => {
-                  if (success) {
-                    setTestCase((prev) =>
-                      prev ? { ...prev, ragVectorized: true } : prev,
-                    );
-                  }
-                }}
-              />
-            ) : null
-          }
+          /* RAG 상태 칩은 머리 아래 줄, 등록 동작은 더보기 메뉴 (ICT-494 tl-2) */
+          ragSlot={<RagStatusBadge status={rag.status} />}
+          ragStatus={rag.status}
+          isRagRegistering={rag.isRegistering}
+          onRagRegister={isFolder ? undefined : rag.register}
+          headerExtra={headerExtra}
+          saveDisabled={isSaveDisabled()}
         />
 
         {inlineImageUploading && (
@@ -1780,71 +1786,28 @@ const TestCaseForm = ({
         </Box>
       </CardContent>
 
-      {/* ICT-491 C3: 하단 고정 바. 상세를 스크롤해도 이전·n/N·다음·저장·닫기가 늘 보인다. */}
-      <CardActions
-        sx={{
-          justifyContent: footerNav ? "space-between" : "flex-end",
-          px: 2,
-          py: 1,
-          position: "sticky",
-          bottom: 0,
-          zIndex: 3,
-          bgcolor: "background.paper",
-          // background.paper 가 반투명이라 그대로 두면 스크롤된 본문 글자가 바 뒤로 비친다.
-          backdropFilter: "blur(20px) saturate(180%)",
-          borderTop: 1,
-          borderColor: "divider",
-        }}
-        data-testid="testcase-form-footer"
-      >
-        {footerNav}
-        {!isViewer && (
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Button
-              onClick={handleCancel}
-              color="inherit"
-              variant="outlined"
-              size={ACTION_BUTTON_SIZE}
-              data-testid="testcase-cancel-button"
-            >
-              {t("testcase.form.button.cancel", "취소")}
-            </Button>
-
-            <Button
-              variant="contained"
-              color="primary"
-              size={ACTION_BUTTON_SIZE}
-              onClick={handleSave}
-              disabled={isSaveDisabled() || isSaving}
-              startIcon={
-                isSaving ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  <SaveVersionIcon />
-                )
-              }
-              data-testid="testcase-save-button"
-            >
-              {isSaving
-                ? t("testcase.form.button.saving", "저장 중...")
-                : testCaseId
-                  ? t("testcase.form.button.update", "수정")
-                  : t("testcase.form.button.save", "저장")}
-            </Button>
-            {testCaseId && testCase?.type === "testcase" && (
-              <Button
-                variant="outlined"
-                color="secondary"
-                size={ACTION_BUTTON_SIZE}
-                onClick={handleCreateVersion}
-                startIcon={<SaveVersionIcon />}
-              >
-                {t("testcase.version.button.create", "버전 생성")}
-              </Button>
-            )}
-          </Box>
-        )}
-      </CardActions>
+      {/* ICT-491 C3: 하단 고정 바. 상세를 스크롤해도 이전·n/N·다음·닫기가 늘 보인다.
+          ICT-494 tl-2: 취소·저장·버전 생성은 머리와 겹쳐 하단에서 뺐다. 머리는 상세 위에 붙어 있다. */}
+      {footerNav && (
+        <CardActions
+          sx={{
+            justifyContent: "space-between",
+            px: 2,
+            py: 1,
+            position: "sticky",
+            bottom: 0,
+            zIndex: 3,
+            bgcolor: "background.paper",
+            // background.paper 가 반투명이라 그대로 두면 스크롤된 본문 글자가 바 뒤로 비친다.
+            backdropFilter: "blur(20px) saturate(180%)",
+            borderTop: 1,
+            borderColor: "divider",
+          }}
+          data-testid="testcase-form-footer"
+        >
+          {footerNav}
+        </CardActions>
+      )}
 
       <InlineImageDialog
         open={imageDialogState.open}
@@ -1925,6 +1888,7 @@ TestCaseForm.propTypes = {
   onSave: PropTypes.func,
   initialData: PropTypes.object,
   footerNav: PropTypes.node,
+  headerExtra: PropTypes.node,
 };
 
 export default TestCaseForm;
