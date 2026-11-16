@@ -10,6 +10,7 @@ import {
   Alert,
   Snackbar,
   useTheme,
+  useMediaQuery,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -38,6 +39,7 @@ import {
 import { RESULT_COLORS } from "../constants/statusColors";
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
+import Resizer from "./common/Resizer.jsx";
 import {
   getOrderedTestCaseIds,
   getFilteredNavTestCaseIds,
@@ -169,6 +171,11 @@ const COMPACT_ACCORDION_SX = {
   "& .MuiAccordionDetails-root": { pt: 1, pb: 1.5 },
 };
 
+const SPLIT_WIDTH_STORAGE_KEY = "testcase-manager-execution-split-width";
+const SPLIT_MIN_WIDTH = 420;
+const SPLIT_MAX_WIDTH = 1200;
+const SPLIT_DEFAULT_WIDTH = 640;
+
 const TestExecutionForm = ({
   executionId,
   projectId: propProjectId,
@@ -297,6 +304,23 @@ const TestExecutionForm = ({
   };
 
   const theme = useTheme();
+  // ICT-491 ex-1: 넓은 화면에서는 케이스를 눌러도 목록을 남기고, 결과 입력은 오른쪽 칸에 연다.
+  const isSplitCapable = useMediaQuery(theme.breakpoints.up("lg"));
+  const [splitCaseId, setSplitCaseId] = useState(null);
+  const [splitWidth, setSplitWidth] = useState(() => {
+    const saved = Number(localStorage.getItem(SPLIT_WIDTH_STORAGE_KEY));
+    return saved >= SPLIT_MIN_WIDTH && saved <= SPLIT_MAX_WIDTH
+      ? saved
+      : SPLIT_DEFAULT_WIDTH;
+  });
+  const handleSplitResize = useCallback((dx) => {
+    // 막대를 왼쪽으로 끌면(dx<0) 오른쪽 결과 칸이 넓어진다
+    setSplitWidth((w) => {
+      const next = Math.min(SPLIT_MAX_WIDTH, Math.max(SPLIT_MIN_WIDTH, w - dx));
+      localStorage.setItem(SPLIT_WIDTH_STORAGE_KEY, String(next));
+      return next;
+    });
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -675,7 +699,10 @@ const TestExecutionForm = ({
       // projectId를 다양한 소스에서 검색하여 항상 URL 네비게이션을 우선 사용
       const projectId =
         execution?.testPlan?.projectId || execution?.projectId || propProjectId;
-      if (projectId && execution?.id) {
+      if (isSplitCapable && execution?.id) {
+        // 3단 분할: 목록은 그대로 두고 오른쪽 칸에 결과 입력을 연다
+        setSplitCaseId(testCaseId);
+      } else if (projectId && execution?.id) {
         navigate(
           `/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`,
         );
@@ -685,7 +712,7 @@ const TestExecutionForm = ({
         setIsResultFormOpen(true);
       }
     },
-    [navigate, execution, propProjectId],
+    [navigate, execution, propProjectId, isSplitCapable],
   );
 
   // 결과 입력 화면의 직접 링크를 클립보드에 복사
@@ -1384,425 +1411,520 @@ const TestExecutionForm = ({
       </Alert>
     );
 
-  return (
-    <Box sx={embedded ? { p: 2 } : PAGE_CONTAINER_SX.main}>
-      <TestExecutionHeader
-        executionId={executionId}
-        executionName={execution?.name}
-        execution={execution}
-        onCancel={onCancel}
-        onGoToList={handleGoToList}
-        onSaveOrUpdate={handleSaveOrUpdate}
-        saving={saving}
-        canEditBasicInfo={canEditBasicInfo}
-        canEdit={canEditExecution}
-        canEditPlan={canEditPlan}
-        startImmediately={startImmediately}
-        showExecutionGuide={showExecutionGuide}
-        setShowExecutionGuide={setShowExecutionGuide}
-        isEditingBasicInfo={isEditingBasicInfo}
-        onEditClick={handleEditClick}
-        onCancelEdit={handleCancelEditFromHeader}
-      />
+  const splitNavIds = splitCaseId
+    ? getFilteredNavTestCaseIds(filteredData, testCaseIds, splitCaseId)
+    : [];
+  const splitIndex = splitNavIds.indexOf(splitCaseId);
+  const showSplit = Boolean(isSplitCapable && splitCaseId && execution?.id);
+  const splitProjectId =
+    propProjectId ||
+    execution?.projectId ||
+    execution?.testPlan?.projectId ||
+    activeProject?.id;
 
-      {/* 실행 요약 정보 (Info & Status) - Accordion 적용 */}
-      <Accordion
-        expanded={accordionExpanded.executionSummary}
-        onChange={handleAccordionChange("executionSummary")}
+  const splitPane = showSplit ? (
+    <>
+      <Resizer onDrag={handleSplitResize} testId="execution-result-resizer" />
+      <Box
+        data-testid="execution-result-pane"
         sx={{
-          ...COMPACT_ACCORDION_SX,
-          mb: 1,
-          boxShadow: "none",
-          border: "1px solid",
+          width: splitWidth,
+          flexShrink: 0,
+          alignSelf: "flex-start",
+          position: "sticky",
+          top: 0,
+          maxHeight: "calc(100vh - 64px)",
+          overflow: "auto",
+          borderLeft: 1,
           borderColor: "divider",
-          "&:before": { display: "none" },
-          borderRadius: "8px !important",
-          overflow: "hidden",
         }}
       >
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          sx={{ bgcolor: alpha(theme.palette.primary.main, 0.03) }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 2,
-              width: "100%",
-            }}
-          >
-            <AssessmentIcon color="primary" />
-            <Typography variant="subtitle1" fontWeight="bold">
-              {t("testExecution.executionSummary", "실행 요약")}
-            </Typography>
-            {!accordionExpanded.executionSummary && execution && (
-              <Box
-                sx={{ display: "flex", gap: 2, ml: 2, alignItems: "center" }}
-              >
-                <Chip
-                  label={execution.status}
-                  size="small"
-                  icon={
-                    isInProgressStatus(execution.status) ? (
-                      <CircularProgress
-                        size={9}
-                        thickness={7}
-                        color="inherit"
-                      />
-                    ) : undefined
-                  }
-                  color={
-                    execution.status === ExecutionStatus.COMPLETED
-                      ? "success"
-                      : isInProgressStatus(execution.status)
-                        ? "warning"
-                        : "default"
-                  }
-                  variant={
-                    execution.status === ExecutionStatus.COMPLETED ||
-                    isInProgressStatus(execution.status)
-                      ? "filled"
-                      : "outlined"
-                  }
-                  sx={{
-                    height: 20,
-                    fontSize: "0.7rem",
-                    fontWeight: "bold",
-                    ...(isInProgressStatus(execution.status)
-                      ? IN_PROGRESS_CHIP_WITH_ICON_SX
-                      : {}),
-                  }}
-                />
-                <Typography variant="caption" color="text.secondary">
-                  {t("testExecution.progress", "진행률")}: {progress}%
-                </Typography>
-                <Box sx={{ width: 100 }}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={progress}
-                    sx={{ height: 4, borderRadius: 2 }}
-                  />
-                </Box>
-              </Box>
-            )}
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails sx={{ pt: 1 }}>
-          <Grid container spacing={1}>
-            <Grid size={{ xs: 12, md: 6, lg: 5 }}>
-              <TestExecutionInfo
-                execution={execution}
-                handleChange={handleChange}
-                testPlans={testPlans}
-                handlePlanChange={handlePlanChange}
-                availableTags={availableTags}
-                setExecution={setExecution}
-                canEditBasicInfo={canEditBasicInfo}
-                canEditPlan={canEditPlan}
-                startImmediately={startImmediately}
-                setStartImmediately={setStartImmediately}
-                executionId={executionId}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6, lg: 7 }}>
-              <TestExecutionStatus
-                execution={execution}
-                statusCounts={statusCounts}
-                progress={progress}
-                canStartExecution={canStartExecution}
-                canCompleteExecution={canCompleteExecution}
-                canRestartExecution={canRestartExecution}
-                handleStartExecution={handleStartExecution}
-                handleCompleteExecution={handleCompleteExecution}
-                handleRestartExecution={handleRestartExecution}
-                saving={saving}
-              />
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
-      <Box sx={{ my: 1 }}>
-        <Accordion
-          expanded={accordionExpanded.filters}
-          onChange={handleAccordionChange("filters")}
-          sx={{ ...COMPACT_ACCORDION_SX, mb: 1 }}
-        >
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              {t("testExecution.sections.filters", "필터")}
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <TestExecutionFilterPanel
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              onApply={handleFilterApply}
-              onClear={handleFilterClear}
-              availableTags={availableTags}
-            />
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion
-          expanded={accordionExpanded.list}
-          onChange={handleAccordionChange("list")}
-          sx={COMPACT_ACCORDION_SX}
-        >
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              {t("testExecution.sections.caseList", "테스트 케이스 실행 목록")}
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            {selectedTestCases.size > 0 && (
-              <Box
-                sx={{
-                  my: 2,
-                  p: 2,
-                  bgcolor: "action.hover",
-                  borderRadius: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  {t(
-                    "testExecution.bulk.selectedCount",
-                    "{count}개 선택됨",
-                  ).replace("{count}", selectedTestCases.size)}
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => setSelectedTestCases(new Set())}
-                  >
-                    {t(
-                      "testExecution.bulk.actionToolbar.deselect",
-                      "선택 해제",
-                    )}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleBulkActionClick("PASS")}
-                    sx={{
-                      bgcolor: RESULT_COLORS.PASS,
-                      border: `2px solid ${RESULT_COLORS.PASS}`,
-                      "&:hover": { bgcolor: alpha(RESULT_COLORS.PASS, 0.8) },
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.PASS, 0.3)}`,
-                    }}
-                  >
-                    PASS
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleBulkActionClick("FAIL")}
-                    sx={{
-                      bgcolor: RESULT_COLORS.FAIL,
-                      border: `2px solid ${RESULT_COLORS.FAIL}`,
-                      "&:hover": { bgcolor: alpha(RESULT_COLORS.FAIL, 0.8) },
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.FAIL, 0.3)}`,
-                    }}
-                  >
-                    FAIL
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleBulkActionClick("BLOCKED")}
-                    sx={{
-                      bgcolor: RESULT_COLORS.BLOCKED,
-                      border: `2px solid ${RESULT_COLORS.BLOCKED}`,
-                      "&:hover": { bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.8) },
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      boxShadow: `0 2px 8px ${alpha(
-                        RESULT_COLORS.BLOCKED,
-                        0.3,
-                      )}`,
-                    }}
-                  >
-                    BLOCKED
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleBulkActionClick("NOT_RUN")}
-                    sx={{
-                      bgcolor: RESULT_COLORS.NOTRUN,
-                      border: `2px solid ${RESULT_COLORS.NOTRUN}`,
-                      "&:hover": { bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.8) },
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      boxShadow: `0 2px 8px ${alpha(
-                        RESULT_COLORS.NOTRUN,
-                        0.3,
-                      )}`,
-                    }}
-                  >
-                    NOT RUN
-                  </Button>
-                </Box>
-              </Box>
-            )}
-
-            <TestExecutionTable
-              visibleData={visibleData}
-              resultsMap={resultsMap}
-              totalItems={
-                filteredData.filter((n) => n.type === "testcase").length
-              }
-              hasMore={hasMore}
-              loadMore={loadMore}
-              handleOpenResultForm={handleOpenResultForm}
-              handleShowPrevResults={handleShowPrevResults}
-              handleAttachmentClick={handleAttachmentClick}
-              handleCopyLink={handleCopyLink}
-              canEnterResults={canEnterResults}
-              canRecordResults={canRecordResults}
-              selectedTestCases={selectedTestCases}
-              onSelectionChange={handleSelectionChange}
-              collapsedFolders={effectiveCollapsedFolders}
-              folderResultCounts={folderResultCounts}
-              collapsedFolderCount={hasActiveFilters ? 0 : collapsedFolderCount}
-              onToggleFolder={handleToggleFolder}
-              onExpandAllFolders={handleExpandAllFolders}
-              onCollapseAllFolders={handleCollapseAllFolders}
-              treeControlsDisabled={hasActiveFilters}
-            />
-          </AccordionDetails>
-        </Accordion>
-      </Box>
-
-      {isResultFormOpen && selectedTestCaseId && execution?.id && (
         <TestResultForm
-          open={isResultFormOpen}
-          testCaseId={selectedTestCaseId}
+          // 케이스 전환 시 리마운트: 이전 케이스 입력이 다음 케이스로 섞이지 않게 한다
+          key={splitCaseId}
+          open
+          fullPage
+          embedded
+          testCaseId={splitCaseId}
           executionId={execution.id}
-          currentResult={resultsMap?.get(selectedTestCaseId)}
-          onClose={handleCloseResultForm}
-          onSave={handleSaveResult}
+          execution={execution}
+          currentResult={resultsMap?.get(splitCaseId)}
+          onClose={() => setSplitCaseId(null)}
+          onBack={() => setSplitCaseId(null)}
+          onSave={(updated, options = {}) =>
+            handleSaveResult(updated, { ...options, keepDialogOpen: true })
+          }
           onNext={() => {
-            const currentIndex = navTestCaseIds.indexOf(selectedTestCaseId);
-            if (currentIndex >= 0 && currentIndex < navTestCaseIds.length - 1) {
-              const nextTestCaseId = navTestCaseIds[currentIndex + 1];
-              setSelectedTestCaseId(nextTestCaseId);
+            if (splitIndex >= 0 && splitIndex < splitNavIds.length - 1) {
+              setSplitCaseId(splitNavIds[splitIndex + 1]);
             }
           }}
           onPrevious={() => {
-            const currentIndex = navTestCaseIds.indexOf(selectedTestCaseId);
-            if (currentIndex > 0) {
-              const prevTestCaseId = navTestCaseIds[currentIndex - 1];
-              setSelectedTestCaseId(prevTestCaseId);
-            }
+            if (splitIndex > 0) setSplitCaseId(splitNavIds[splitIndex - 1]);
           }}
-          currentIndex={navTestCaseIds.indexOf(selectedTestCaseId)}
-          totalCount={navTestCaseIds.length}
+          currentIndex={splitIndex >= 0 ? splitIndex : 0}
+          totalCount={splitNavIds.length || 1}
           statCaseIds={testCaseIds}
-          onOpenFullPage={() => {
-            const projectId =
-              propProjectId ||
-              execution?.projectId ||
-              execution?.testPlan?.projectId ||
-              activeProject?.id;
-            if (projectId && execution?.id && selectedTestCaseId) {
-              navigate(
-                `/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`,
-              );
-              handleCloseResultForm();
-            } else {
-              console.error(
-                t(
-                  "testExecution.form.fullPageNavError",
-                  "전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다",
-                ),
-              );
-            }
-          }}
+          onOpenFullPage={
+            splitProjectId
+              ? () =>
+                  navigate(
+                    `/projects/${splitProjectId}/executions/${execution.id}/testcases/${splitCaseId}/result`,
+                  )
+              : null
+          }
         />
-      )}
-      <PreviousResultsDialog
-        open={isPrevResultsOpen}
-        onClose={() => setIsPrevResultsOpen(false)}
-        results={prevResults}
-        loading={prevResultsLoading}
-        onAttachmentDeleted={handleAttachmentChange}
-        currentExecutionId={execution?.id}
-      />
+      </Box>
+    </>
+  ) : null;
 
-      {/* ICT-362: 첨부파일 다이얼로그 */}
-      <Dialog
-        open={attachmentDialogOpen}
-        onClose={() => {
-          setAttachmentDialogOpen(false);
-          setSelectedTestResultId(null);
+  return (
+    <Box
+      sx={{ display: "flex", alignItems: "stretch", minWidth: 0 }}
+      data-testid="execution-split-view"
+    >
+      <Box
+        sx={{
+          ...(embedded ? { p: 2 } : PAGE_CONTAINER_SX.main),
+          flex: 1,
+          minWidth: 0,
         }}
-        maxWidth="md"
-        fullWidth
       >
-        <DialogTitle>
-          {t("testExecution.attachments.title", "첨부파일")}
-        </DialogTitle>
-        <DialogContent>
-          {selectedTestResultId && (
-            <TestResultAttachmentsView
-              testResultId={selectedTestResultId}
-              showUpload={false}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setAttachmentDialogOpen(false);
-              setSelectedTestResultId(null);
-            }}
+        <TestExecutionHeader
+          executionId={executionId}
+          executionName={execution?.name}
+          execution={execution}
+          onCancel={onCancel}
+          onGoToList={handleGoToList}
+          onSaveOrUpdate={handleSaveOrUpdate}
+          saving={saving}
+          canEditBasicInfo={canEditBasicInfo}
+          canEdit={canEditExecution}
+          canEditPlan={canEditPlan}
+          startImmediately={startImmediately}
+          showExecutionGuide={showExecutionGuide}
+          setShowExecutionGuide={setShowExecutionGuide}
+          isEditingBasicInfo={isEditingBasicInfo}
+          onEditClick={handleEditClick}
+          onCancelEdit={handleCancelEditFromHeader}
+        />
+
+        {/* 실행 요약 정보 (Info & Status) - Accordion 적용 */}
+        <Accordion
+          expanded={accordionExpanded.executionSummary}
+          onChange={handleAccordionChange("executionSummary")}
+          sx={{
+            ...COMPACT_ACCORDION_SX,
+            mb: 1,
+            boxShadow: "none",
+            border: "1px solid",
+            borderColor: "divider",
+            "&:before": { display: "none" },
+            borderRadius: "8px !important",
+            overflow: "hidden",
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{ bgcolor: alpha(theme.palette.primary.main, 0.03) }}
           >
-            {t("common.close", "닫기")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+              }}
+            >
+              <AssessmentIcon color="primary" />
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t("testExecution.executionSummary", "실행 요약")}
+              </Typography>
+              {!accordionExpanded.executionSummary && execution && (
+                <Box
+                  sx={{ display: "flex", gap: 2, ml: 2, alignItems: "center" }}
+                >
+                  <Chip
+                    label={execution.status}
+                    size="small"
+                    icon={
+                      isInProgressStatus(execution.status) ? (
+                        <CircularProgress
+                          size={9}
+                          thickness={7}
+                          color="inherit"
+                        />
+                      ) : undefined
+                    }
+                    color={
+                      execution.status === ExecutionStatus.COMPLETED
+                        ? "success"
+                        : isInProgressStatus(execution.status)
+                          ? "warning"
+                          : "default"
+                    }
+                    variant={
+                      execution.status === ExecutionStatus.COMPLETED ||
+                      isInProgressStatus(execution.status)
+                        ? "filled"
+                        : "outlined"
+                    }
+                    sx={{
+                      height: 20,
+                      fontSize: "0.7rem",
+                      fontWeight: "bold",
+                      ...(isInProgressStatus(execution.status)
+                        ? IN_PROGRESS_CHIP_WITH_ICON_SX
+                        : {}),
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {t("testExecution.progress", "진행률")}: {progress}%
+                  </Typography>
+                  <Box sx={{ width: 100 }}>
+                    <LinearProgress
+                      variant="determinate"
+                      value={progress}
+                      sx={{ height: 4, borderRadius: 2 }}
+                    />
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </AccordionSummary>
+          <AccordionDetails sx={{ pt: 1 }}>
+            <Grid container spacing={1}>
+              <Grid size={{ xs: 12, md: 6, lg: 5 }}>
+                <TestExecutionInfo
+                  execution={execution}
+                  handleChange={handleChange}
+                  testPlans={testPlans}
+                  handlePlanChange={handlePlanChange}
+                  availableTags={availableTags}
+                  setExecution={setExecution}
+                  canEditBasicInfo={canEditBasicInfo}
+                  canEditPlan={canEditPlan}
+                  startImmediately={startImmediately}
+                  setStartImmediately={setStartImmediately}
+                  executionId={executionId}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6, lg: 7 }}>
+                <TestExecutionStatus
+                  execution={execution}
+                  statusCounts={statusCounts}
+                  progress={progress}
+                  canStartExecution={canStartExecution}
+                  canCompleteExecution={canCompleteExecution}
+                  canRestartExecution={canRestartExecution}
+                  handleStartExecution={handleStartExecution}
+                  handleCompleteExecution={handleCompleteExecution}
+                  handleRestartExecution={handleRestartExecution}
+                  saving={saving}
+                />
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+        <Box sx={{ my: 1 }}>
+          <Accordion
+            expanded={accordionExpanded.filters}
+            onChange={handleAccordionChange("filters")}
+            sx={{ ...COMPACT_ACCORDION_SX, mb: 1 }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t("testExecution.sections.filters", "필터")}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TestExecutionFilterPanel
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onApply={handleFilterApply}
+                onClear={handleFilterClear}
+                availableTags={availableTags}
+              />
+            </AccordionDetails>
+          </Accordion>
 
-      {/* 일괄 결과 입력 다이얼로그 */}
-      <BulkResultDialog
-        open={isBulkDialogOpen}
-        onClose={() => setIsBulkDialogOpen(false)}
-        selectedTestCases={flattenedData.filter(
-          (item) => selectedTestCases.has(item.id) && item.type !== "folder",
+          <Accordion
+            expanded={accordionExpanded.list}
+            onChange={handleAccordionChange("list")}
+            sx={COMPACT_ACCORDION_SX}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t(
+                  "testExecution.sections.caseList",
+                  "테스트 케이스 실행 목록",
+                )}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              {selectedTestCases.size > 0 && (
+                <Box
+                  sx={{
+                    my: 2,
+                    p: 2,
+                    bgcolor: "action.hover",
+                    borderRadius: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    {t(
+                      "testExecution.bulk.selectedCount",
+                      "{count}개 선택됨",
+                    ).replace("{count}", selectedTestCases.size)}
+                  </Typography>
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => setSelectedTestCases(new Set())}
+                    >
+                      {t(
+                        "testExecution.bulk.actionToolbar.deselect",
+                        "선택 해제",
+                      )}
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleBulkActionClick("PASS")}
+                      sx={{
+                        bgcolor: RESULT_COLORS.PASS,
+                        border: `2px solid ${RESULT_COLORS.PASS}`,
+                        "&:hover": { bgcolor: alpha(RESULT_COLORS.PASS, 0.8) },
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.PASS, 0.3)}`,
+                      }}
+                    >
+                      PASS
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleBulkActionClick("FAIL")}
+                      sx={{
+                        bgcolor: RESULT_COLORS.FAIL,
+                        border: `2px solid ${RESULT_COLORS.FAIL}`,
+                        "&:hover": { bgcolor: alpha(RESULT_COLORS.FAIL, 0.8) },
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        boxShadow: `0 2px 8px ${alpha(RESULT_COLORS.FAIL, 0.3)}`,
+                      }}
+                    >
+                      FAIL
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleBulkActionClick("BLOCKED")}
+                      sx={{
+                        bgcolor: RESULT_COLORS.BLOCKED,
+                        border: `2px solid ${RESULT_COLORS.BLOCKED}`,
+                        "&:hover": {
+                          bgcolor: alpha(RESULT_COLORS.BLOCKED, 0.8),
+                        },
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        boxShadow: `0 2px 8px ${alpha(
+                          RESULT_COLORS.BLOCKED,
+                          0.3,
+                        )}`,
+                      }}
+                    >
+                      BLOCKED
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleBulkActionClick("NOT_RUN")}
+                      sx={{
+                        bgcolor: RESULT_COLORS.NOTRUN,
+                        border: `2px solid ${RESULT_COLORS.NOTRUN}`,
+                        "&:hover": {
+                          bgcolor: alpha(RESULT_COLORS.NOTRUN, 0.8),
+                        },
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        boxShadow: `0 2px 8px ${alpha(
+                          RESULT_COLORS.NOTRUN,
+                          0.3,
+                        )}`,
+                      }}
+                    >
+                      NOT RUN
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+
+              <TestExecutionTable
+                visibleData={visibleData}
+                resultsMap={resultsMap}
+                totalItems={
+                  filteredData.filter((n) => n.type === "testcase").length
+                }
+                hasMore={hasMore}
+                loadMore={loadMore}
+                handleOpenResultForm={handleOpenResultForm}
+                activeTestCaseId={showSplit ? splitCaseId : null}
+                handleShowPrevResults={handleShowPrevResults}
+                handleAttachmentClick={handleAttachmentClick}
+                handleCopyLink={handleCopyLink}
+                canEnterResults={canEnterResults}
+                canRecordResults={canRecordResults}
+                selectedTestCases={selectedTestCases}
+                onSelectionChange={handleSelectionChange}
+                collapsedFolders={effectiveCollapsedFolders}
+                folderResultCounts={folderResultCounts}
+                collapsedFolderCount={
+                  hasActiveFilters ? 0 : collapsedFolderCount
+                }
+                onToggleFolder={handleToggleFolder}
+                onExpandAllFolders={handleExpandAllFolders}
+                onCollapseAllFolders={handleCollapseAllFolders}
+                treeControlsDisabled={hasActiveFilters}
+              />
+            </AccordionDetails>
+          </Accordion>
+        </Box>
+
+        {isResultFormOpen && selectedTestCaseId && execution?.id && (
+          <TestResultForm
+            open={isResultFormOpen}
+            testCaseId={selectedTestCaseId}
+            executionId={execution.id}
+            currentResult={resultsMap?.get(selectedTestCaseId)}
+            onClose={handleCloseResultForm}
+            onSave={handleSaveResult}
+            onNext={() => {
+              const currentIndex = navTestCaseIds.indexOf(selectedTestCaseId);
+              if (
+                currentIndex >= 0 &&
+                currentIndex < navTestCaseIds.length - 1
+              ) {
+                const nextTestCaseId = navTestCaseIds[currentIndex + 1];
+                setSelectedTestCaseId(nextTestCaseId);
+              }
+            }}
+            onPrevious={() => {
+              const currentIndex = navTestCaseIds.indexOf(selectedTestCaseId);
+              if (currentIndex > 0) {
+                const prevTestCaseId = navTestCaseIds[currentIndex - 1];
+                setSelectedTestCaseId(prevTestCaseId);
+              }
+            }}
+            currentIndex={navTestCaseIds.indexOf(selectedTestCaseId)}
+            totalCount={navTestCaseIds.length}
+            statCaseIds={testCaseIds}
+            onOpenFullPage={() => {
+              const projectId =
+                propProjectId ||
+                execution?.projectId ||
+                execution?.testPlan?.projectId ||
+                activeProject?.id;
+              if (projectId && execution?.id && selectedTestCaseId) {
+                navigate(
+                  `/projects/${projectId}/executions/${execution.id}/testcases/${selectedTestCaseId}/result`,
+                );
+                handleCloseResultForm();
+              } else {
+                console.error(
+                  t(
+                    "testExecution.form.fullPageNavError",
+                    "전체 화면 네비게이션 실패: projectId, executionId, testCaseId 중 하나가 없습니다",
+                  ),
+                );
+              }
+            }}
+          />
         )}
-        availableTags={availableTags}
-        onBulkUpdate={handleBulkUpdate}
-        processing={bulkProcessing}
-        preselectedResult={preselectedResult}
-      />
+        <PreviousResultsDialog
+          open={isPrevResultsOpen}
+          onClose={() => setIsPrevResultsOpen(false)}
+          results={prevResults}
+          loading={prevResultsLoading}
+          onAttachmentDeleted={handleAttachmentChange}
+          currentExecutionId={execution?.id}
+        />
 
-      <Snackbar
-        open={!!saveError}
-        autoHideDuration={6000}
-        onClose={() => setSaveError(undefined)}
-      >
-        <Alert severity="error" onClose={() => setSaveError(undefined)}>
-          {saveError}
-        </Alert>
-      </Snackbar>
+        {/* ICT-362: 첨부파일 다이얼로그 */}
+        <Dialog
+          open={attachmentDialogOpen}
+          onClose={() => {
+            setAttachmentDialogOpen(false);
+            setSelectedTestResultId(null);
+          }}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            {t("testExecution.attachments.title", "첨부파일")}
+          </DialogTitle>
+          <DialogContent>
+            {selectedTestResultId && (
+              <TestResultAttachmentsView
+                testResultId={selectedTestResultId}
+                showUpload={false}
+              />
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setAttachmentDialogOpen(false);
+                setSelectedTestResultId(null);
+              }}
+            >
+              {t("common.close", "닫기")}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      <Snackbar
-        open={!!successMessage}
-        autoHideDuration={8000}
-        onClose={() => setSuccessMessage(undefined)}
-      >
-        <Alert severity="success" onClose={() => setSuccessMessage(undefined)}>
-          {successMessage}
-        </Alert>
-      </Snackbar>
+        {/* 일괄 결과 입력 다이얼로그 */}
+        <BulkResultDialog
+          open={isBulkDialogOpen}
+          onClose={() => setIsBulkDialogOpen(false)}
+          selectedTestCases={flattenedData.filter(
+            (item) => selectedTestCases.has(item.id) && item.type !== "folder",
+          )}
+          availableTags={availableTags}
+          onBulkUpdate={handleBulkUpdate}
+          processing={bulkProcessing}
+          preselectedResult={preselectedResult}
+        />
+
+        <Snackbar
+          open={!!saveError}
+          autoHideDuration={6000}
+          onClose={() => setSaveError(undefined)}
+        >
+          <Alert severity="error" onClose={() => setSaveError(undefined)}>
+            {saveError}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={!!successMessage}
+          autoHideDuration={8000}
+          onClose={() => setSuccessMessage(undefined)}
+        >
+          <Alert
+            severity="success"
+            onClose={() => setSuccessMessage(undefined)}
+          >
+            {successMessage}
+          </Alert>
+        </Snackbar>
+      </Box>
+      {splitPane}
     </Box>
   );
 };
