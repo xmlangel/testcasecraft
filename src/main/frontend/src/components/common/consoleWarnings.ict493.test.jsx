@@ -7,6 +7,7 @@ import RichMarkdownEditor from "../TestCase/RichMarkdownEditor.jsx";
 
 // ICT-493: 케이스 화면 콘솔에 나던 경고 두 가지가 다시 나지 않는지 확인한다.
 // - 함수 컴포넌트(ScrollHint)에 ref 를 넘겼다는 경고
+// - Emotion 의 :first-child SSR 경고
 const theme = createTheme();
 const t = (key, fallback) => fallback || key;
 
@@ -32,7 +33,7 @@ describe("콘솔 경고 (ICT-493)", () => {
     );
   });
 
-  it("RichMarkdownEditor 는 ScrollHint 에 ref 를 넘기지 않는다", () => {
+  it("RichMarkdownEditor 는 ref 경고와 :first-child 경고를 내지 않는다", () => {
     const logged = captureConsole();
 
     render(
@@ -47,7 +48,9 @@ describe("콘솔 경고 (ICT-493)", () => {
       />,
     );
 
-    const hits = logged().filter((m) => m.includes("cannot be given refs"));
+    const hits = logged().filter(
+      (m) => m.includes("cannot be given refs") || m.includes(":first-child"),
+    );
     expect(hits).toEqual([]);
   });
 });

@@ -376,8 +376,13 @@ const RichMarkdownEditor = ({
              * 높이에 더해진다. 실측에서 내용이 한 줄뿐인데도 상자가 정확히 5px
              * 넘쳤고(171 대 166, 105 대 100), 그만큼이 넘침으로 판정되어 가려진
              * 내용이 없는데도 스크롤 표시가 붙었다.
+             *
+             * 첫 블록은 :first-child 대신 :not(* + *) 로 고른다. 앞에 형제가 없는
+             * 요소라 뜻은 같고, Emotion 이 :first-child 에 내는 SSR 경고를
+             * 피한다(ICT-493). :first-of-type 은 종류마다 첫 요소를 골라 제목
+             * 뒤 첫 문단의 위 여백까지 지우므로 쓰지 않는다.
              */
-            "& .rich-markdown-surface > :first-child": { marginTop: 0 },
+            "& .rich-markdown-surface > :not(* + *)": { marginTop: 0 },
             "& .rich-markdown-surface > :last-child": { marginBottom: 0 },
             "& .rich-markdown-surface ul, & .rich-markdown-surface ol": {
               paddingLeft: "1.4em",
