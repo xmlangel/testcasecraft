@@ -320,6 +320,7 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.form.button.add", languageCode, "새 케이스 추가", createdBy);
     createTranslationIfNotExists("testcase.form.button.edit", languageCode, "수정", createdBy);
     createTranslationIfNotExists("testcase.form.button.more", languageCode, "더보기", createdBy);
+    createTranslationIfNotExists("testcase.form.owner", languageCode, "소유자", createdBy);
 
     // 검증 제안 메시지 한글
     createTranslationIfNotExists(

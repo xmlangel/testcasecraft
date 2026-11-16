@@ -27,6 +27,8 @@ const TestCaseFormMetadata = ({
   isViewer,
   t,
   onChange,
+  // ICT-494 tl-3: 접지 않고 상위 2열 격자에 바로 들어가는 항목들로 그린다
+  flat = false,
 }) => {
   // 읽기 전용 항목 공통 컴포넌트 — 모든 읽기 전용 필드를 동일 스타일로 통일.
   // mono=true 일 때 UUID 가독성을 위해 monospace + word-break 적용.
@@ -68,6 +70,58 @@ const TestCaseFormMetadata = ({
       </Typography>
     </Box>
   );
+
+  const monoInputSx = {
+    "& .MuiInputBase-input": {
+      fontFamily:
+        "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace",
+      fontSize: "0.8rem",
+    },
+  };
+
+  if (flat) {
+    // 상위 격자(2열 또는 좁으면 1열)의 칸으로 들어간다. 작성자는 격자 맨 위 「소유자」로 보인다.
+    return (
+      <>
+        <TextField
+          label="Parent ID"
+          value={testCase?.parentId || ""}
+          onChange={onChange("parentId")}
+          margin="normal"
+          variant="outlined"
+          placeholder="null"
+          disabled={isViewer}
+          fullWidth
+          sx={monoInputSx}
+          slotProps={{ htmlInput: { "data-testid": "testcase-parent-id" } }}
+        />
+        <TextField
+          label={t("testcase.form.displayOrder", "순서")}
+          value={testCase.displayOrder || ""}
+          onChange={onChange("displayOrder")}
+          margin="normal"
+          variant="outlined"
+          disabled={isViewer}
+          fullWidth
+        />
+        <Box sx={{ mt: 1 }}>
+          <ReadOnlyField label="Parent" value={testCase?.parentName} />
+        </Box>
+        <Box sx={{ mt: 1 }}>
+          <ReadOnlyField
+            label={t("testcase.form.updatedBy", "수정자")}
+            value={testCase?.updatedBy}
+          />
+        </Box>
+        <Box className="info-full" sx={{ mt: 1 }} data-testid="testcase-ids">
+          <ReadOnlyField label="ID" value={testCase?.id || ""} mono />
+        </Box>
+        <Box className="info-full" sx={{ mt: 1 }}>
+          <ReadOnlyField label="Project ID" value={projectId} mono />
+        </Box>
+      </>
+    );
+  }
 
   return (
     <Accordion expanded={infoOpen} onChange={() => setInfoOpen((v) => !v)}>
@@ -149,11 +203,12 @@ const TestCaseFormMetadata = ({
 TestCaseFormMetadata.propTypes = {
   testCase: PropTypes.object.isRequired,
   projectId: PropTypes.string.isRequired,
-  infoOpen: PropTypes.bool.isRequired,
-  setInfoOpen: PropTypes.func.isRequired,
+  infoOpen: PropTypes.bool,
+  setInfoOpen: PropTypes.func,
   isViewer: PropTypes.bool,
   t: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
+  flat: PropTypes.bool,
 };
 
 export default TestCaseFormMetadata;

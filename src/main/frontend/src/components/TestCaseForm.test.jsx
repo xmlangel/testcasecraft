@@ -107,7 +107,11 @@ vi.mock("./TestCase/TestCaseAttachments.jsx", mockNull);
 vi.mock("./TestCase/VersionIndicator.jsx", mockNull);
 // TestCaseFormMetadata 는 H1(부모 이동 태그정리) 테스트에서 Parent ID 편집이
 // 필요해 모킹하지 않는다(MUI 만 의존해 가볍다).
-vi.mock("./TestCase/TestCaseBasicInfo.jsx", mockNull);
+// ICT-494 tl-3: ID·Parent(TestCaseFormMetadata)는 기본 정보 격자 안에 들어가므로
+// 기본 정보는 넘겨받은 metadataSlot 만 그리게 둔다.
+vi.mock("./TestCase/TestCaseBasicInfo.jsx", () => ({
+  default: ({ metadataSlot }) => metadataSlot ?? null,
+}));
 vi.mock("./TestCase/TestStepsTable.jsx", mockNull);
 vi.mock("./TestCase/MarkdownFieldEditor.jsx", mockNull);
 vi.mock("./TestCase/InlineImageDialog.jsx", mockNull);

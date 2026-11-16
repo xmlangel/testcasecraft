@@ -241,6 +241,7 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testcase.form.button.add", languageCode, "Add New Case", createdBy);
     createTranslationIfNotExists("testcase.form.button.edit", languageCode, "Edit", createdBy);
     createTranslationIfNotExists("testcase.form.button.more", languageCode, "More", createdBy);
+    createTranslationIfNotExists("testcase.form.owner", languageCode, "Owner", createdBy);
     createTranslationIfNotExists(
         "testcase.message.selectProject",
         languageCode,

@@ -1,9 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   TextField,
   Typography,
   FormControl,
@@ -20,7 +17,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import {
-  ExpandMore as ExpandMoreIcon,
   AutoAwesome as AutoAwesomeIcon,
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
@@ -39,8 +35,12 @@ const normalizePriority = (priority) => {
   return "MEDIUM";
 };
 
+// 상세 칸이 이 폭 이상이면 2열 격자로 둔다. 1600px 3단의 상세 칸(약 700px)은 2열,
+// 2단·1단 겹침처럼 좁은 칸은 1열이다.
+export const INFO_GRID_TWO_COLUMN_MIN_WIDTH = 520;
+
 /**
- * 테스트케이스 기본 정보 아코디언 컴포넌트
+ * 테스트케이스 기본 정보(ICT-494 tl-3: 접지 않는 2열 격자)
  */
 const TestCaseBasicInfo = ({
   testCase,
@@ -48,8 +48,6 @@ const TestCaseBasicInfo = ({
   availableTags,
   linkedDocuments,
   ragDocuments,
-  testCaseInfoOpen,
-  setTestCaseInfoOpen,
   isViewer,
   t,
   theme,
@@ -75,22 +73,79 @@ const TestCaseBasicInfo = ({
   autoAiMode = false,
   onAutoAiModeChange = () => {},
   visibility = {},
+  metadataSlot = null,
 }) => {
   // 기본은 표시 (visibility 가 비어 있거나 미정의 필드는 true)
   const isVisible = (key) => visibility[key] !== false;
   return (
-    <Accordion
-      expanded={testCaseInfoOpen}
-      onChange={() => setTestCaseInfoOpen((v) => !v)}
+    // ICT-494 tl-3: 접는 묶음을 없애고 Testiny 처럼 한 장짜리 2열 격자로 둔다.
+    // 순서: 소유자·우선순위 / 이름 / 설명 / 자동화·실행 유형 / 테스트 기법 / ID·Parent
+    //      → 사용자 정의 필드(태그·연결 항목) → 전제 조건·사후 조건. 단계는 이 아래(TestCaseForm).
+    // 칸 폭이 좁으면(2단·1단 겹침, 좁은 화면) 한 열로 내려온다(컨테이너 폭 기준).
+    <Box
+      data-testid="testcase-info-section"
+      sx={{ containerType: "inline-size", mb: 2 }}
     >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="subtitle2">
-          {t("testcase.info.title", "테스트케이스 정보")}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
+      <Box
+        data-testid="testcase-info-grid"
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr)",
+          columnGap: 2,
+          alignItems: "start",
+          [`@container (min-width: ${INFO_GRID_TWO_COLUMN_MIN_WIDTH}px)`]: {
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          },
+          // 이름·설명처럼 긴 필드는 한 줄 전체를 쓴다
+          "& > .info-full": { gridColumn: "1 / -1" },
+        }}
+      >
+        {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정과 같다) */}
+        <TextField
+          label={t("testcase.form.owner", "소유자")}
+          value={testCase.createdBy || ""}
+          fullWidth
+          margin="normal"
+          variant="outlined"
+          placeholder="—"
+          slotProps={{
+            input: { readOnly: true },
+            htmlInput: { "data-testid": "testcase-owner-field" },
+          }}
+        />
+
+        {isVisible("priority") ? (
+          <FormControl fullWidth margin="normal" disabled={isViewer}>
+            <InputLabel id="priority-select-label">
+              {t("testcase.form.priority", "우선순위")}
+            </InputLabel>
+            <Select
+              labelId="priority-select-label"
+              value={normalizePriority(testCase.priority)}
+              label={t("testcase.form.priority", "우선순위")}
+              onChange={onChange("priority")}
+              data-testid="testcase-priority-select"
+            >
+              <MenuItem value="HIGH">
+                {t("testcase.priority.high", "높음")}
+              </MenuItem>
+              <MenuItem value="MEDIUM">
+                {t("testcase.priority.medium", "보통")}
+              </MenuItem>
+              <MenuItem value="LOW">
+                {t("testcase.priority.low", "낮음")}
+              </MenuItem>
+            </Select>
+          </FormControl>
+        ) : (
+          <Box />
+        )}
+
         {/* Name 필드 + AI 생성 버튼 */}
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+        <Box
+          className="info-full"
+          sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}
+        >
           <TextField
             label={t("testcase.form.name", "이름")}
             value={testCase.name || ""}
@@ -202,164 +257,109 @@ const TestCaseBasicInfo = ({
         </Box>
 
         {isVisible("description") && (
-          <MarkdownFieldEditor
-            label={t("testcase.form.description", "설명")}
-            value={testCase.description || ""}
-            placeholder={t(
-              "testcase.form.testcaseDescription",
-              "테스트케이스 설명",
-            )}
-            height={120}
-            isViewer={isViewer}
-            theme={theme}
-            t={t}
-            onChange={(value) => onTestCaseChange("description", value)}
-            onPaste={(event) =>
-              onMarkdownPaste(event, { type: "field", field: "description" })
-            }
-            testid="testcase-description-input"
-          />
-        )}
-
-        {isVisible("preCondition") && (
-          <MarkdownFieldEditor
-            label={t("testcase.form.preCondition", "사전 조건")}
-            value={testCase.preCondition || ""}
-            placeholder={t(
-              "testcase.form.preConditionPlaceholder",
-              "사전 조건",
-            )}
-            height={90}
-            isViewer={isViewer}
-            theme={theme}
-            t={t}
-            onChange={(value) => onTestCaseChange("preCondition", value)}
-            onPaste={(event) =>
-              onMarkdownPaste(event, { type: "field", field: "preCondition" })
-            }
-            testid="testcase-precondition-input"
-          />
-        )}
-
-        {isVisible("postCondition") && (
-          <MarkdownFieldEditor
-            label={t("testcase.form.postCondition", "사후 조건")}
-            value={testCase.postCondition || ""}
-            placeholder={t(
-              "testcase.form.postConditionPlaceholder",
-              "테스트 종료 후 기대 상태를 입력하세요.",
-            )}
-            height={90}
-            isViewer={isViewer}
-            theme={theme}
-            t={t}
-            onChange={(value) => onTestCaseChange("postCondition", value)}
-            onPaste={(event) =>
-              onMarkdownPaste(event, { type: "field", field: "postCondition" })
-            }
-          />
-        )}
-
-        {/* ICT-491 C1: 짧은 필드는 칸 폭이 허락하는 만큼 2열 이상으로 묶는다.
-            칸이 좁으면(3단 분할의 상세 칸) 한 열로 돌아간다. */}
-        <Box
-          data-testid="testcase-short-fields"
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-            columnGap: 2,
-            alignItems: "start",
-          }}
-        >
-          {isVisible("isAutomated") && (
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={Boolean(testCase.isAutomated)}
-                  onChange={(event) => {
-                    if (isViewer) return;
-                    const { checked } = event.target;
-                    onTestCaseChange("isAutomated", checked, true);
-                  }}
-                  color="primary"
-                  disabled={isViewer}
-                />
-              }
-              sx={{ mt: 2 }}
-              label={t("testcase.form.isAutomated", "자동화 여부")}
-            />
-          )}
-
-          {isVisible("executionType") && (
-            <FormControl fullWidth margin="normal" disabled={isViewer}>
-              <InputLabel id="execution-type-select-label">
-                {t("testcase.form.executionType", "Manual/Automation")}
-              </InputLabel>
-              <Select
-                labelId="execution-type-select-label"
-                value={normalizeExecutionType(
-                  testCase.executionType,
-                  testCase.isAutomated,
-                )}
-                label={t("testcase.form.executionType", "Manual/Automation")}
-                onChange={(event) => {
-                  onTestCaseChange("executionType", event.target.value, false);
-                }}
-              >
-                <MenuItem value="Manual">
-                  {t("testcase.executionType.manual", "Manual")}
-                </MenuItem>
-                <MenuItem value="Automation">
-                  {t("testcase.executionType.automation", "Automation")}
-                </MenuItem>
-                <MenuItem value="Hybrid">
-                  {t("testcase.executionType.hybrid", "Hybrid")}
-                </MenuItem>
-              </Select>
-            </FormControl>
-          )}
-
-          {isVisible("testTechnique") && (
-            <TextField
-              label={t("testcase.form.testTechnique", "테스트 기법")}
-              value={testCase.testTechnique || ""}
-              onChange={onChange("testTechnique")}
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              disabled={isViewer}
+          <Box className="info-full">
+            <MarkdownFieldEditor
+              label={t("testcase.form.description", "설명")}
+              value={testCase.description || ""}
               placeholder={t(
-                "testcase.form.testTechniquePlaceholder",
-                "예: 경계값 분석, 의사결정 테이블 등",
+                "testcase.form.testcaseDescription",
+                "테스트케이스 설명",
               )}
+              height={120}
+              isViewer={isViewer}
+              theme={theme}
+              t={t}
+              onChange={(value) => onTestCaseChange("description", value)}
+              onPaste={(event) =>
+                onMarkdownPaste(event, { type: "field", field: "description" })
+              }
+              testid="testcase-description-input"
             />
-          )}
+          </Box>
+        )}
 
-          {isVisible("priority") && (
-            <FormControl fullWidth margin="normal" disabled={isViewer}>
-              <InputLabel id="priority-select-label">
-                {t("testcase.form.priority", "우선순위")}
-              </InputLabel>
-              <Select
-                labelId="priority-select-label"
-                value={normalizePriority(testCase.priority)}
-                label={t("testcase.form.priority", "우선순위")}
-                onChange={onChange("priority")}
-              >
-                <MenuItem value="HIGH">
-                  {t("testcase.priority.high", "높음")}
-                </MenuItem>
-                <MenuItem value="MEDIUM">
-                  {t("testcase.priority.medium", "보통")}
-                </MenuItem>
-                <MenuItem value="LOW">
-                  {t("testcase.priority.low", "낮음")}
-                </MenuItem>
-              </Select>
-            </FormControl>
-          )}
-        </Box>
+        {isVisible("isAutomated") && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={Boolean(testCase.isAutomated)}
+                onChange={(event) => {
+                  if (isViewer) return;
+                  const { checked } = event.target;
+                  onTestCaseChange("isAutomated", checked, true);
+                }}
+                color="primary"
+                disabled={isViewer}
+              />
+            }
+            sx={{ mt: 2 }}
+            label={t("testcase.form.isAutomated", "자동화 여부")}
+          />
+        )}
 
+        {isVisible("executionType") && (
+          <FormControl fullWidth margin="normal" disabled={isViewer}>
+            <InputLabel id="execution-type-select-label">
+              {t("testcase.form.executionType", "Manual/Automation")}
+            </InputLabel>
+            <Select
+              labelId="execution-type-select-label"
+              value={normalizeExecutionType(
+                testCase.executionType,
+                testCase.isAutomated,
+              )}
+              label={t("testcase.form.executionType", "Manual/Automation")}
+              onChange={(event) => {
+                onTestCaseChange("executionType", event.target.value, false);
+              }}
+            >
+              <MenuItem value="Manual">
+                {t("testcase.executionType.manual", "Manual")}
+              </MenuItem>
+              <MenuItem value="Automation">
+                {t("testcase.executionType.automation", "Automation")}
+              </MenuItem>
+              <MenuItem value="Hybrid">
+                {t("testcase.executionType.hybrid", "Hybrid")}
+              </MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
+        {isVisible("testTechnique") && (
+          <TextField
+            label={t("testcase.form.testTechnique", "테스트 기법")}
+            value={testCase.testTechnique || ""}
+            onChange={onChange("testTechnique")}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            disabled={isViewer}
+            placeholder={t(
+              "testcase.form.testTechniquePlaceholder",
+              "예: 경계값 분석, 의사결정 테이블 등",
+            )}
+          />
+        )}
+
+        {/* ID·Parent 정보(상위가 넘겨줌). 접지 않고 같은 격자에 둔다. */}
+        {metadataSlot}
+      </Box>
+
+      {/* 사용자 정의 필드: 태그·연결 항목 */}
+      <Box
+        data-testid="testcase-custom-fields"
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr)",
+          columnGap: 2,
+          alignItems: "start",
+          [`@container (min-width: ${INFO_GRID_TWO_COLUMN_MIN_WIDTH}px)`]: {
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          },
+          "& > .info-full": { gridColumn: "1 / -1" },
+        }}
+      >
         {isVisible("tags") && (
           <Autocomplete
             multiple
@@ -454,6 +454,7 @@ const TestCaseBasicInfo = ({
         {/* 자동화 여부 체크 시에만 노출 — 연결된 테스트케이스 / JUnit 자동화 케이스 */}
         {Boolean(testCase.isAutomated) && isVisible("linkedTestCases") && (
           <Autocomplete
+            className="info-full"
             multiple
             options={testCaseOptions}
             value={linkedTestCases}
@@ -525,6 +526,7 @@ const TestCaseBasicInfo = ({
 
         {Boolean(testCase.isAutomated) && isVisible("linkedJunitCases") && (
           <Autocomplete
+            className="info-full"
             multiple
             options={junitCaseOptions}
             value={linkedJunitCases}
@@ -624,7 +626,7 @@ const TestCaseBasicInfo = ({
 
         {/* 역방향(읽기 전용): 이 테스트케이스를 연결한 다른 테스트케이스 */}
         {linkedByTestCases.length > 0 && (
-          <Box sx={{ mt: 2 }}>
+          <Box className="info-full" sx={{ mt: 2 }}>
             <Typography
               variant="caption"
               color="text.secondary"
@@ -660,8 +662,50 @@ const TestCaseBasicInfo = ({
             </Box>
           </Box>
         )}
-      </AccordionDetails>
-    </Accordion>
+      </Box>
+
+      {/* 전제 조건 → (사후 조건) → 단계(TestCaseForm) 순서 */}
+      <Box data-testid="testcase-conditions">
+        {isVisible("preCondition") && (
+          <MarkdownFieldEditor
+            label={t("testcase.form.preCondition", "사전 조건")}
+            value={testCase.preCondition || ""}
+            placeholder={t(
+              "testcase.form.preConditionPlaceholder",
+              "사전 조건",
+            )}
+            height={90}
+            isViewer={isViewer}
+            theme={theme}
+            t={t}
+            onChange={(value) => onTestCaseChange("preCondition", value)}
+            onPaste={(event) =>
+              onMarkdownPaste(event, { type: "field", field: "preCondition" })
+            }
+            testid="testcase-precondition-input"
+          />
+        )}
+
+        {isVisible("postCondition") && (
+          <MarkdownFieldEditor
+            label={t("testcase.form.postCondition", "사후 조건")}
+            value={testCase.postCondition || ""}
+            placeholder={t(
+              "testcase.form.postConditionPlaceholder",
+              "테스트 종료 후 기대 상태를 입력하세요.",
+            )}
+            height={90}
+            isViewer={isViewer}
+            theme={theme}
+            t={t}
+            onChange={(value) => onTestCaseChange("postCondition", value)}
+            onPaste={(event) =>
+              onMarkdownPaste(event, { type: "field", field: "postCondition" })
+            }
+          />
+        )}
+      </Box>
+    </Box>
   );
 };
 
@@ -671,9 +715,8 @@ TestCaseBasicInfo.propTypes = {
   availableTags: PropTypes.array,
   linkedDocuments: PropTypes.array,
   ragDocuments: PropTypes.array,
-  testCaseInfoOpen: PropTypes.bool.isRequired,
-  setTestCaseInfoOpen: PropTypes.func.isRequired,
   visibility: PropTypes.object,
+  metadataSlot: PropTypes.node,
   isViewer: PropTypes.bool,
   t: PropTypes.func.isRequired,
   theme: PropTypes.object.isRequired,

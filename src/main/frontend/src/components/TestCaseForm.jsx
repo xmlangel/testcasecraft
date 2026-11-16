@@ -125,7 +125,6 @@ const TestCaseForm = ({
   const [snackbarError, setSnackbarError] = useState();
   const [isSaving, setIsSaving] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
-  const [testCaseInfoOpen, setTestCaseInfoOpen] = useState(true);
   const [folderInfoOpen, setFolderInfoOpen] = useState(true);
   const [versionDialogOpen, setVersionDialogOpen] = useState(false);
   const [versionLabel, setVersionLabel] = useState("");
@@ -1610,20 +1609,21 @@ const TestCaseForm = ({
 
           {/* 상세 정보 탭 */}
           <TabPanel value={tabValue} index={0}>
-            {/* 1단 풀폭 레이아웃 — ID/Parent → 테스트케이스 정보 → 테스트 단계 → 기대결과 순서로 세로 배치 */}
+            {/* ICT-494 tl-3: 접지 않는 한 장짜리 양식 — 2열 격자(소유자·우선순위 / 이름 / 설명 /
+                유형 / ID·Parent) → 사용자 정의 필드 → 전제 조건 → 테스트 단계·기대 결과 */}
             <Grid container spacing={2}>
               <Grid size={12}>
-                <TestCaseFormMetadata
-                  testCase={testCase}
-                  projectId={projectId}
-                  infoOpen={infoOpen}
-                  setInfoOpen={setInfoOpen}
-                  isViewer={isViewer}
-                  t={t}
-                  onChange={handleChange}
-                />
-
                 <TestCaseBasicInfo
+                  metadataSlot={
+                    <TestCaseFormMetadata
+                      flat
+                      testCase={testCase}
+                      projectId={projectId}
+                      isViewer={isViewer}
+                      t={t}
+                      onChange={handleChange}
+                    />
+                  }
                   testCase={testCase}
                   errors={errors}
                   availableTags={availableTags}
@@ -1635,8 +1635,6 @@ const TestCaseForm = ({
                         )
                       : []
                   }
-                  testCaseInfoOpen={testCaseInfoOpen}
-                  setTestCaseInfoOpen={setTestCaseInfoOpen}
                   isViewer={isViewer}
                   t={t}
                   theme={theme}

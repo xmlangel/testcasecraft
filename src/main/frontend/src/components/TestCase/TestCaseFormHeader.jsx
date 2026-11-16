@@ -242,9 +242,9 @@ const TestCaseFormHeader = ({
         pt: 1,
         pb: 1,
         mb: 1,
-        bgcolor: "background.paper",
-        // background.paper 가 반투명이라 그대로 두면 스크롤된 본문 글자가 비친다(하단 바와 같은 처리).
-        backdropFilter: "blur(20px) saturate(180%)",
+        // background.paper 는 반투명(0.7)이라 흐림을 줘도 스크롤된 본문 글자가 읽힌다.
+        // 겹친 상세 칸과 같이 불투명한 background.default 를 쓴다.
+        bgcolor: "background.default",
         borderBottom: 1,
         borderColor: "divider",
       }}

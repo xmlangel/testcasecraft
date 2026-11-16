@@ -132,6 +132,8 @@ public class TestCaseKeysInitializer {
     // ICT-494 tl-2: 보기 모드의 주 동작(편집으로 전환)과 상세 머리 더보기 메뉴
     createTranslationKeyIfNotExists("testcase.form.button.edit", "testcase", "편집 전환 버튼", "수정");
     createTranslationKeyIfNotExists("testcase.form.button.more", "testcase", "더보기 메뉴 버튼", "더보기");
+    // ICT-494 tl-3: 상세 격자 맨 위 소유자 칸(작성자로 대신한다)
+    createTranslationKeyIfNotExists("testcase.form.owner", "testcase", "소유자 필드", "소유자");
 
     // 추가 폼 필드들
     createTranslationKeyIfNotExists(
