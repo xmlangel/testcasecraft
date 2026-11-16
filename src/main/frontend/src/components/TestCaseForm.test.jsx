@@ -109,8 +109,23 @@ vi.mock("./TestCase/VersionIndicator.jsx", mockNull);
 // 필요해 모킹하지 않는다(MUI 만 의존해 가볍다).
 // ICT-494 tl-3: ID·Parent(TestCaseFormMetadata)는 기본 정보 격자 안에 들어가므로
 // 기본 정보는 넘겨받은 metadataSlot 만 그리게 둔다.
+// ICT-494 tl-5: 실행 유형 변경 경로를 시험하려고 그 호출만 버튼으로 남긴다.
 vi.mock("./TestCase/TestCaseBasicInfo.jsx", () => ({
-  default: ({ metadataSlot }) => metadataSlot ?? null,
+  default: ({ metadataSlot, onTestCaseChange }) => (
+    <>
+      {metadataSlot ?? null}
+      <button
+        type="button"
+        data-testid="mock-execution-type-hybrid"
+        onClick={() => onTestCaseChange("executionType", "Hybrid")}
+      />
+      <button
+        type="button"
+        data-testid="mock-execution-type-manual"
+        onClick={() => onTestCaseChange("executionType", "Manual")}
+      />
+    </>
+  ),
 }));
 vi.mock("./TestCase/TestStepsTable.jsx", mockNull);
 vi.mock("./TestCase/MarkdownFieldEditor.jsx", mockNull);
@@ -370,5 +385,75 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
 
     const layout = await screen.findByTestId("testcase-steps-expected-layout");
     expect(layout).toHaveStyle({ display: "grid" });
+  });
+});
+
+describe("TestCaseForm 실행 유형과 자동화 여부 (ICT-494 tl-5)", () => {
+  beforeEach(() => {
+    addTestCase.mockReset().mockResolvedValue({ id: "new-1", name: "신규 TC" });
+    appCtx.testCases = [];
+    api.mockReset().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    });
+  });
+
+  const saveAndGetPayload = async () => {
+    fireEvent.click(await screen.findByTestId("testcase-save-button"));
+    await waitFor(() => expect(addTestCase).toHaveBeenCalledTimes(1));
+    return addTestCase.mock.calls[0][0];
+  };
+
+  it("실행 유형을 Hybrid 로 바꾸면 isAutomated 가 참으로 함께 저장된다", async () => {
+    render(
+      <TestCaseForm
+        projectId="p1"
+        onSave={vi.fn()}
+        initialData={{ name: "신규 TC", executionType: "Manual" }}
+      />,
+    );
+    fireEvent.click(await screen.findByTestId("mock-execution-type-hybrid"));
+    expect(await saveAndGetPayload()).toMatchObject({
+      executionType: "Hybrid",
+      isAutomated: true,
+    });
+  });
+
+  it("실행 유형을 Manual 로 바꾸면 isAutomated 가 거짓으로 함께 저장된다", async () => {
+    render(
+      <TestCaseForm
+        projectId="p1"
+        onSave={vi.fn()}
+        initialData={{
+          name: "신규 TC",
+          executionType: "Automation",
+          isAutomated: true,
+        }}
+      />,
+    );
+    fireEvent.click(await screen.findByTestId("mock-execution-type-manual"));
+    expect(await saveAndGetPayload()).toMatchObject({
+      executionType: "Manual",
+      isAutomated: false,
+    });
+  });
+
+  it("두 값이 어긋난 케이스는 저장할 때 실행 유형 쪽으로 맞춘다", async () => {
+    render(
+      <TestCaseForm
+        projectId="p1"
+        onSave={vi.fn()}
+        initialData={{
+          name: "신규 TC",
+          executionType: "Manual",
+          isAutomated: true,
+        }}
+      />,
+    );
+    expect(await saveAndGetPayload()).toMatchObject({
+      executionType: "Manual",
+      isAutomated: false,
+    });
   });
 });

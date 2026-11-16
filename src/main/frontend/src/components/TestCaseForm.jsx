@@ -70,7 +70,12 @@ import TestCaseExecutionHistory from "./TestCaseExecutionHistory.jsx";
 import RagStatusBadge from "./TestCase/RagStatusBadge.jsx";
 import useRagRegistration from "./TestCase/useRagRegistration.js";
 import { serverErrorMessage } from "../utils/apiError.js";
-import { normalizeExecutionType } from "../utils/executionType.js";
+import {
+  isAutomatedCase,
+  normalizeExecutionType,
+  withExecutionTypeFields,
+  executionTypeFields,
+} from "../utils/executionType.js";
 import { ACTION_BUTTON_SIZE } from "./common/actionButtonSize.js";
 
 const TabPanel = (props) => {
@@ -330,7 +335,7 @@ const TestCaseForm = ({
       if (!data?.name?.trim()) return;
       const { _linkedDocIds, ...tcData } = data;
       const payload = {
-        ...tcData,
+        ...withExecutionTypeFields(tcData),
         projectId,
         steps: tcData.steps?.map((step) => ({
           stepNumber: step.stepNumber,
@@ -558,7 +563,7 @@ const TestCaseForm = ({
 
         // 연결된 자동화(JUnit) 케이스 resolve + 자동화 케이스면 검색 옵션 프리페치
         resolveLinkedJunitCases(tc.linkedJunitTestCaseIds || []);
-        if (tc.isAutomated) {
+        if (isAutomatedCase(tc)) {
           fetchJunitCases("");
         }
 
@@ -711,40 +716,10 @@ const TestCaseForm = ({
     setErrors({ ...errors, [field]: undefined });
   };
 
-  const handleTestCaseChange = (field, value, isAutomatedSwitch = false) => {
-    if (isAutomatedSwitch) {
-      // 자동화 스위치 변경 시 executionType도 함께 업데이트
-      setTestCase((prev) => {
-        const currentType =
-          prev.executionType || (prev.isAutomated ? "Automation" : "Manual");
-        let nextType = currentType;
-        if (value) {
-          if (!currentType || currentType === "Manual") {
-            nextType = "Automation";
-          }
-        } else {
-          if (!currentType || currentType === "Automation") {
-            nextType = "Manual";
-          }
-        }
-        return {
-          ...prev,
-          isAutomated: value,
-          executionType: nextType,
-        };
-      });
-    } else if (field === "executionType") {
-      // executionType 변경 시 isAutomated도 함께 업데이트
-      setTestCase((prev) => ({
-        ...prev,
-        executionType: value,
-        isAutomated:
-          value === "Automation"
-            ? true
-            : value === "Manual"
-              ? false
-              : prev.isAutomated,
-      }));
+  const handleTestCaseChange = (field, value) => {
+    if (field === "executionType") {
+      // ICT-494 tl-5: 자동화 여부는 실행 유형을 따른다(Automation·Hybrid → 켬, Manual → 끔)
+      setTestCase((prev) => ({ ...prev, ...executionTypeFields(value) }));
     } else {
       // 일반 필드 변경
       setTestCase((prev) => ({ ...prev, [field]: value }));
@@ -1034,7 +1009,7 @@ const TestCaseForm = ({
 
     try {
       const payload = {
-        ...testCase,
+        ...withExecutionTypeFields(testCase),
         projectId,
         steps: testCase.steps?.map((step) => ({
           stepNumber: step.stepNumber,

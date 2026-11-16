@@ -7,7 +7,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormControlLabel,
   Switch,
   Autocomplete,
   Chip,
@@ -21,7 +20,10 @@ import {
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import MarkdownFieldEditor from "./MarkdownFieldEditor.jsx";
-import { normalizeExecutionType } from "../../utils/executionType.js";
+import {
+  isAutomatedCase,
+  normalizeExecutionType,
+} from "../../utils/executionType.js";
 
 /**
  * Priority 값을 정규화 (Medium → MEDIUM, High → HIGH, Low → LOW)
@@ -77,6 +79,7 @@ const TestCaseBasicInfo = ({
 }) => {
   // 기본은 표시 (visibility 가 비어 있거나 미정의 필드는 true)
   const isVisible = (key) => visibility[key] !== false;
+  const automated = isAutomatedCase(testCase);
   return (
     // ICT-494 tl-3: 접는 묶음을 없애고 Testiny 처럼 한 장짜리 2열 격자로 둔다.
     // 순서: 소유자·우선순위 / 이름 / 설명 / 자동화·실행 유형 / 테스트 기법 / ID·Parent
@@ -278,25 +281,7 @@ const TestCaseBasicInfo = ({
           </Box>
         )}
 
-        {isVisible("isAutomated") && (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={Boolean(testCase.isAutomated)}
-                onChange={(event) => {
-                  if (isViewer) return;
-                  const { checked } = event.target;
-                  onTestCaseChange("isAutomated", checked, true);
-                }}
-                color="primary"
-                disabled={isViewer}
-              />
-            }
-            sx={{ mt: 2 }}
-            label={t("testcase.form.isAutomated", "자동화 여부")}
-          />
-        )}
-
+        {/* ICT-494 tl-5: 「자동화 여부」 토글은 없앴다. 실행 유형 하나로 고르고 자동화 여부는 그 값을 따른다. */}
         {isVisible("executionType") && (
           <FormControl fullWidth margin="normal" disabled={isViewer}>
             <InputLabel id="execution-type-select-label">
@@ -310,7 +295,7 @@ const TestCaseBasicInfo = ({
               )}
               label={t("testcase.form.executionType", "Manual/Automation")}
               onChange={(event) => {
-                onTestCaseChange("executionType", event.target.value, false);
+                onTestCaseChange("executionType", event.target.value);
               }}
             >
               <MenuItem value="Manual">
@@ -451,8 +436,8 @@ const TestCaseBasicInfo = ({
           />
         )}
 
-        {/* 자동화 여부 체크 시에만 노출 — 연결된 테스트케이스 / JUnit 자동화 케이스 */}
-        {Boolean(testCase.isAutomated) && isVisible("linkedTestCases") && (
+        {/* 실행 유형이 Automation·Hybrid 일 때만 노출 — 연결된 테스트케이스 / JUnit 자동화 케이스 */}
+        {automated && isVisible("linkedTestCases") && (
           <Autocomplete
             className="info-full"
             multiple
@@ -524,7 +509,7 @@ const TestCaseBasicInfo = ({
           />
         )}
 
-        {Boolean(testCase.isAutomated) && isVisible("linkedJunitCases") && (
+        {automated && isVisible("linkedJunitCases") && (
           <Autocomplete
             className="info-full"
             multiple

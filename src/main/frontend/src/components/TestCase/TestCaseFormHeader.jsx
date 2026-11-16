@@ -34,6 +34,7 @@ import {
 } from "@mui/icons-material";
 import VersionIndicator from "./VersionIndicator.jsx";
 import { ACTION_BUTTON_SIZE } from "../common/actionButtonSize.js";
+import { isAutomatedCase } from "../../utils/executionType.js";
 
 /**
  * 테스트케이스 폼 헤더 컴포넌트
@@ -270,8 +271,8 @@ const TestCaseFormHeader = ({
             sx={{ fontWeight: "bold" }}
           />
         )}
-        {/* 자동화 케이스 표시 (ICT-487): TC ID 옆, 폼에서 체크를 바꾸면 바로 반영된다 */}
-        {testCase?.type === "testcase" && testCase?.isAutomated === true && (
+        {/* 자동화 케이스 표시 (ICT-487): TC ID 옆. ICT-494 tl-5 부터 실행 유형(Automation·Hybrid)을 따른다 */}
+        {testCase?.type === "testcase" && isAutomatedCase(testCase) && (
           <Chip
             icon={<SmartToyIcon />}
             label={t("testcase.tree.automated", "자동화")}

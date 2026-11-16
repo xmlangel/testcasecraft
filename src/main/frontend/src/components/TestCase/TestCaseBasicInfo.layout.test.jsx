@@ -50,7 +50,7 @@ describe("TestCaseBasicInfo 접지 않는 2열 격자 (ICT-494 tl-3)", () => {
     expect(screen.getByTestId("testcase-name-input")).toBeVisible();
   });
 
-  it("격자 순서는 소유자·우선순위 → 이름 → 설명 → 자동화·실행 유형이다", () => {
+  it("격자 순서는 소유자·우선순위 → 이름 → 설명 → 실행 유형이다", () => {
     renderInfo();
     const grid = screen.getByTestId("testcase-info-grid");
     const order = [
@@ -58,7 +58,7 @@ describe("TestCaseBasicInfo 접지 않는 2열 격자 (ICT-494 tl-3)", () => {
       screen.getByLabelText("우선순위"),
       screen.getByTestId("testcase-name-input"),
       screen.getByTestId("testcase-description-input"),
-      screen.getByLabelText("자동화 여부"),
+      screen.getByLabelText("Manual/Automation"),
     ];
     order.forEach((el) => expect(grid).toContainElement(el));
     for (let i = 1; i < order.length; i += 1) {

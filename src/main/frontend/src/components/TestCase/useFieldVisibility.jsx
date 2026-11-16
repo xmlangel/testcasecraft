@@ -24,11 +24,7 @@ export const FIELD_DEFINITIONS = [
     labelKey: "testcase.form.postCondition",
     labelDefault: "Post-condition",
   },
-  {
-    key: "isAutomated",
-    labelKey: "testcase.form.isAutomated",
-    labelDefault: "Automated",
-  },
+  // ICT-494 tl-5: 「자동화 여부」 칸은 실행 유형으로 합쳐 표시 설정에서도 뺐다.
   {
     key: "executionType",
     labelKey: "testcase.form.executionType",
