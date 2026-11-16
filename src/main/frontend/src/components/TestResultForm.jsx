@@ -1005,109 +1005,138 @@ const TestResultForm = ({
           {error}
         </Alert>
       ) : testCase ? (
-        <>
-          <TestCaseDetails
-            testCase={
-              stableCurrentResult?.steps?.length
-                ? { ...testCase, steps: stableCurrentResult.steps }
-                : testCase
-            }
-            t={t}
-            stepResults={stepResults}
-            onStepChange={handleStepChange}
-            onPassAllSteps={handlePassAllSteps}
-            onPassAllDialogChange={setPassAllDialogOpen}
-            stepInputDisabled={isViewer}
-          />
+        // ICT-491 ex-2: 칸이 넓으면 왼쪽에 케이스 내용·단계, 오른쪽에 판정·코멘트·첨부를 둬서
+        // 스크롤 없이 함께 보이게 한다. 좁으면(컨테이너 폭 기준) 예전처럼 위아래로 쌓인다.
+        <Box sx={{ containerType: "inline-size", width: "100%" }}>
+          <Box
+            data-testid="test-result-two-column"
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr)",
+              columnGap: 2,
+              alignItems: "start",
+              "@container (min-width: 720px)": {
+                gridTemplateColumns: "minmax(0, 1.2fr) minmax(300px, 1fr)",
+              },
+            }}
+          >
+            <Box sx={{ minWidth: 0 }}>
+              <TestCaseDetails
+                testCase={
+                  stableCurrentResult?.steps?.length
+                    ? { ...testCase, steps: stableCurrentResult.steps }
+                    : testCase
+                }
+                t={t}
+                stepResults={stepResults}
+                onStepChange={handleStepChange}
+                onPassAllSteps={handlePassAllSteps}
+                onPassAllDialogChange={setPassAllDialogOpen}
+                stepInputDisabled={isViewer}
+              />
 
-          {/* 케이스에 붙은 첨부파일 — 업로드는 케이스 편집에서 하고, 삭제는 케이스 편집 권한
+              {/* 케이스에 붙은 첨부파일 — 업로드는 케이스 편집에서 하고, 삭제는 케이스 편집 권한
               (TESTER 제외)이 있을 때만 연다. 서버도 같은 기준(canEditTestCaseAttachment)으로 막는다. */}
-          <TestCaseAttachments
-            testCaseId={testCaseId}
-            readOnly
-            canDelete={canDeleteProjectContent(projectRole)}
-            hideWhenEmpty
-            title={t(
-              "testResult.caseAttachments.title",
-              "테스트케이스 첨부파일",
-            )}
-          />
-
-          <Box sx={{ mt: 1.5, width: "100%", boxSizing: "border-box" }}>
-            <TestResultNotes
-              notes={notes}
-              setNotes={setNotesByUser}
-              isViewer={isViewer}
-              t={t}
-              darkMode={darkMode}
-              height={fullPage ? 300 : 200}
-              onNext={onNext}
-              onPrevious={onPrevious}
-              currentIndex={currentIndex}
-              totalCount={totalCount}
-              onFullscreenChange={setIsNotesFullscreen}
-              onMarkdownPaste={(event) =>
-                handleMarkdownPaste(event, { type: "field", field: "notes" })
-              }
-              inlineImageUploading={inlineImageUploading}
-              result={result}
-              onResultChange={(newResult) => {
-                setResultByUser(newResult);
-                setTimeout(
-                  () =>
-                    handleSaveAndNext(newResult, {
-                      advanceToNext: false,
-                      keepDialogOpen: true,
-                      showSuccess: true,
-                    }),
-                  100,
-                );
+              <TestCaseAttachments
+                testCaseId={testCaseId}
+                readOnly
+                canDelete={canDeleteProjectContent(projectRole)}
+                hideWhenEmpty
+                title={t(
+                  "testResult.caseAttachments.title",
+                  "테스트케이스 첨부파일",
+                )}
+              />
+            </Box>
+            <Box
+              data-testid="test-result-entry-column"
+              sx={{
+                mt: 1.5,
+                width: "100%",
+                minWidth: 0,
+                boxSizing: "border-box",
+                "@container (min-width: 720px)": {
+                  mt: 0,
+                  position: "sticky",
+                  top: 0,
+                },
               }}
-              onSave={() => handleSaveAndNext(result)}
-              onClose={onClose}
-              loading={loading}
-              shouldShowJiraButton={shouldShowJiraButton}
-              handleOpenJiraDialog={handleOpenJiraDialog}
-              testCase={testCase}
-              saveButtonRef={saveButtonRef}
-            />
+            >
+              <TestResultNotes
+                notes={notes}
+                setNotes={setNotesByUser}
+                isViewer={isViewer}
+                t={t}
+                darkMode={darkMode}
+                height={fullPage ? 300 : 200}
+                onNext={onNext}
+                onPrevious={onPrevious}
+                currentIndex={currentIndex}
+                totalCount={totalCount}
+                onFullscreenChange={setIsNotesFullscreen}
+                onMarkdownPaste={(event) =>
+                  handleMarkdownPaste(event, { type: "field", field: "notes" })
+                }
+                inlineImageUploading={inlineImageUploading}
+                result={result}
+                onResultChange={(newResult) => {
+                  setResultByUser(newResult);
+                  setTimeout(
+                    () =>
+                      handleSaveAndNext(newResult, {
+                        advanceToNext: false,
+                        keepDialogOpen: true,
+                        showSuccess: true,
+                      }),
+                    100,
+                  );
+                }}
+                onSave={() => handleSaveAndNext(result)}
+                onClose={onClose}
+                loading={loading}
+                shouldShowJiraButton={shouldShowJiraButton}
+                handleOpenJiraDialog={handleOpenJiraDialog}
+                testCase={testCase}
+                saveButtonRef={saveButtonRef}
+              />
 
-            <TestResultTags
-              tags={tags}
-              setTags={setTagsByUser}
-              availableTags={availableTags}
-              isViewer={isViewer}
-              t={t}
-            />
+              <TestResultTags
+                tags={tags}
+                setTags={setTagsByUser}
+                availableTags={availableTags}
+                isViewer={isViewer}
+                t={t}
+              />
 
-            <TestResultAttachments
-              attachedFiles={attachedFiles}
-              handleFileUpload={handleFileUpload}
-              handleFileDelete={handleFileDelete}
-              handlePreview={handlePreview}
-              isViewer={isViewer}
-              t={t}
-              fileUploadError={fileUploadError}
-              isFileUploading={isFileUploading}
-              currentResult={stableCurrentResult}
-            />
+              <TestResultAttachments
+                attachedFiles={attachedFiles}
+                handleFileUpload={handleFileUpload}
+                handleFileDelete={handleFileDelete}
+                handlePreview={handlePreview}
+                isViewer={isViewer}
+                t={t}
+                fileUploadError={fileUploadError}
+                isFileUploading={isFileUploading}
+                currentResult={stableCurrentResult}
+              />
 
-            <TestResultJira
-              jiraIssueKey={jiraIssueKey}
-              jiraConnectionStatus={jiraConnectionStatus}
-              result={result}
-              notes={notes}
-              handleIssueLinked={handleIssueLinked}
-              handleIssueUnlinked={handleIssueUnlinked}
-              onJiraIssueKeyChange={setJiraIssueKeyByUser}
-              linkedIssues={linkedIssues}
-              isViewer={isViewer}
-              t={t}
-              detectedJiraIssues={detectedJiraIssues}
-              testCase={testCase}
-            />
+              <TestResultJira
+                jiraIssueKey={jiraIssueKey}
+                jiraConnectionStatus={jiraConnectionStatus}
+                result={result}
+                notes={notes}
+                handleIssueLinked={handleIssueLinked}
+                handleIssueUnlinked={handleIssueUnlinked}
+                onJiraIssueKeyChange={setJiraIssueKeyByUser}
+                linkedIssues={linkedIssues}
+                isViewer={isViewer}
+                t={t}
+                detectedJiraIssues={detectedJiraIssues}
+                testCase={testCase}
+              />
+            </Box>
           </Box>
-        </>
+        </Box>
       ) : null}
     </>
   );

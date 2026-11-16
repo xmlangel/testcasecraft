@@ -363,11 +363,12 @@ const TestCaseDetails = ({
                     </TableCell>
                     {withStepResults && (
                       <>
-                        <TableCell width="14%">
-                          {t("testResult.steps.result", "결과")}
-                        </TableCell>
+                        {/* ICT-491 ex-2: 단계 | 기대 결과 | 실제 결과 | 판정 순서로 한 줄에 읽힌다 */}
                         <TableCell width="26%">
                           {t("testResult.steps.actualResult", "실제 결과")}
+                        </TableCell>
+                        <TableCell width="14%">
+                          {t("testResult.steps.result", "결과")}
                         </TableCell>
                       </>
                     )}
@@ -412,37 +413,6 @@ const TestCaseDetails = ({
                         {withStepResults && (
                           <>
                             <TableCell sx={{ verticalAlign: "top" }}>
-                              <ToggleButtonGroup
-                                size="small"
-                                exclusive
-                                disabled={stepInputDisabled}
-                                value={
-                                  stepResults[step.stepNumber]?.result ||
-                                  "NOT_RUN"
-                                }
-                                onChange={(_, value) =>
-                                  onStepChange(step.stepNumber, {
-                                    result: value || "NOT_RUN",
-                                  })
-                                }
-                                aria-label={`step-${step.stepNumber}-result`}
-                              >
-                                {STEP_RESULT_OPTIONS.map((opt) => (
-                                  <ToggleButton
-                                    key={opt.value}
-                                    value={opt.value}
-                                    color={opt.color}
-                                    data-testid={`step-${step.stepNumber}-${opt.value}`}
-                                    sx={{ px: 1, py: 0.25, fontWeight: 700 }}
-                                  >
-                                    <Tooltip title={opt.value}>
-                                      <span>{opt.label}</span>
-                                    </Tooltip>
-                                  </ToggleButton>
-                                ))}
-                              </ToggleButtonGroup>
-                            </TableCell>
-                            <TableCell sx={{ verticalAlign: "top" }}>
                               {/* ICT-472: 마크다운 입력. 표 칸에 맞게 작은 글씨로 그리고, 예전에
                                   일반 텍스트로 저장된 한 줄 바꿈도 그대로 보여 준다 */}
                               <RichMarkdownEditor
@@ -485,6 +455,37 @@ const TestCaseDetails = ({
                                 keepLineBreaks
                                 testid={`step-${step.stepNumber}-actual`}
                               />
+                            </TableCell>
+                            <TableCell sx={{ verticalAlign: "top" }}>
+                              <ToggleButtonGroup
+                                size="small"
+                                exclusive
+                                disabled={stepInputDisabled}
+                                value={
+                                  stepResults[step.stepNumber]?.result ||
+                                  "NOT_RUN"
+                                }
+                                onChange={(_, value) =>
+                                  onStepChange(step.stepNumber, {
+                                    result: value || "NOT_RUN",
+                                  })
+                                }
+                                aria-label={`step-${step.stepNumber}-result`}
+                              >
+                                {STEP_RESULT_OPTIONS.map((opt) => (
+                                  <ToggleButton
+                                    key={opt.value}
+                                    value={opt.value}
+                                    color={opt.color}
+                                    data-testid={`step-${step.stepNumber}-${opt.value}`}
+                                    sx={{ px: 1, py: 0.25, fontWeight: 700 }}
+                                  >
+                                    <Tooltip title={opt.value}>
+                                      <span>{opt.label}</span>
+                                    </Tooltip>
+                                  </ToggleButton>
+                                ))}
+                              </ToggleButtonGroup>
                             </TableCell>
                           </>
                         )}
