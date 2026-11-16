@@ -10,6 +10,8 @@ import {
   useTheme,
   alpha,
   Divider,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import {
   NavigateBefore as NavigateBeforeIcon,
@@ -36,6 +38,10 @@ const TestResultFloatingMenu = ({
   saveButtonRef,
   t,
   isNotesFullscreen = false,
+  // ICT-491 ex-3: 3단 분할의 결과 칸 하단에 붙는 바. 화면 가운데 떠 있는 대신 칸 폭 전체를 쓴다.
+  docked = false,
+  saveAndNext = true,
+  onSaveAndNextChange = null,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -77,20 +83,47 @@ const TestResultFloatingMenu = ({
 
   return (
     <Box
-      sx={{
-        position: "fixed",
-        bottom: 32,
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: isNotesFullscreen ? 11000 : 1300,
-        width: "auto",
-        maxWidth: "95vw",
-        animation: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-        "@keyframes slideUp": {
-          "0%": { transform: "translateX(-50%) translateY(100px)", opacity: 0 },
-          "100%": { transform: "translateX(-50%) translateY(0)", opacity: 1 },
-        },
-      }}
+      data-testid={docked ? "result-docked-bar" : "result-floating-menu"}
+      sx={
+        docked
+          ? {
+              position: "sticky",
+              bottom: 0,
+              zIndex: isNotesFullscreen ? 11000 : 3,
+              mt: 1,
+              mx: -2,
+              "& > .MuiPaper-root": {
+                borderRadius: 0,
+                justifyContent: "space-between",
+                bgcolor: "background.paper",
+                backdropFilter: "none",
+                boxShadow: "none",
+                borderTop: 1,
+                borderColor: "divider",
+                "&:hover": { boxShadow: "none", transform: "none" },
+              },
+            }
+          : {
+              position: "fixed",
+              bottom: 32,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: isNotesFullscreen ? 11000 : 1300,
+              width: "auto",
+              maxWidth: "95vw",
+              animation: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+              "@keyframes slideUp": {
+                "0%": {
+                  transform: "translateX(-50%) translateY(100px)",
+                  opacity: 0,
+                },
+                "100%": {
+                  transform: "translateX(-50%) translateY(0)",
+                  opacity: 1,
+                },
+              },
+            }
+      }
     >
       <Paper
         elevation={0}
@@ -283,6 +316,25 @@ const TestResultFloatingMenu = ({
           >
             <CloseIcon fontSize="small" />
           </IconButton>
+
+          {!isViewer && docked && onSaveAndNextChange && (
+            <FormControlLabel
+              sx={{ mr: 0.5, ml: 0 }}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={saveAndNext}
+                  onChange={(e) => onSaveAndNextChange(e.target.checked)}
+                  inputProps={{ "data-testid": "save-and-next-checkbox" }}
+                />
+              }
+              label={
+                <Typography variant="body2" noWrap>
+                  {t("testResult.form.saveAndNext", "저장 후 다음")}
+                </Typography>
+              }
+            />
+          )}
 
           {!isViewer && (
             <Button

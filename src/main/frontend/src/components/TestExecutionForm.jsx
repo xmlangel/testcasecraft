@@ -1445,6 +1445,7 @@ const TestExecutionForm = ({
           open
           fullPage
           embedded
+          dockedFooter
           testCaseId={splitCaseId}
           executionId={execution.id}
           execution={execution}

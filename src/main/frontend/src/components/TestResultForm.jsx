@@ -50,6 +50,8 @@ const KEY_RESULT_MAP = {
   B: TestResult.BLOCKED,
 };
 
+const SAVE_AND_NEXT_STORAGE_KEY = "testcase-manager-result-save-and-next";
+
 const TestResultForm = ({
   open,
   testCaseId,
@@ -67,6 +69,8 @@ const TestResultForm = ({
   statCaseIds = null,
   fullPage = false,
   embedded = false,
+  // ICT-491 ex-3: 3단 분할 결과 칸 하단에 바를 붙이고 「저장 후 다음」 선택을 보인다
+  dockedFooter = false,
   onOpenFullPage = null,
   isPreviousResultEdit = false, // 새로운 prop: 이전 결과 수정 모드
   execution = null, // 새로운 prop: 전체 실행 정보
@@ -77,6 +81,13 @@ const TestResultForm = ({
   const darkMode = theme.palette.mode === "dark";
 
   const [testCase, setTestCase] = useState(null);
+  const [saveAndNext, setSaveAndNext] = useState(
+    () => localStorage.getItem(SAVE_AND_NEXT_STORAGE_KEY) !== "false",
+  );
+  const handleSaveAndNextChange = useCallback((checked) => {
+    setSaveAndNext(checked);
+    localStorage.setItem(SAVE_AND_NEXT_STORAGE_KEY, String(checked));
+  }, []);
   // 편집 가능 여부는 시스템 role이 아니라 이 테스트케이스가 속한 프로젝트에서의 role로 판단한다.
   const { projectRole } = useProjectRole(testCase?.projectId, user);
   // 결과 기록은 편집 가능 role(PM/LEAD/DEV/CONTRIBUTOR)뿐 아니라 TESTER도 허용한다.
@@ -1193,8 +1204,15 @@ const TestResultForm = ({
             }}
             onPrevious={onPrevious}
             onNext={onNext}
-            onSave={() => handleSaveAndNext(result)}
+            onSave={() =>
+              handleSaveAndNext(result, {
+                advanceToNext: dockedFooter ? saveAndNext : true,
+              })
+            }
             onClose={onClose}
+            docked={dockedFooter}
+            saveAndNext={saveAndNext}
+            onSaveAndNextChange={dockedFooter ? handleSaveAndNextChange : null}
             currentIndex={currentIndex}
             totalCount={totalCount}
             isViewer={isViewer}
@@ -1421,6 +1439,7 @@ TestResultForm.propTypes = {
   totalCount: PropTypes.number,
   statCaseIds: PropTypes.arrayOf(PropTypes.string),
   fullPage: PropTypes.bool,
+  dockedFooter: PropTypes.bool,
   onOpenFullPage: PropTypes.func,
   isPreviousResultEdit: PropTypes.bool,
 };
