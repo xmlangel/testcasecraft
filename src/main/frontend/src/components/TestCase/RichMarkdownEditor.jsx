@@ -450,9 +450,19 @@ const RichMarkdownEditor = ({
             },
           }}
         >
-          <ScrollHint {...scroll} position="top" />
+          <ScrollHint
+            overflowing={scroll.overflowing}
+            atTop={scroll.atTop}
+            atBottom={scroll.atBottom}
+            position="top"
+          />
           <EditorContent editor={editor} />
-          <ScrollHint {...scroll} position="bottom" />
+          <ScrollHint
+            overflowing={scroll.overflowing}
+            atTop={scroll.atTop}
+            atBottom={scroll.atBottom}
+            position="bottom"
+          />
         </Box>
       </Box>
 
