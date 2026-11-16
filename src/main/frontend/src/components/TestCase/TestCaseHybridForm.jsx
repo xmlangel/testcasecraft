@@ -54,10 +54,14 @@ import useBookmarks from "../../hooks/useBookmarks.js";
 import useLatestResults from "../../hooks/useLatestResults.js";
 import { CHROME_ICON_SX } from "../common/iconSizes.js";
 import Resizer from "../common/Resizer.jsx";
+import useElementWidth from "../../hooks/useElementWidth.js";
 import {
   clampDetailWidth,
+  fitDetailWidth,
   resolveListContextId,
   DETAIL_PANE_DEFAULT_WIDTH,
+  DETAIL_PANE_MIN_WIDTH,
+  LIST_PANE_MIN_WIDTH,
 } from "./splitPane.js";
 
 const TestCaseHybridForm = ({
@@ -326,11 +330,25 @@ const TestCaseHybridForm = ({
     inputMode === "form" &&
     selectedItem?.type === "testcase" &&
     Boolean(listContext);
-  const showListPane = isSplitView && !detailMaximized;
+  // 가운데 목록이 최소 폭 아래로 줄지 않게 상세 칸 폭을 화면에 맞춘다.
+  // 상세를 최소 폭까지 줄여도 모자라면 목록을 접고 상세만 보인다(분할 전 화면과 같음).
+  const [splitViewRef, splitViewWidth] = useElementWidth();
+  const detailFit = fitDetailWidth({
+    containerWidth: splitViewWidth,
+    desiredWidth: detailWidth,
+    listMinWidth: LIST_PANE_MIN_WIDTH,
+    detailMinWidth: DETAIL_PANE_MIN_WIDTH,
+  });
+  const showListPane = isSplitView && !detailMaximized && !detailFit.collapsed;
+  const effectiveDetailWidthRef = useRef(detailFit.width);
+  effectiveDetailWidthRef.current = detailFit.width;
 
   const handleDetailResize = useCallback((dx) => {
-    // 막대는 상세 칸 왼쪽에 있으므로 오른쪽으로 끌면 상세가 좁아진다
-    setDetailWidth((w) => clampDetailWidth(w - dx));
+    // 막대는 상세 칸 왼쪽에 있으므로 오른쪽으로 끌면 상세가 좁아진다.
+    // 화면에 맞춰 줄어든 폭에서 출발해야 끄는 즉시 반응한다.
+    setDetailWidth(() =>
+      clampDetailWidth(effectiveDetailWidthRef.current - dx),
+    );
   }, []);
 
   const handleCloseDetail = useCallback(() => {
@@ -793,13 +811,19 @@ const TestCaseHybridForm = ({
   // ICT-491 3단 분할: 케이스 목록(가운데) | 폭 조절 막대 | 상세(오른쪽). 칸마다 따로 스크롤한다.
   return (
     <Box
+      ref={splitViewRef}
       sx={{ ...CHROME_ICON_SX, display: "flex", height: "100%", minHeight: 0 }}
       data-testid="testcase-split-view"
     >
       {showListPane && (
         <>
           <Box
-            sx={{ flex: 1, minWidth: 280, overflow: "auto", pr: 1 }}
+            sx={{
+              flex: 1,
+              minWidth: LIST_PANE_MIN_WIDTH,
+              overflow: "auto",
+              pr: 1,
+            }}
             data-testid="testcase-list-pane"
           >
             <FolderCaseList
@@ -822,8 +846,8 @@ const TestCaseHybridForm = ({
       )}
       <Box
         sx={{
-          flex: showListPane ? "0 1 auto" : 1,
-          width: showListPane ? detailWidth : "auto",
+          flex: showListPane ? "0 0 auto" : 1,
+          width: showListPane ? detailFit.width : "auto",
           minWidth: 0,
           overflowY: "auto",
           pl: showListPane ? 1.5 : 0,

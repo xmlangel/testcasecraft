@@ -15,6 +15,33 @@ export const DETAIL_PANE_MAX_WIDTH = 1200;
 export const clampDetailWidth = (width) =>
   Math.min(DETAIL_PANE_MAX_WIDTH, Math.max(DETAIL_PANE_MIN_WIDTH, width));
 
+// 가운데 케이스 목록이 이 폭 아래로 줄면 고정 폭 열(체크·즐겨찾기·ID·우선순위·소유자·최근 결과)이
+// 이름 열 자리를 다 차지해 이름이 한 글자씩 세로로 접힌다(1600px 캡처, gg-3).
+export const LIST_PANE_MIN_WIDTH = 600;
+// 폭 조절 막대(6px)와 상세 칸 왼쪽 여백(12px)
+export const SPLIT_GUTTER_WIDTH = 18;
+
+/**
+ * 3단 분할에서 오른쪽(상세) 칸에 실제로 줄 폭을 정한다.
+ * 가운데 칸이 listMinWidth 아래로 내려가지 않게, 먼저 상세 칸을 detailMinWidth 까지 줄이고
+ * 그래도 모자라면 상세 칸을 접는다(collapsed: true).
+ * containerWidth 가 0 이면(아직 재지 못함) 원하는 폭을 그대로 쓴다.
+ */
+export const fitDetailWidth = ({
+  containerWidth,
+  desiredWidth,
+  listMinWidth,
+  detailMinWidth,
+  gutterWidth = SPLIT_GUTTER_WIDTH,
+}) => {
+  if (!containerWidth) return { width: desiredWidth, collapsed: false };
+  const room = containerWidth - listMinWidth - gutterWidth;
+  if (room >= desiredWidth) return { width: desiredWidth, collapsed: false };
+  if (room >= detailMinWidth)
+    return { width: Math.floor(room), collapsed: false };
+  return { width: 0, collapsed: true };
+};
+
 // 케이스가 지금 열려 있는 목록(폴더·가상 노드)에 들어 있는지
 export const isCaseInList = (listId, testCase, items) => {
   if (!listId || !testCase) return false;

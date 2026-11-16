@@ -1,5 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 
 import PropTypes from "prop-types";
 import {
@@ -40,6 +46,8 @@ import { RESULT_COLORS } from "../constants/statusColors";
 import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
 import Resizer from "./common/Resizer.jsx";
+import useElementWidth from "../hooks/useElementWidth.js";
+import { fitDetailWidth } from "./TestCase/splitPane.js";
 import {
   getOrderedTestCaseIds,
   getFilteredNavTestCaseIds,
@@ -172,9 +180,14 @@ const COMPACT_ACCORDION_SX = {
 };
 
 const SPLIT_WIDTH_STORAGE_KEY = "testcase-manager-execution-split-width";
-const SPLIT_MIN_WIDTH = 420;
+// 결과 칸이 이 폭 아래로 줄면 제목과 단계 표(No·Step·Expected·Actual·Result)가 한 글자씩 접힌다(448px 실측).
+const SPLIT_MIN_WIDTH = 560;
 const SPLIT_MAX_WIDTH = 1200;
 const SPLIT_DEFAULT_WIDTH = 640;
+// 가운데 칸(실행 요약·케이스 목록)이 이 폭 아래로 줄면 요약의 상태·시작일시가 한 글자 폭으로
+// 눌리고 케이스 목록이 케이스명 열까지만 보인다(1600px 캡처, gg-3).
+const EXECUTION_MAIN_MIN_WIDTH = 640;
+const RESIZER_WIDTH = 6;
 
 const TestExecutionForm = ({
   executionId,
@@ -313,10 +326,28 @@ const TestExecutionForm = ({
       ? saved
       : SPLIT_DEFAULT_WIDTH;
   });
+  // 가운데 칸이 최소 폭 아래로 줄지 않게 결과 칸 폭을 화면에 맞춘다.
+  // 결과 칸을 최소 폭까지 줄여도 모자라면 결과 칸을 접고, 케이스를 누르면 좁은 화면처럼
+  // 결과 화면으로 이동한다.
+  const [splitViewRef, splitViewWidth] = useElementWidth();
+  const resultFit = fitDetailWidth({
+    containerWidth: splitViewWidth,
+    desiredWidth: splitWidth,
+    listMinWidth: EXECUTION_MAIN_MIN_WIDTH,
+    detailMinWidth: SPLIT_MIN_WIDTH,
+    gutterWidth: RESIZER_WIDTH,
+  });
+  const canDockResult = isSplitCapable && !resultFit.collapsed;
+  const effectiveSplitWidthRef = useRef(resultFit.width);
+  effectiveSplitWidthRef.current = resultFit.width;
   const handleSplitResize = useCallback((dx) => {
-    // 막대를 왼쪽으로 끌면(dx<0) 오른쪽 결과 칸이 넓어진다
-    setSplitWidth((w) => {
-      const next = Math.min(SPLIT_MAX_WIDTH, Math.max(SPLIT_MIN_WIDTH, w - dx));
+    // 막대를 왼쪽으로 끌면(dx<0) 오른쪽 결과 칸이 넓어진다.
+    // 화면에 맞춰 줄어든 폭에서 출발해야 끄는 즉시 반응한다.
+    setSplitWidth(() => {
+      const next = Math.min(
+        SPLIT_MAX_WIDTH,
+        Math.max(SPLIT_MIN_WIDTH, effectiveSplitWidthRef.current - dx),
+      );
       localStorage.setItem(SPLIT_WIDTH_STORAGE_KEY, String(next));
       return next;
     });
@@ -699,7 +730,7 @@ const TestExecutionForm = ({
       // projectId를 다양한 소스에서 검색하여 항상 URL 네비게이션을 우선 사용
       const projectId =
         execution?.testPlan?.projectId || execution?.projectId || propProjectId;
-      if (isSplitCapable && execution?.id) {
+      if (canDockResult && execution?.id) {
         // 3단 분할: 목록은 그대로 두고 오른쪽 칸에 결과 입력을 연다
         setSplitCaseId(testCaseId);
       } else if (projectId && execution?.id) {
@@ -712,7 +743,7 @@ const TestExecutionForm = ({
         setIsResultFormOpen(true);
       }
     },
-    [navigate, execution, propProjectId, isSplitCapable],
+    [navigate, execution, propProjectId, canDockResult],
   );
 
   // 결과 입력 화면의 직접 링크를 클립보드에 복사
@@ -1415,7 +1446,7 @@ const TestExecutionForm = ({
     ? getFilteredNavTestCaseIds(filteredData, testCaseIds, splitCaseId)
     : [];
   const splitIndex = splitNavIds.indexOf(splitCaseId);
-  const showSplit = Boolean(isSplitCapable && splitCaseId && execution?.id);
+  const showSplit = Boolean(canDockResult && splitCaseId && execution?.id);
   const splitProjectId =
     propProjectId ||
     execution?.projectId ||
@@ -1428,7 +1459,7 @@ const TestExecutionForm = ({
       <Box
         data-testid="execution-result-pane"
         sx={{
-          width: splitWidth,
+          width: resultFit.width,
           flexShrink: 0,
           alignSelf: "flex-start",
           position: "sticky",
@@ -1481,6 +1512,7 @@ const TestExecutionForm = ({
 
   return (
     <Box
+      ref={splitViewRef}
       sx={{ display: "flex", alignItems: "stretch", minWidth: 0 }}
       data-testid="execution-split-view"
     >
@@ -1488,7 +1520,7 @@ const TestExecutionForm = ({
         sx={{
           ...(embedded ? { p: 2 } : PAGE_CONTAINER_SX.main),
           flex: 1,
-          minWidth: 0,
+          minWidth: showSplit ? EXECUTION_MAIN_MIN_WIDTH : 0,
         }}
       >
         <TestExecutionHeader
