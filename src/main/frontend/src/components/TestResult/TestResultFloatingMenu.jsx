@@ -96,7 +96,8 @@ const TestResultFloatingMenu = ({
                 borderRadius: 0,
                 justifyContent: "space-between",
                 bgcolor: "background.paper",
-                backdropFilter: "none",
+                // background.paper 가 반투명이라 흐림을 넣어야 바 뒤 본문 글자가 비치지 않는다.
+                backdropFilter: "blur(20px) saturate(180%)",
                 boxShadow: "none",
                 borderTop: 1,
                 borderColor: "divider",

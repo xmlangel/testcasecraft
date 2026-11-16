@@ -1791,6 +1791,8 @@ const TestCaseForm = ({
           bottom: 0,
           zIndex: 3,
           bgcolor: "background.paper",
+          // background.paper 가 반투명이라 그대로 두면 스크롤된 본문 글자가 바 뒤로 비친다.
+          backdropFilter: "blur(20px) saturate(180%)",
           borderTop: 1,
           borderColor: "divider",
         }}

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   clampDetailWidth,
+  fitDetailWidth,
   isCaseInList,
   resolveListContextId,
   DETAIL_PANE_MIN_WIDTH,
@@ -69,5 +70,41 @@ describe("clampDetailWidth", () => {
     expect(clampDetailWidth(10)).toBe(DETAIL_PANE_MIN_WIDTH);
     expect(clampDetailWidth(99999)).toBe(DETAIL_PANE_MAX_WIDTH);
     expect(clampDetailWidth(700)).toBe(700);
+  });
+});
+
+describe("fitDetailWidth (ICT-491 가운데 칸 최소 폭)", () => {
+  const base = { listMinWidth: 600, detailMinWidth: 380, gutterWidth: 18 };
+
+  it("폭을 아직 재지 못했으면 원하는 폭을 그대로 쓴다", () => {
+    expect(
+      fitDetailWidth({ ...base, containerWidth: 0, desiredWidth: 640 }),
+    ).toEqual({ width: 640, collapsed: false });
+  });
+
+  it("자리가 넉넉하면 원하는 폭을 쓴다", () => {
+    expect(
+      fitDetailWidth({ ...base, containerWidth: 1600, desiredWidth: 640 }),
+    ).toEqual({ width: 640, collapsed: false });
+  });
+
+  it("모자라면 가운데 칸 최소 폭을 남기고 상세 칸을 줄인다", () => {
+    // 1100 - 600 - 18 = 482
+    expect(
+      fitDetailWidth({ ...base, containerWidth: 1100, desiredWidth: 640 }),
+    ).toEqual({ width: 482, collapsed: false });
+  });
+
+  it("상세 칸 최소 폭까지 줄여도 모자라면 접는다", () => {
+    // 900 - 600 - 18 = 282 < 380
+    expect(
+      fitDetailWidth({ ...base, containerWidth: 900, desiredWidth: 640 }),
+    ).toEqual({ width: 0, collapsed: true });
+  });
+
+  it("경계: 남는 폭이 상세 최소 폭과 같으면 접지 않는다", () => {
+    expect(
+      fitDetailWidth({ ...base, containerWidth: 998, desiredWidth: 640 }),
+    ).toEqual({ width: 380, collapsed: false });
   });
 });
