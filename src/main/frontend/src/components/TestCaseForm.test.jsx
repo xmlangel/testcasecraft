@@ -361,6 +361,20 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
     expect(footer.textContent).not.toContain("버전 생성");
   });
 
+  it("이전·다음(headerNav)은 하단 바가 아니라 머리 동작 줄에 그린다 (ICT-495 cl-3)", async () => {
+    render(
+      <TestCaseForm
+        testCaseId="tc1"
+        projectId="p1"
+        onSave={vi.fn()}
+        headerNav={<div data-testid="header-nav-slot">2 / 5</div>}
+      />,
+    );
+    const row = await screen.findByTestId("testcase-header-row");
+    expect(row).toContainElement(screen.getByTestId("header-nav-slot"));
+    expect(screen.queryByTestId("testcase-form-footer")).toBeNull();
+  });
+
   it("footerNav 가 없으면 하단 바를 그리지 않는다 (ICT-494)", async () => {
     render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
     await screen.findByTestId("testcase-form-header");

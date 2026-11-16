@@ -44,7 +44,9 @@ import { isAutomatedCase } from "../../utils/executionType.js";
  * 주 동작은 편집 중이면 취소·저장, 보기면 수정(편집으로 전환)뿐이다.
  * 새 케이스 추가·RAG 등록·버전 기록·버전 생성·삭제는 더보기 메뉴에 둔다.
  * 버전·RAG 상태는 그 아래 한 줄에 작게 보인다. 머리는 상세 칸 위에 붙어 있어
- * 본문을 내려도 저장 버튼이 보인다(하단 바에는 이전·다음·닫기만 남긴다).
+ * 본문을 내려도 저장 버튼이 보인다.
+ * ICT-495 cl-3: 이전·n/N·다음(headerNav)은 주 동작 바로 뒤, 더보기(⋮) 앞에 둔다.
+ * 보기·편집 모드 모두 같은 자리다. 하단 바에는 닫기만 남는다.
  */
 const TestCaseFormHeader = ({
   testCaseId,
@@ -69,6 +71,7 @@ const TestCaseFormHeader = ({
   viewMode,
   onViewModeChange,
   headerExtra,
+  headerNav,
   saveDisabled = false,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -369,6 +372,7 @@ const TestCaseFormHeader = ({
               {t("testcase.form.button.edit", "수정")}
             </Button>
           )}
+          {headerNav}
           {menuItems.length > 0 && (
             <>
               <Tooltip title={t("testcase.form.button.more", "더보기")}>
@@ -451,6 +455,7 @@ TestCaseFormHeader.propTypes = {
   isRagRegistering: PropTypes.bool,
   onRagRegister: PropTypes.func,
   headerExtra: PropTypes.node,
+  headerNav: PropTypes.node,
   saveDisabled: PropTypes.bool,
   viewMode: PropTypes.oneOf(["edit", "view"]),
   onViewModeChange: PropTypes.func,
