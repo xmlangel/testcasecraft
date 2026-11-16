@@ -26,6 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { buildFolderCaseCountMap } from "../../utils/treeUtils.jsx";
+import { RESULT_COLORS } from "../../constants/statusColors.js";
 
 const PRIORITY_COLOR = {
   HIGH: "error",
@@ -69,6 +70,55 @@ const TruncatedText = ({ text, color = "text.primary" }) => {
   );
 };
 
+// 「최근 결과」 색 막대(ICT-491). 실행된 적 없는 케이스는 회색 막대로 둔다.
+const RESULT_LABEL_FALLBACK = {
+  PASS: "통과",
+  FAIL: "실패",
+  BLOCKED: "차단",
+  SKIPPED: "건너뜀",
+  NOT_RUN: "미실행",
+};
+
+const LatestResultBar = ({ latest, testId }) => {
+  const { t } = useI18n();
+  const result = latest?.result || "NOT_RUN";
+  const color =
+    RESULT_COLORS[result] ||
+    RESULT_COLORS[result.replace("_", "")] ||
+    RESULT_COLORS.NOTRUN;
+  const label = t(
+    `testcase.folderList.result.${result}`,
+    RESULT_LABEL_FALLBACK[result] || result,
+  );
+  const title = latest?.executedAt
+    ? `${label} · ${String(latest.executedAt).replace("T", " ").slice(0, 16)}`
+    : t("testcase.folderList.result.none", "실행 기록 없음");
+  return (
+    <Tooltip title={title} arrow>
+      <Box
+        data-testid={testId}
+        data-result={latest ? result : "NONE"}
+        aria-label={title}
+        sx={{
+          width: "100%",
+          maxWidth: 48,
+          height: 6,
+          borderRadius: 1,
+          bgcolor: latest ? color : "action.disabledBackground",
+        }}
+      />
+    </Tooltip>
+  );
+};
+
+LatestResultBar.propTypes = {
+  latest: PropTypes.shape({
+    result: PropTypes.string,
+    executedAt: PropTypes.string,
+  }),
+  testId: PropTypes.string,
+};
+
 TruncatedText.propTypes = {
   text: PropTypes.string,
   color: PropTypes.string,
@@ -90,6 +140,7 @@ const FolderCaseList = ({
   onToggleFavorite,
   selectedId,
   compact = false,
+  latestResults,
 }) => {
   const { t } = useI18n();
   const showFavorite = typeof onToggleFavorite === "function";
@@ -258,6 +309,12 @@ const FolderCaseList = ({
                 )}
                 <TableCell sx={{ width: compact ? 88 : 110 }}>
                   {t("testcase.folderList.column.priority", "우선순위")}
+                </TableCell>
+                <TableCell sx={{ width: compact ? 88 : 120 }}>
+                  {t("testcase.folderList.column.owner", "소유자")}
+                </TableCell>
+                <TableCell sx={{ width: compact ? 64 : 80 }}>
+                  {t("testcase.folderList.column.latestResult", "최근 결과")}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -444,6 +501,27 @@ const FolderCaseList = ({
                         />
                       )}
                     </TableCell>
+                    {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정) */}
+                    <TableCell data-testid={`folder-case-owner-${item.id}`}>
+                      {!isChildFolder && item.createdBy && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          noWrap
+                          title={item.createdBy}
+                        >
+                          {item.createdBy}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {!isChildFolder && (
+                        <LatestResultBar
+                          latest={latestResults?.[item.id]}
+                          testId={`folder-case-result-${item.id}`}
+                        />
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -465,6 +543,7 @@ FolderCaseList.propTypes = {
   onToggleFavorite: PropTypes.func,
   selectedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   compact: PropTypes.bool,
+  latestResults: PropTypes.object,
 };
 
 export default FolderCaseList;

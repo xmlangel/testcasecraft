@@ -51,6 +51,7 @@ import {
 } from "../../utils/treeUtils.jsx";
 import NoSelectionPlaceholder from "../common/NoSelectionPlaceholder.jsx";
 import useBookmarks from "../../hooks/useBookmarks.js";
+import useLatestResults from "../../hooks/useLatestResults.js";
 import { CHROME_ICON_SX } from "../common/iconSizes.js";
 import Resizer from "../common/Resizer.jsx";
 import {
@@ -101,6 +102,7 @@ const TestCaseHybridForm = ({
 
   // 개인 북마크(즐겨찾기) 상태 — 케이스 리스트 별 버튼용
   const { favoriteIds, toggleFavorite } = useBookmarks(effectiveProjectId);
+  const { latestResults } = useLatestResults(effectiveProjectId);
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
   // 'form' | 'spreadsheet' | 'advanced-spreadsheet'
 
@@ -685,6 +687,7 @@ const TestCaseHybridForm = ({
             onSelectItem={onSelectTestCase}
             favoriteIds={favoriteIds}
             onToggleFavorite={(item) => toggleFavorite(item.id)}
+            latestResults={latestResults}
           />
         ) : isFolderSelected ? (
           isFolderEditMode ? (
@@ -735,6 +738,7 @@ const TestCaseHybridForm = ({
               }
               favoriteIds={favoriteIds}
               onToggleFavorite={(item) => toggleFavorite(item.id)}
+              latestResults={latestResults}
             />
           )
         ) : (
@@ -793,6 +797,7 @@ const TestCaseHybridForm = ({
               onSelectItem={onSelectTestCase}
               favoriteIds={favoriteIds}
               onToggleFavorite={(item) => toggleFavorite(item.id)}
+              latestResults={latestResults}
               selectedId={selectedItem?.id}
               compact
             />

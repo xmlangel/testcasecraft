@@ -11,6 +11,7 @@ import com.testcase.testcasemanagement.dto.CrossProjectTransferResultDto;
 import com.testcase.testcasemanagement.dto.ExportRequestDto;
 import com.testcase.testcasemanagement.dto.ImportValidationResultDto;
 import com.testcase.testcasemanagement.dto.TestCaseDto;
+import com.testcase.testcasemanagement.dto.TestCaseLatestResultDto;
 import com.testcase.testcasemanagement.dto.TestCaseMoveBatchRequest;
 import com.testcase.testcasemanagement.dto.TestCaseMoveRequest;
 import com.testcase.testcasemanagement.dto.TestCaseMoveResultDto;
@@ -20,6 +21,7 @@ import com.testcase.testcasemanagement.model.TestCase;
 import com.testcase.testcasemanagement.repository.TestCaseRepository;
 import com.testcase.testcasemanagement.service.TestCaseAiGenerationService;
 import com.testcase.testcasemanagement.service.TestCaseCrossProjectService;
+import com.testcase.testcasemanagement.service.TestCaseLatestResultService;
 import com.testcase.testcasemanagement.service.TestCaseService;
 import com.testcase.testcasemanagement.service.TestCaseTreeMoveService;
 import com.testcase.testcasemanagement.service.TestCaseTreeMoveService.CrossProjectMoveException;
@@ -60,6 +62,7 @@ public class TestCaseController {
   private final TestCaseAiGenerationService testCaseAiGenerationService;
   private final TestCaseTreeMoveService testCaseTreeMoveService;
   private final TestCaseCrossProjectService testCaseCrossProjectService;
+  @Autowired private TestCaseLatestResultService testCaseLatestResultService;
 
   public TestCaseController(
       TestCaseService testCaseService,
@@ -517,6 +520,21 @@ public class TestCaseController {
       log.error("프로젝트 태그 조회 실패: projectId={}", projectId, e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
+  }
+
+  /**
+   * 프로젝트의 케이스별 가장 최근 실행 결과 조회 (ICT-491)
+   *
+   * @param projectId 프로젝트 ID
+   * @return 테스트케이스 ID → 최근 결과(result, executedAt). 실행된 적 없는 케이스는 빠진다.
+   */
+  @Operation(
+      summary = "케이스별 최근 실행 결과 조회",
+      description = "프로젝트의 테스트케이스마다 가장 최근에 실행된 결과를 한 번에 조회합니다. 실행된 적 없는 케이스는 응답에 없습니다.")
+  @GetMapping("/projects/{projectId}/latest-results")
+  public ResponseEntity<Map<String, TestCaseLatestResultDto>> getLatestResults(
+      @PathVariable String projectId) {
+    return ResponseEntity.ok(testCaseLatestResultService.getLatestResults(projectId));
   }
 
   /**

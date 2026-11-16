@@ -17,6 +17,7 @@ const items = [
     name: "로그인",
     displayId: "TC-13",
     description: "설명 본문",
+    createdBy: "dicky",
     parentId: "f1",
   },
   { id: "c2", type: "testcase", name: "로그아웃", parentId: "f1" },
@@ -44,6 +45,33 @@ describe("FolderCaseList 3단 분할 목록 (ICT-491)", () => {
     );
     expect(screen.getByTestId("folder-case-row-c1")).not.toHaveClass(
       "Mui-selected",
+    );
+  });
+
+  it("compact 에서도 소유자(작성자)와 최근 결과 색 막대를 그린다", () => {
+    render(
+      <FolderCaseList
+        folder={folder}
+        items={items}
+        compact
+        latestResults={{
+          c1: { result: "FAIL", executedAt: "2026-11-16T17:00:00" },
+        }}
+      />,
+    );
+    expect(screen.getByText("소유자")).toBeInTheDocument();
+    expect(screen.getByText("최근 결과")).toBeInTheDocument();
+    expect(screen.getByTestId("folder-case-owner-c1")).toHaveTextContent(
+      "dicky",
+    );
+    expect(screen.getByTestId("folder-case-result-c1")).toHaveAttribute(
+      "data-result",
+      "FAIL",
+    );
+    // 실행된 적 없는 케이스는 결과 없음으로 표시한다
+    expect(screen.getByTestId("folder-case-result-c2")).toHaveAttribute(
+      "data-result",
+      "NONE",
     );
   });
 });
