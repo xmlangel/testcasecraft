@@ -589,6 +589,25 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("projectNav.sidebar.aria", languageCode, "프로젝트 영역", createdBy);
     createTranslationIfNotExists("projectNav.sidebar.collapse", languageCode, "사이드바 접기", createdBy);
     createTranslationIfNotExists("projectNav.sidebar.expand", languageCode, "사이드바 펼치기", createdBy);
+    // ICT-491 화면 밀도
+    createTranslationIfNotExists("profile.density.title", languageCode, "화면 밀도", createdBy);
+    createTranslationIfNotExists(
+        "profile.density.description",
+        languageCode,
+        "입력칸·버튼·탭의 크기와 간격을 고릅니다. 처음에는 촘촘으로 설정되어 있습니다.",
+        createdBy);
+    createTranslationIfNotExists("profile.density.compact.name", languageCode, "촘촘", createdBy);
+    createTranslationIfNotExists(
+        "profile.density.compact.summary",
+        languageCode,
+        "입력칸과 탭을 낮추고 버튼 글자를 그대로 둡니다. 목록과 상세를 한 화면에서 보기 좋습니다.",
+        createdBy);
+    createTranslationIfNotExists("profile.density.comfortable.name", languageCode, "기본", createdBy);
+    createTranslationIfNotExists(
+        "profile.density.comfortable.summary",
+        languageCode,
+        "입력칸과 버튼을 크게 두고 간격을 넓힙니다. 이전 화면과 같습니다.",
+        createdBy);
     // ICT-431
     createTranslationIfNotExists("testcase.tree.checkAll.all", languageCode, "전체 선택", createdBy);
     createTranslationIfNotExists(
