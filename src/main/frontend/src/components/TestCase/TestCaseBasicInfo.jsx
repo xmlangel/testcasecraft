@@ -25,6 +25,7 @@ import {
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import MarkdownFieldEditor from "./MarkdownFieldEditor.jsx";
+import { normalizeExecutionType } from "../../utils/executionType.js";
 
 /**
  * Priority 값을 정규화 (Medium → MEDIUM, High → HIGH, Low → LOW)
@@ -296,10 +297,10 @@ const TestCaseBasicInfo = ({
               </InputLabel>
               <Select
                 labelId="execution-type-select-label"
-                value={
-                  testCase.executionType ||
-                  (testCase.isAutomated ? "Automation" : "Manual")
-                }
+                value={normalizeExecutionType(
+                  testCase.executionType,
+                  testCase.isAutomated,
+                )}
                 label={t("testcase.form.executionType", "Manual/Automation")}
                 onChange={(event) => {
                   onTestCaseChange("executionType", event.target.value, false);

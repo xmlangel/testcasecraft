@@ -69,11 +69,21 @@ const MarkdownViewer = ({
       }}
       style={style}
     >
-      <ScrollHint {...scroll} position="top" />
+      <ScrollHint
+        overflowing={scroll.overflowing}
+        atTop={scroll.atTop}
+        atBottom={scroll.atBottom}
+        position="top"
+      />
       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={rehypePlugins}>
         {content}
       </ReactMarkdown>
-      <ScrollHint {...scroll} position="bottom" />
+      <ScrollHint
+        overflowing={scroll.overflowing}
+        atTop={scroll.atTop}
+        atBottom={scroll.atBottom}
+        position="bottom"
+      />
     </Box>
   );
 };
