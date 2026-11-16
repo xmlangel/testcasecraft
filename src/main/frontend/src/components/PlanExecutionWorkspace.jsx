@@ -41,6 +41,7 @@ import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
 import apiService from "../services/apiService.js";
 import TestPlanForm from "./TestPlanForm.jsx";
+import ExecutionProgressBar from "./TestExecution/ExecutionProgressBar.jsx";
 import TestExecutionForm from "./TestExecutionForm.jsx";
 import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -510,6 +511,7 @@ function PlanExecutionWorkspace({
               borderLeft: 3,
               borderColor: selected ? "primary.main" : "transparent",
               alignItems: "flex-start",
+              py: 0.5,
             }}
           >
             <ListItemText
@@ -561,6 +563,10 @@ function PlanExecutionWorkspace({
                       {planName}
                     </Typography>
                   )}
+                  {/* ICT-491 ex-4: 진행률 막대 */}
+                  <Box sx={{ ml: "auto" }}>
+                    <ExecutionProgressBar execution={exec} width={72} />
+                  </Box>
                 </Box>
               }
             />
@@ -803,6 +809,7 @@ function PlanExecutionWorkspace({
                               data-testid={`workspace-execution-item-${exec.id}`}
                               sx={{
                                 pl: 5,
+                                py: 0.25,
                                 borderLeft: 3,
                                 borderColor: execSelected
                                   ? "primary.main"
@@ -818,6 +825,14 @@ function PlanExecutionWorkspace({
                                     : CHROME_TYPOGRAPHY.navItem,
                                 }}
                               />
+                              {/* ICT-491 ex-4: 진행률 막대 */}
+                              <Box sx={{ mx: 0.5 }}>
+                                <ExecutionProgressBar
+                                  execution={exec}
+                                  width={48}
+                                  showPercent={false}
+                                />
+                              </Box>
                               {exec.status && (
                                 <Chip
                                   size="small"

@@ -180,3 +180,25 @@ describe("TestCaseDetails 스텝 실제 결과 입력 (ICT-472)", () => {
     expect(input).toHaveStyle("borderColor: red");
   });
 });
+
+describe("TestCaseDetails 단계별 결과 열 순서 (ICT-491)", () => {
+  it("단계 | 기대 결과 | 실제 결과 | 판정 순서로 한 줄에 그린다", () => {
+    renderWithStepResults();
+    const headers = screen
+      .getAllByRole("columnheader")
+      .map((th) => th.textContent.trim());
+    const actualIdx = headers.indexOf("실제 결과");
+    const verdictIdx = headers.indexOf("결과");
+    expect(actualIdx).toBeGreaterThan(-1);
+    expect(verdictIdx).toBe(actualIdx + 1);
+    const verdictBtn = screen.getByTestId("step-1-PASS");
+    const row = verdictBtn.closest("tr");
+    const cells = Array.from(row.children);
+    const verdictCell = cells.findIndex((c) => c.contains(verdictBtn));
+    // 판정 바로 앞 칸이 실제 결과 입력칸이다
+    const actualCell = cells.findIndex((c) =>
+      c.querySelector('[data-testid="markdown-input"]'),
+    );
+    expect(verdictCell).toBe(actualCell + 1);
+  });
+});

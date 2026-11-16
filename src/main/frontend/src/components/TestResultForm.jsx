@@ -50,6 +50,8 @@ const KEY_RESULT_MAP = {
   B: TestResult.BLOCKED,
 };
 
+const SAVE_AND_NEXT_STORAGE_KEY = "testcase-manager-result-save-and-next";
+
 const TestResultForm = ({
   open,
   testCaseId,
@@ -67,6 +69,8 @@ const TestResultForm = ({
   statCaseIds = null,
   fullPage = false,
   embedded = false,
+  // ICT-491 ex-3: 3단 분할 결과 칸 하단에 바를 붙이고 「저장 후 다음」 선택을 보인다
+  dockedFooter = false,
   onOpenFullPage = null,
   isPreviousResultEdit = false, // 새로운 prop: 이전 결과 수정 모드
   execution = null, // 새로운 prop: 전체 실행 정보
@@ -77,6 +81,13 @@ const TestResultForm = ({
   const darkMode = theme.palette.mode === "dark";
 
   const [testCase, setTestCase] = useState(null);
+  const [saveAndNext, setSaveAndNext] = useState(
+    () => localStorage.getItem(SAVE_AND_NEXT_STORAGE_KEY) !== "false",
+  );
+  const handleSaveAndNextChange = useCallback((checked) => {
+    setSaveAndNext(checked);
+    localStorage.setItem(SAVE_AND_NEXT_STORAGE_KEY, String(checked));
+  }, []);
   // 편집 가능 여부는 시스템 role이 아니라 이 테스트케이스가 속한 프로젝트에서의 role로 판단한다.
   const { projectRole } = useProjectRole(testCase?.projectId, user);
   // 결과 기록은 편집 가능 role(PM/LEAD/DEV/CONTRIBUTOR)뿐 아니라 TESTER도 허용한다.
@@ -1005,109 +1016,138 @@ const TestResultForm = ({
           {error}
         </Alert>
       ) : testCase ? (
-        <>
-          <TestCaseDetails
-            testCase={
-              stableCurrentResult?.steps?.length
-                ? { ...testCase, steps: stableCurrentResult.steps }
-                : testCase
-            }
-            t={t}
-            stepResults={stepResults}
-            onStepChange={handleStepChange}
-            onPassAllSteps={handlePassAllSteps}
-            onPassAllDialogChange={setPassAllDialogOpen}
-            stepInputDisabled={isViewer}
-          />
+        // ICT-491 ex-2: 칸이 넓으면 왼쪽에 케이스 내용·단계, 오른쪽에 판정·코멘트·첨부를 둬서
+        // 스크롤 없이 함께 보이게 한다. 좁으면(컨테이너 폭 기준) 예전처럼 위아래로 쌓인다.
+        <Box sx={{ containerType: "inline-size", width: "100%" }}>
+          <Box
+            data-testid="test-result-two-column"
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr)",
+              columnGap: 2,
+              alignItems: "start",
+              "@container (min-width: 720px)": {
+                gridTemplateColumns: "minmax(0, 1.2fr) minmax(300px, 1fr)",
+              },
+            }}
+          >
+            <Box sx={{ minWidth: 0 }}>
+              <TestCaseDetails
+                testCase={
+                  stableCurrentResult?.steps?.length
+                    ? { ...testCase, steps: stableCurrentResult.steps }
+                    : testCase
+                }
+                t={t}
+                stepResults={stepResults}
+                onStepChange={handleStepChange}
+                onPassAllSteps={handlePassAllSteps}
+                onPassAllDialogChange={setPassAllDialogOpen}
+                stepInputDisabled={isViewer}
+              />
 
-          {/* 케이스에 붙은 첨부파일 — 업로드는 케이스 편집에서 하고, 삭제는 케이스 편집 권한
+              {/* 케이스에 붙은 첨부파일 — 업로드는 케이스 편집에서 하고, 삭제는 케이스 편집 권한
               (TESTER 제외)이 있을 때만 연다. 서버도 같은 기준(canEditTestCaseAttachment)으로 막는다. */}
-          <TestCaseAttachments
-            testCaseId={testCaseId}
-            readOnly
-            canDelete={canDeleteProjectContent(projectRole)}
-            hideWhenEmpty
-            title={t(
-              "testResult.caseAttachments.title",
-              "테스트케이스 첨부파일",
-            )}
-          />
-
-          <Box sx={{ mt: 1.5, width: "100%", boxSizing: "border-box" }}>
-            <TestResultNotes
-              notes={notes}
-              setNotes={setNotesByUser}
-              isViewer={isViewer}
-              t={t}
-              darkMode={darkMode}
-              height={fullPage ? 300 : 200}
-              onNext={onNext}
-              onPrevious={onPrevious}
-              currentIndex={currentIndex}
-              totalCount={totalCount}
-              onFullscreenChange={setIsNotesFullscreen}
-              onMarkdownPaste={(event) =>
-                handleMarkdownPaste(event, { type: "field", field: "notes" })
-              }
-              inlineImageUploading={inlineImageUploading}
-              result={result}
-              onResultChange={(newResult) => {
-                setResultByUser(newResult);
-                setTimeout(
-                  () =>
-                    handleSaveAndNext(newResult, {
-                      advanceToNext: false,
-                      keepDialogOpen: true,
-                      showSuccess: true,
-                    }),
-                  100,
-                );
+              <TestCaseAttachments
+                testCaseId={testCaseId}
+                readOnly
+                canDelete={canDeleteProjectContent(projectRole)}
+                hideWhenEmpty
+                title={t(
+                  "testResult.caseAttachments.title",
+                  "테스트케이스 첨부파일",
+                )}
+              />
+            </Box>
+            <Box
+              data-testid="test-result-entry-column"
+              sx={{
+                mt: 1.5,
+                width: "100%",
+                minWidth: 0,
+                boxSizing: "border-box",
+                "@container (min-width: 720px)": {
+                  mt: 0,
+                  position: "sticky",
+                  top: 0,
+                },
               }}
-              onSave={() => handleSaveAndNext(result)}
-              onClose={onClose}
-              loading={loading}
-              shouldShowJiraButton={shouldShowJiraButton}
-              handleOpenJiraDialog={handleOpenJiraDialog}
-              testCase={testCase}
-              saveButtonRef={saveButtonRef}
-            />
+            >
+              <TestResultNotes
+                notes={notes}
+                setNotes={setNotesByUser}
+                isViewer={isViewer}
+                t={t}
+                darkMode={darkMode}
+                height={fullPage ? 300 : 200}
+                onNext={onNext}
+                onPrevious={onPrevious}
+                currentIndex={currentIndex}
+                totalCount={totalCount}
+                onFullscreenChange={setIsNotesFullscreen}
+                onMarkdownPaste={(event) =>
+                  handleMarkdownPaste(event, { type: "field", field: "notes" })
+                }
+                inlineImageUploading={inlineImageUploading}
+                result={result}
+                onResultChange={(newResult) => {
+                  setResultByUser(newResult);
+                  setTimeout(
+                    () =>
+                      handleSaveAndNext(newResult, {
+                        advanceToNext: false,
+                        keepDialogOpen: true,
+                        showSuccess: true,
+                      }),
+                    100,
+                  );
+                }}
+                onSave={() => handleSaveAndNext(result)}
+                onClose={onClose}
+                loading={loading}
+                shouldShowJiraButton={shouldShowJiraButton}
+                handleOpenJiraDialog={handleOpenJiraDialog}
+                testCase={testCase}
+                saveButtonRef={saveButtonRef}
+              />
 
-            <TestResultTags
-              tags={tags}
-              setTags={setTagsByUser}
-              availableTags={availableTags}
-              isViewer={isViewer}
-              t={t}
-            />
+              <TestResultTags
+                tags={tags}
+                setTags={setTagsByUser}
+                availableTags={availableTags}
+                isViewer={isViewer}
+                t={t}
+              />
 
-            <TestResultAttachments
-              attachedFiles={attachedFiles}
-              handleFileUpload={handleFileUpload}
-              handleFileDelete={handleFileDelete}
-              handlePreview={handlePreview}
-              isViewer={isViewer}
-              t={t}
-              fileUploadError={fileUploadError}
-              isFileUploading={isFileUploading}
-              currentResult={stableCurrentResult}
-            />
+              <TestResultAttachments
+                attachedFiles={attachedFiles}
+                handleFileUpload={handleFileUpload}
+                handleFileDelete={handleFileDelete}
+                handlePreview={handlePreview}
+                isViewer={isViewer}
+                t={t}
+                fileUploadError={fileUploadError}
+                isFileUploading={isFileUploading}
+                currentResult={stableCurrentResult}
+              />
 
-            <TestResultJira
-              jiraIssueKey={jiraIssueKey}
-              jiraConnectionStatus={jiraConnectionStatus}
-              result={result}
-              notes={notes}
-              handleIssueLinked={handleIssueLinked}
-              handleIssueUnlinked={handleIssueUnlinked}
-              onJiraIssueKeyChange={setJiraIssueKeyByUser}
-              linkedIssues={linkedIssues}
-              isViewer={isViewer}
-              t={t}
-              detectedJiraIssues={detectedJiraIssues}
-              testCase={testCase}
-            />
+              <TestResultJira
+                jiraIssueKey={jiraIssueKey}
+                jiraConnectionStatus={jiraConnectionStatus}
+                result={result}
+                notes={notes}
+                handleIssueLinked={handleIssueLinked}
+                handleIssueUnlinked={handleIssueUnlinked}
+                onJiraIssueKeyChange={setJiraIssueKeyByUser}
+                linkedIssues={linkedIssues}
+                isViewer={isViewer}
+                t={t}
+                detectedJiraIssues={detectedJiraIssues}
+                testCase={testCase}
+              />
+            </Box>
           </Box>
-        </>
+        </Box>
       ) : null}
     </>
   );
@@ -1164,8 +1204,15 @@ const TestResultForm = ({
             }}
             onPrevious={onPrevious}
             onNext={onNext}
-            onSave={() => handleSaveAndNext(result)}
+            onSave={() =>
+              handleSaveAndNext(result, {
+                advanceToNext: dockedFooter ? saveAndNext : true,
+              })
+            }
             onClose={onClose}
+            docked={dockedFooter}
+            saveAndNext={saveAndNext}
+            onSaveAndNextChange={dockedFooter ? handleSaveAndNextChange : null}
             currentIndex={currentIndex}
             totalCount={totalCount}
             isViewer={isViewer}
@@ -1392,6 +1439,7 @@ TestResultForm.propTypes = {
   totalCount: PropTypes.number,
   statCaseIds: PropTypes.arrayOf(PropTypes.string),
   fullPage: PropTypes.bool,
+  dockedFooter: PropTypes.bool,
   onOpenFullPage: PropTypes.func,
   isPreviousResultEdit: PropTypes.bool,
 };

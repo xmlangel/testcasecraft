@@ -28,6 +28,7 @@ import { styled, useTheme } from "@mui/material/styles";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
 import RichMarkdownEditor from "../TestCase/RichMarkdownEditor.jsx";
 import { countEnteredSteps } from "../../utils/stepResults.js";
+import useElementWidth from "../../hooks/useElementWidth.js";
 
 // ICT-469: 스텝 결과 버튼 (P/F/B). 다시 누르면 NOT_RUN 으로 되돌린다
 const STEP_RESULT_OPTIONS = [
@@ -38,6 +39,8 @@ const STEP_RESULT_OPTIONS = [
 
 // 서버 TestResultStepDto.actualResult 의 @Size(max = 10000) 과 같은 값
 const STEP_ACTUAL_MAX = 10000;
+// 단계 표가 이 폭(px)보다 좁으면 실제 결과를 다음 줄로 내린다. 결과 입력 2열 전환 기준(720px)과 같다
+const STEP_TABLE_STACK_BELOW = 720;
 
 const Subtitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
@@ -123,6 +126,79 @@ const TestCaseDetails = ({
     onPassAllSteps(memo);
     closePassAll();
   };
+
+  // ICT-491 fx-2: 표 칸이 좁으면(결과 칸 3단 분할) 실제 결과 편집기를 다음 줄로 내려 Step·Expected 가
+  // 두세 글자마다 끊기지 않게 한다. 폭을 아직 재지 못했으면(0) 한 줄 배치를 쓴다.
+  const [stepTableRef, stepTableWidth] = useElementWidth();
+  const stackActual =
+    withStepResults &&
+    stepTableWidth > 0 &&
+    stepTableWidth < STEP_TABLE_STACK_BELOW;
+
+  const renderActualEditor = (step) => (
+    <RichMarkdownEditor
+      value={stepResults[step.stepNumber]?.actualResult || ""}
+      onChange={(value) =>
+        onStepChange(step.stepNumber, {
+          actualResult: value || "",
+        })
+      }
+      placeholder={t(
+        "testResult.steps.actualResultPlaceholder",
+        "관찰한 내용이나 메모",
+      )}
+      maxLines={6}
+      isViewer={stepInputDisabled}
+      theme={theme}
+      t={t}
+      // 서버 한도(10,000자)를 넘으면 저장이 거부되므로 칸에서 먼저 알린다
+      error={
+        (stepResults[step.stepNumber]?.actualResult || "").length >
+        STEP_ACTUAL_MAX
+      }
+      hideHelperText={
+        (stepResults[step.stepNumber]?.actualResult || "").length <=
+        STEP_ACTUAL_MAX
+      }
+      helperText={t(
+        "testResult.steps.actualResultTooLong",
+        "실제 결과는 {max}자까지 저장할 수 있습니다.",
+        { max: STEP_ACTUAL_MAX.toLocaleString() },
+      )}
+      dense
+      keepLineBreaks
+      testid={`step-${step.stepNumber}-actual`}
+    />
+  );
+
+  const renderResultToggle = (step) => (
+    <ToggleButtonGroup
+      size="small"
+      exclusive
+      disabled={stepInputDisabled}
+      value={stepResults[step.stepNumber]?.result || "NOT_RUN"}
+      onChange={(_, value) =>
+        onStepChange(step.stepNumber, {
+          result: value || "NOT_RUN",
+        })
+      }
+      aria-label={`step-${step.stepNumber}-result`}
+    >
+      {STEP_RESULT_OPTIONS.map((opt) => (
+        <ToggleButton
+          key={opt.value}
+          value={opt.value}
+          color={opt.color}
+          data-testid={`step-${step.stepNumber}-${opt.value}`}
+          sx={{ px: 1, py: 0.25, fontWeight: 700 }}
+        >
+          <Tooltip title={opt.value}>
+            <span>{opt.label}</span>
+          </Tooltip>
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
+  );
 
   const toggleViewOption = (key) => {
     setViewOptions((prev) => {
@@ -348,151 +424,141 @@ const TestCaseDetails = ({
                 </Button>
               )}
             </Box>
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell width={withStepResults ? "6%" : "10%"}>
-                      No.
-                    </TableCell>
-                    <TableCell width={withStepResults ? "32%" : "60%"}>
-                      Step
-                    </TableCell>
-                    <TableCell width={withStepResults ? "22%" : "30%"}>
-                      Expected
-                    </TableCell>
-                    {withStepResults && (
-                      <>
-                        <TableCell width="14%">
-                          {t("testResult.steps.result", "결과")}
-                        </TableCell>
-                        <TableCell width="26%">
-                          {t("testResult.steps.actualResult", "실제 결과")}
-                        </TableCell>
-                      </>
-                    )}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {testCase.steps
-                    .sort((a, b) => a.stepNumber - b.stepNumber)
-                    .map((step) => (
-                      <TableRow key={step.stepNumber}>
-                        <TableCell>{step.stepNumber}</TableCell>
-                        <TableCell>
-                          <Box
-                            data-color-mode={darkMode ? "dark" : "light"}
-                            sx={stepCellSx}
-                          >
-                            <MarkdownViewer
-                              content={step.description || ""}
-                              style={{
-                                fontSize: "0.875rem",
-                                backgroundColor: "transparent",
-                                color: theme.palette.text.primary,
-                              }}
-                            />
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box
-                            data-color-mode={darkMode ? "dark" : "light"}
-                            sx={stepCellSx}
-                          >
-                            <MarkdownViewer
-                              content={step.expectedResult || ""}
-                              style={{
-                                fontSize: "0.875rem",
-                                backgroundColor: "transparent",
-                                color: theme.palette.text.secondary,
-                              }}
-                            />
-                          </Box>
-                        </TableCell>
-                        {withStepResults && (
-                          <>
-                            <TableCell sx={{ verticalAlign: "top" }}>
-                              <ToggleButtonGroup
-                                size="small"
-                                exclusive
-                                disabled={stepInputDisabled}
-                                value={
-                                  stepResults[step.stepNumber]?.result ||
-                                  "NOT_RUN"
-                                }
-                                onChange={(_, value) =>
-                                  onStepChange(step.stepNumber, {
-                                    result: value || "NOT_RUN",
-                                  })
-                                }
-                                aria-label={`step-${step.stepNumber}-result`}
-                              >
-                                {STEP_RESULT_OPTIONS.map((opt) => (
-                                  <ToggleButton
-                                    key={opt.value}
-                                    value={opt.value}
-                                    color={opt.color}
-                                    data-testid={`step-${step.stepNumber}-${opt.value}`}
-                                    sx={{ px: 1, py: 0.25, fontWeight: 700 }}
+            {/* 표 칸 폭을 재서 좁으면 실제 결과를 다음 줄로 내린다 */}
+            <Box
+              ref={stepTableRef}
+              data-testid="step-table"
+              data-layout={stackActual ? "stacked" : "inline"}
+            >
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell
+                        width={withStepResults ? "6%" : "10%"}
+                        sx={{ whiteSpace: "nowrap" }}
+                      >
+                        No.
+                      </TableCell>
+                      <TableCell
+                        width={
+                          !withStepResults ? "60%" : stackActual ? "47%" : "32%"
+                        }
+                      >
+                        Step
+                      </TableCell>
+                      <TableCell
+                        width={
+                          !withStepResults ? "30%" : stackActual ? "33%" : "22%"
+                        }
+                      >
+                        Expected
+                      </TableCell>
+                      {withStepResults && (
+                        <>
+                          {/* ICT-491 ex-2: 단계 | 기대 결과 | 실제 결과 | 판정 순서로 한 줄에 읽힌다 */}
+                          {!stackActual && (
+                            <TableCell width="26%">
+                              {t("testResult.steps.actualResult", "실제 결과")}
+                            </TableCell>
+                          )}
+                          <TableCell width="14%">
+                            {t("testResult.steps.result", "결과")}
+                          </TableCell>
+                        </>
+                      )}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {testCase.steps
+                      .sort((a, b) => a.stepNumber - b.stepNumber)
+                      .map((step) => {
+                        // 칸이 좁으면 실제 결과를 다음 줄로 내린다. 윗줄 아래 테두리를 지워 한 단계로 읽히게 한다
+                        const firstRowCellSx = stackActual
+                          ? { borderBottom: "none" }
+                          : {};
+                        return (
+                          <React.Fragment key={step.stepNumber}>
+                            <TableRow>
+                              <TableCell sx={firstRowCellSx}>
+                                {step.stepNumber}
+                              </TableCell>
+                              <TableCell sx={firstRowCellSx}>
+                                <Box
+                                  data-color-mode={darkMode ? "dark" : "light"}
+                                  sx={stepCellSx}
+                                >
+                                  <MarkdownViewer
+                                    content={step.description || ""}
+                                    style={{
+                                      fontSize: "0.875rem",
+                                      backgroundColor: "transparent",
+                                      color: theme.palette.text.primary,
+                                    }}
+                                  />
+                                </Box>
+                              </TableCell>
+                              <TableCell sx={firstRowCellSx}>
+                                <Box
+                                  data-color-mode={darkMode ? "dark" : "light"}
+                                  sx={stepCellSx}
+                                >
+                                  <MarkdownViewer
+                                    content={step.expectedResult || ""}
+                                    style={{
+                                      fontSize: "0.875rem",
+                                      backgroundColor: "transparent",
+                                      color: theme.palette.text.secondary,
+                                    }}
+                                  />
+                                </Box>
+                              </TableCell>
+                              {withStepResults && (
+                                <>
+                                  {!stackActual && (
+                                    <TableCell sx={{ verticalAlign: "top" }}>
+                                      {renderActualEditor(step)}
+                                    </TableCell>
+                                  )}
+                                  <TableCell
+                                    sx={{
+                                      verticalAlign: "top",
+                                      ...firstRowCellSx,
+                                    }}
                                   >
-                                    <Tooltip title={opt.value}>
-                                      <span>{opt.label}</span>
-                                    </Tooltip>
-                                  </ToggleButton>
-                                ))}
-                              </ToggleButtonGroup>
-                            </TableCell>
-                            <TableCell sx={{ verticalAlign: "top" }}>
-                              {/* ICT-472: 마크다운 입력. 표 칸에 맞게 작은 글씨로 그리고, 예전에
-                                  일반 텍스트로 저장된 한 줄 바꿈도 그대로 보여 준다 */}
-                              <RichMarkdownEditor
-                                value={
-                                  stepResults[step.stepNumber]?.actualResult ||
-                                  ""
-                                }
-                                onChange={(value) =>
-                                  onStepChange(step.stepNumber, {
-                                    actualResult: value || "",
-                                  })
-                                }
-                                placeholder={t(
-                                  "testResult.steps.actualResultPlaceholder",
-                                  "관찰한 내용이나 메모",
-                                )}
-                                maxLines={6}
-                                isViewer={stepInputDisabled}
-                                theme={theme}
-                                t={t}
-                                // 서버 한도(10,000자)를 넘으면 저장이 거부되므로 칸에서 먼저 알린다
-                                error={
-                                  (
-                                    stepResults[step.stepNumber]
-                                      ?.actualResult || ""
-                                  ).length > STEP_ACTUAL_MAX
-                                }
-                                hideHelperText={
-                                  (
-                                    stepResults[step.stepNumber]
-                                      ?.actualResult || ""
-                                  ).length <= STEP_ACTUAL_MAX
-                                }
-                                helperText={t(
-                                  "testResult.steps.actualResultTooLong",
-                                  "실제 결과는 {max}자까지 저장할 수 있습니다.",
-                                  { max: STEP_ACTUAL_MAX.toLocaleString() },
-                                )}
-                                dense
-                                keepLineBreaks
-                                testid={`step-${step.stepNumber}-actual`}
-                              />
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                                    {renderResultToggle(step)}
+                                  </TableCell>
+                                </>
+                              )}
+                            </TableRow>
+                            {withStepResults && stackActual && (
+                              <TableRow
+                                data-testid={`step-${step.stepNumber}-actual-row`}
+                              >
+                                <TableCell />
+                                <TableCell colSpan={3} sx={{ pt: 0 }}>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    component="div"
+                                    sx={{ mb: 0.5 }}
+                                  >
+                                    {t(
+                                      "testResult.steps.actualResult",
+                                      "실제 결과",
+                                    )}
+                                  </Typography>
+                                  {renderActualEditor(step)}
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
             {/* 결과 화면의 판정 단축키(P·F·B·N·Enter)는 window 에 걸려 있다. 입력 창 안의 키가
                 거기까지 올라가면 버튼에 포커스가 있을 때 뒤 화면의 판정이 바뀌므로 여기서 멈춘다 */}
             <Dialog

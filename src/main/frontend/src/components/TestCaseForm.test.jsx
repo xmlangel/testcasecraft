@@ -315,4 +315,29 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
       await screen.findByTestId("testcase-save-button"),
     ).toBeInTheDocument();
   });
+
+  it("하단 고정 바에 이전·다음 이동(footerNav)과 저장 버튼을 함께 그린다 (ICT-491)", async () => {
+    render(
+      <TestCaseForm
+        testCaseId="tc1"
+        projectId="p1"
+        onSave={vi.fn()}
+        footerNav={<div data-testid="footer-nav-slot">1 / 3</div>}
+      />,
+    );
+
+    const footer = await screen.findByTestId("testcase-form-footer");
+    expect(footer).toContainElement(screen.getByTestId("footer-nav-slot"));
+    expect(footer).toContainElement(
+      await screen.findByTestId("testcase-save-button"),
+    );
+    expect(footer).toHaveStyle({ position: "sticky" });
+  });
+
+  it("단계와 전체 기대 결과를 넓은 칸에서 나란히 두는 격자 배치를 쓴다 (ICT-491)", async () => {
+    render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
+
+    const layout = await screen.findByTestId("testcase-steps-expected-layout");
+    expect(layout).toHaveStyle({ display: "grid" });
+  });
 });

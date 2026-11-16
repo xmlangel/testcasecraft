@@ -89,7 +89,13 @@ const TabPanel = (props) => {
 
 const VIEW_MODE_STORAGE_KEY = "testcase-manager-form-view-mode";
 
-const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
+const TestCaseForm = ({
+  testCaseId,
+  projectId,
+  onSave,
+  initialData,
+  footerNav,
+}) => {
   const {
     testCases,
     updateTestCase,
@@ -1484,7 +1490,8 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
   return (
     <Card
       key={`testcase-form-${testCaseId}-${renderKey}`}
-      sx={{ minHeight: 400 }}
+      // 하단 바를 sticky 로 붙이려면 Card 가 overflow 를 자르지 않아야 한다(ICT-491)
+      sx={{ minHeight: 400, overflow: "visible" }}
     >
       <CardContent>
         <TestCaseFormHeader
@@ -1655,61 +1662,76 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
                 />
               </Grid>
 
-              <Grid size={12}>
-                {/* 테스트 단계 — 좌측 Accordion 들과 시각 정합 (MD: subtitle2 헤더) */}
-                <Accordion defaultExpanded>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2">
-                      {t("testcase.sections.steps", "테스트 단계")}
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <TestStepsTable
-                      steps={testCase.steps}
-                      errors={errors}
-                      isViewer={isViewer}
-                      t={t}
-                      theme={theme}
-                      onAddStep={handleAddStep}
-                      onDeleteStep={handleDeleteStep}
-                      onMoveStep={handleMoveStep}
-                      onStepMarkdownChange={handleStepMarkdownChange}
-                      onMarkdownPaste={handleMarkdownPaste}
-                    />
-                  </AccordionDetails>
-                </Accordion>
+              <Grid size={12} sx={{ containerType: "inline-size" }}>
+                {/* ICT-491 C2: 칸이 넓으면 테스트 단계(왼쪽)와 전체 기대 결과(오른쪽)를 나란히 둔다.
+                    3단 분할의 상세 칸처럼 좁으면 위아래로 쌓인다(컨테이너 폭 기준). */}
+                <Box
+                  data-testid="testcase-steps-expected-layout"
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(0, 1fr)",
+                    columnGap: 2,
+                    alignItems: "start",
+                    "@container (min-width: 960px)": {
+                      gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+                    },
+                  }}
+                >
+                  {/* 테스트 단계 — 좌측 Accordion 들과 시각 정합 (MD: subtitle2 헤더) */}
+                  <Accordion defaultExpanded>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography variant="subtitle2">
+                        {t("testcase.sections.steps", "테스트 단계")}
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <TestStepsTable
+                        steps={testCase.steps}
+                        errors={errors}
+                        isViewer={isViewer}
+                        t={t}
+                        theme={theme}
+                        onAddStep={handleAddStep}
+                        onDeleteStep={handleDeleteStep}
+                        onMoveStep={handleMoveStep}
+                        onStepMarkdownChange={handleStepMarkdownChange}
+                        onMarkdownPaste={handleMarkdownPaste}
+                      />
+                    </AccordionDetails>
+                  </Accordion>
 
-                {/* 기대 결과 — 동일 Accordion 패턴으로 통일 */}
-                <Accordion defaultExpanded>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2">
-                      {t("testcase.sections.expectedResults", "기대 결과")}
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <MarkdownFieldEditor
-                      label=""
-                      value={testCase.expectedResults || ""}
-                      placeholder={t(
-                        "testcase.form.overallExpectedResults",
-                        "전체 예상 결과",
-                      )}
-                      isViewer={isViewer}
-                      theme={theme}
-                      t={t}
-                      onChange={(value) =>
-                        handleTestCaseChange("expectedResults", value)
-                      }
-                      onPaste={(event) =>
-                        handleMarkdownPaste(event, {
-                          type: "field",
-                          field: "expectedResults",
-                        })
-                      }
-                      testid="testcase-overall-expected-input"
-                    />
-                  </AccordionDetails>
-                </Accordion>
+                  {/* 기대 결과 — 동일 Accordion 패턴으로 통일 */}
+                  <Accordion defaultExpanded>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography variant="subtitle2">
+                        {t("testcase.sections.expectedResults", "기대 결과")}
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <MarkdownFieldEditor
+                        label=""
+                        value={testCase.expectedResults || ""}
+                        placeholder={t(
+                          "testcase.form.overallExpectedResults",
+                          "전체 예상 결과",
+                        )}
+                        isViewer={isViewer}
+                        theme={theme}
+                        t={t}
+                        onChange={(value) =>
+                          handleTestCaseChange("expectedResults", value)
+                        }
+                        onPaste={(event) =>
+                          handleMarkdownPaste(event, {
+                            type: "field",
+                            field: "expectedResults",
+                          })
+                        }
+                        testid="testcase-overall-expected-input"
+                      />
+                    </AccordionDetails>
+                  </Accordion>
+                </Box>
               </Grid>
             </Grid>
             {/* 요구사항 연결 — 저장된 테스트케이스에만 (폴더 제외) */}
@@ -1759,7 +1781,24 @@ const TestCaseForm = ({ testCaseId, projectId, onSave, initialData }) => {
         </Box>
       </CardContent>
 
-      <CardActions sx={{ justifyContent: "flex-end", p: 2 }}>
+      {/* ICT-491 C3: 하단 고정 바. 상세를 스크롤해도 이전·n/N·다음·저장·닫기가 늘 보인다. */}
+      <CardActions
+        sx={{
+          justifyContent: footerNav ? "space-between" : "flex-end",
+          px: 2,
+          py: 1,
+          position: "sticky",
+          bottom: 0,
+          zIndex: 3,
+          bgcolor: "background.paper",
+          // background.paper 가 반투명이라 그대로 두면 스크롤된 본문 글자가 바 뒤로 비친다.
+          backdropFilter: "blur(20px) saturate(180%)",
+          borderTop: 1,
+          borderColor: "divider",
+        }}
+        data-testid="testcase-form-footer"
+      >
+        {footerNav}
         {!isViewer && (
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <Button
@@ -1886,6 +1925,7 @@ TestCaseForm.propTypes = {
   projectId: PropTypes.string.isRequired,
   onSave: PropTypes.func,
   initialData: PropTypes.object,
+  footerNav: PropTypes.node,
 };
 
 export default TestCaseForm;

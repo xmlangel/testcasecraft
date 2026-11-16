@@ -13,11 +13,19 @@ const StatusInfoItem = ({ label, value, compact }) => (
       mb: compact ? 0 : 1,
     }}
   >
-    <Typography variant="body2" color="text.secondary">
+    <Typography
+      variant="body2"
+      color="text.secondary"
+      sx={compact ? { whiteSpace: "nowrap" } : undefined}
+    >
       {label}
       {compact && ":"}
     </Typography>
-    <Typography variant="body2" fontWeight={compact ? "bold" : "normal"}>
+    <Typography
+      variant="body2"
+      fontWeight={compact ? "bold" : "normal"}
+      sx={compact ? { whiteSpace: "nowrap" } : undefined}
+    >
       {value}
     </Typography>
   </Box>

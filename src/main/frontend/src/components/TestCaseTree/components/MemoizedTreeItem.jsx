@@ -1,5 +1,5 @@
 // src/components/TestCaseTree/components/MemoizedTreeItem.jsx
-import React, { useRef, useState, useCallback } from "react";
+import React from "react";
 import {
   Box,
   Checkbox,
@@ -93,18 +93,6 @@ const MemoizedTreeItem = React.memo(
     const isOverInto = dropInto.isOver;
     const isOverBefore = dropBefore.isOver;
     const isOverAfter = dropAfter.isOver;
-
-    // 이름 잘림(ellipsis) 감지 시에만 Tooltip 표시
-    const nameRef = useRef(null);
-    const [nameTooltip, setNameTooltip] = useState("");
-    const checkNameTruncated = useCallback(() => {
-      const el = nameRef.current;
-      if (el && el.scrollWidth > el.clientWidth) {
-        if (nameTooltip !== node.name) setNameTooltip(node.name);
-      } else if (nameTooltip) {
-        setNameTooltip("");
-      }
-    }, [node.name, nameTooltip]);
 
     // placeholder 타입인 경우 (신규 항목 추가 중)
     if (node.type === "placeholder") {
@@ -244,38 +232,41 @@ const MemoizedTreeItem = React.memo(
           </Tooltip>
         )}
 
-        {/* 이름 영역: 가변 너비. 툴팁에 ID + 전체 이름 표시 (칩 제거로 행 단순화) */}
-        <Tooltip
-          title={
-            node.displayId
-              ? nameTooltip
-                ? `${node.displayId} · ${node.name}`
-                : node.displayId
-              : nameTooltip
-          }
-          arrow
-          placement="top"
-          enterDelay={400}
-          disableHoverListener={!nameTooltip && !node.displayId}
+        {/* 이름 영역 (ICT-491 B2): 케이스 ID 를 이름 앞에 두고, 이름은 자르거나 줄바꿈하지 않고
+            한 줄로 전부 보인다. 넘치는 폭은 트리 칸의 가로 스크롤로 본다. */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: 0.75,
+            flexGrow: 1,
+            flexShrink: 0,
+            whiteSpace: "nowrap",
+          }}
         >
+          {!isFolder(node) && node.displayId && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              data-testid={`tree-case-id-${node.id}`}
+              sx={{ fontFamily: "monospace", flexShrink: 0 }}
+            >
+              {node.displayId}
+            </Typography>
+          )}
           <Typography
-            ref={nameRef}
-            onMouseEnter={checkNameTruncated}
             variant="body2"
+            data-testid={`tree-node-name-${node.id}`}
             sx={{
               fontWeight: isSelected ? "bold" : "normal",
               whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              flexGrow: 1,
-              minWidth: 0,
               textAlign: "left",
               lineHeight: 1.5,
             }}
           >
             {node.name}
           </Typography>
-        </Tooltip>
+        </Box>
 
         {/* 메타 정보 및 버튼 영역: 우측 정렬 */}
         <Box
@@ -478,6 +469,7 @@ const MemoizedTreeItem = React.memo(
             outlineColor: "primary.main",
             borderRadius: 1,
             mr: 1,
+            pr: 1,
           }}
         >
           {/* Chevron 영역 */}

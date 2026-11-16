@@ -14,6 +14,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import {
   Folder as FolderIcon,
   Description as DescriptionIcon,
@@ -57,6 +58,7 @@ const ExecutionRow = memo(
     // 권한이 없으면 버튼 자체를 내보내지 않고, 상태가 안 맞을 때만 비활성으로 남긴다.
     canRecordResults = true,
     isSelected,
+    isActive = false,
     onSelectionChange,
     handleOpenResultForm,
     handleShowPrevResults,
@@ -98,15 +100,22 @@ const ExecutionRow = memo(
     return (
       <Box
         id={`execution-row-${node.id}`}
+        data-testid={`execution-row-${node.id}`}
+        // ICT-491 ex-1: 오른쪽 결과 칸에 열린 케이스 행을 표시한다
+        data-active={isActive ? "true" : undefined}
         sx={{
           display: "grid",
           gridTemplateColumns: gridTemplateColumns,
           width: "100%",
           minHeight: 26,
-          backgroundColor:
-            idx % 2 === 0
+          backgroundColor: isActive
+            ? alpha(theme.palette.primary.main, 0.14)
+            : idx % 2 === 0
               ? theme.palette.action.hover
               : theme.palette.background.paper,
+          boxShadow: isActive
+            ? `inset 3px 0 0 ${theme.palette.primary.main}`
+            : "none",
           "&:hover": {
             backgroundColor: theme.palette.action.selected,
           },
@@ -647,6 +656,7 @@ const TestExecutionTable = ({
   hasMore,
   loadMore,
   handleOpenResultForm,
+  activeTestCaseId = null,
   handleShowPrevResults,
   handleAttachmentClick,
   handleCopyLink,
@@ -703,6 +713,7 @@ const TestExecutionTable = ({
         canEnterResults={canEnterResults}
         canRecordResults={canRecordResults}
         isSelected={selectedTestCases?.has(node.id) || false}
+        isActive={activeTestCaseId != null && node.id === activeTestCaseId}
         onSelectionChange={onSelectionChange}
         handleOpenResultForm={handleOpenResultForm}
         handleShowPrevResults={handleShowPrevResults}
@@ -1054,6 +1065,7 @@ TestExecutionTable.propTypes = {
   hasMore: PropTypes.bool.isRequired,
   loadMore: PropTypes.func.isRequired,
   handleOpenResultForm: PropTypes.func.isRequired,
+  activeTestCaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   handleShowPrevResults: PropTypes.func.isRequired,
   handleAttachmentClick: PropTypes.func.isRequired,
   handleCopyLink: PropTypes.func,
