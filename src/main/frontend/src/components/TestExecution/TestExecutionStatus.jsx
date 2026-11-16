@@ -98,7 +98,16 @@ const TestExecutionStatus = ({
       }}
     >
       {/* 기본 정보 행 */}
-      <Box sx={{ display: "flex", gap: 4, mb: 1, alignItems: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          columnGap: 4,
+          rowGap: 0.5,
+          mb: 1,
+          alignItems: "center",
+        }}
+      >
         <StatusInfoItem
           label={t("testExecution.form.status")}
           value={execution?.status || "-"}
@@ -126,7 +135,14 @@ const TestExecutionStatus = ({
         }}
       >
         {/* 통계 칩 영역 */}
-        <Box sx={{ display: "flex", gap: 1.2, alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 1.2,
+            alignItems: "center",
+          }}
+        >
           <StyledStatusChip
             icon={<CheckCircleIcon />}
             label={t("testResult.status.pass", "Pass")}

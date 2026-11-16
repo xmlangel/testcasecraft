@@ -10,7 +10,6 @@ import React, {
 import PropTypes from "prop-types";
 import {
   Box,
-  Grid,
   CircularProgress,
   LinearProgress,
   Alert,
@@ -1625,9 +1624,21 @@ const TestExecutionForm = ({
               )}
             </Box>
           </AccordionSummary>
-          <AccordionDetails sx={{ pt: 1 }}>
-            <Grid container spacing={1}>
-              <Grid size={{ xs: 12, md: 6, lg: 5 }}>
+          {/* ICT-491 fx-2: 3단 분할에서는 화면이 넓어도 이 칸은 좁다. 화면 폭이 아니라 칸 폭을 기준으로,
+              760px 미만이면 입력 묶음과 상태 묶음을 위아래로 쌓는다. */}
+          <AccordionDetails sx={{ pt: 1, containerType: "inline-size" }}>
+            <Box
+              data-testid="execution-summary-layout"
+              sx={{
+                display: "grid",
+                gap: 1,
+                gridTemplateColumns: "minmax(0, 1fr)",
+                "@container (min-width: 760px)": {
+                  gridTemplateColumns: "minmax(0, 5fr) minmax(0, 7fr)",
+                },
+              }}
+            >
+              <Box sx={{ minWidth: 0 }}>
                 <TestExecutionInfo
                   execution={execution}
                   handleChange={handleChange}
@@ -1641,8 +1652,8 @@ const TestExecutionForm = ({
                   setStartImmediately={setStartImmediately}
                   executionId={executionId}
                 />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6, lg: 7 }}>
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
                 <TestExecutionStatus
                   execution={execution}
                   statusCounts={statusCounts}
@@ -1655,8 +1666,8 @@ const TestExecutionForm = ({
                   handleRestartExecution={handleRestartExecution}
                   saving={saving}
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </AccordionDetails>
         </Accordion>
         <Box sx={{ my: 1 }}>
