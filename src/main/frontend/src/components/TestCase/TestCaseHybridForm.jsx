@@ -877,7 +877,8 @@ const TestCaseHybridForm = ({
       width: tier === 2 ? paneLayout.width : "100%",
       zIndex: 3,
       display: overlayOpen ? "flex" : "none",
-      bgcolor: "background.paper",
+      // background.paper 는 반투명(0.7)이라 아래 목록이 비친다. 겹친 칸은 불투명한 바탕을 쓴다.
+      bgcolor: "background.default",
       boxShadow: 8,
       borderRadius: tier === 2 ? "8px 0 0 8px" : 1,
     };

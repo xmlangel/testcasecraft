@@ -67,6 +67,8 @@ export const resolvePaneLayout = ({
   desiredWidth,
   listMinWidth,
   detailMinWidth,
+  // 겹친 칸(2단)의 최소 폭. 나란히 둘 때보다 좁게 허용할 수 있다(실행 화면 결과 칸).
+  overlayMinWidth = detailMinWidth,
   peekWidth = LIST_PEEK_WIDTH,
   gutterWidth = SPLIT_GUTTER_WIDTH,
 }) => {
@@ -92,7 +94,7 @@ export const resolvePaneLayout = ({
   });
   const overlayRoom = containerWidth - peekWidth;
   const fits3 = !docked.collapsed;
-  const fits2 = overlayRoom >= detailMinWidth;
+  const fits2 = overlayRoom >= overlayMinWidth;
 
   if (wanted >= 3 && fits3) return build(3, docked.width);
   if (wanted >= 2 && fits2)

@@ -37,6 +37,7 @@ import {
   priorityColor,
   responsiveColumnSx,
   gridTemplateColumns,
+  gridTemplateColumnsPeek,
   FOLDER_RESULT_KEYS,
 } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
@@ -59,6 +60,7 @@ const ExecutionRow = memo(
     canRecordResults = true,
     isSelected,
     isActive = false,
+    peek = false,
     onSelectionChange,
     handleOpenResultForm,
     handleShowPrevResults,
@@ -105,7 +107,9 @@ const ExecutionRow = memo(
         data-active={isActive ? "true" : undefined}
         sx={{
           display: "grid",
-          gridTemplateColumns: gridTemplateColumns,
+          gridTemplateColumns: peek
+            ? gridTemplateColumnsPeek
+            : gridTemplateColumns,
           width: "100%",
           minHeight: 26,
           backgroundColor: isActive
@@ -149,7 +153,20 @@ const ExecutionRow = memo(
           )}
         </Box>
         {/* 2: 폴더 */}
-        <Box sx={{ ...responsiveColumnSx[2], pl: `${node.level * 20}px` }}>
+        <Box
+          sx={{
+            ...responsiveColumnSx[2],
+            pl: `${node.level * 20}px`,
+            // 좁은 보기(peek): 케이스 행의 폴더 경로는 감추고, 폴더 행 이름은 케이스명 자리로 넘겨 보인다
+            // 폴더 열 폭이 0 이므로 폴더 행은 내용 폭(max-content)으로 펼쳐 넘치게 하고,
+            // 케이스 행은 경로가 한 글자씩 접혀 행이 높아지지 않게 한 줄로 둔다.
+            ...(peek
+              ? isFolder
+                ? { overflow: "visible", width: "max-content", zIndex: 1 }
+                : { visibility: "hidden", whiteSpace: "nowrap" }
+              : null),
+          }}
+        >
           {isFolder ? (
             <>
               <Tooltip
@@ -657,6 +674,8 @@ const TestExecutionTable = ({
   loadMore,
   handleOpenResultForm,
   activeTestCaseId = null,
+  // ICT-492: 결과 칸이 겹쳐 목록 앞쪽만 보일 때 폴더 열을 접는다
+  peek = false,
   handleShowPrevResults,
   handleAttachmentClick,
   handleCopyLink,
@@ -714,6 +733,7 @@ const TestExecutionTable = ({
         canRecordResults={canRecordResults}
         isSelected={selectedTestCases?.has(node.id) || false}
         isActive={activeTestCaseId != null && node.id === activeTestCaseId}
+        peek={peek}
         onSelectionChange={onSelectionChange}
         handleOpenResultForm={handleOpenResultForm}
         handleShowPrevResults={handleShowPrevResults}
@@ -843,7 +863,9 @@ const TestExecutionTable = ({
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: gridTemplateColumns,
+              gridTemplateColumns: peek
+                ? gridTemplateColumnsPeek
+                : gridTemplateColumns,
               width: "100%",
               // minWidth removed to allow fitting in screen
               position: "sticky",
@@ -908,6 +930,7 @@ const TestExecutionTable = ({
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
                 py: 0.5,
+                ...(peek ? { visibility: "hidden" } : null),
               }}
             >
               {t("testExecution.table.folder", "폴더")}
@@ -1066,6 +1089,7 @@ TestExecutionTable.propTypes = {
   loadMore: PropTypes.func.isRequired,
   handleOpenResultForm: PropTypes.func.isRequired,
   activeTestCaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  peek: PropTypes.bool,
   handleShowPrevResults: PropTypes.func.isRequired,
   handleAttachmentClick: PropTypes.func.isRequired,
   handleCopyLink: PropTypes.func,

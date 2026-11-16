@@ -194,3 +194,37 @@ describe("resolvePaneLayout (ICT-492 1단·2단·3단)", () => {
     expect(layout(1600, "garbage").tier).toBe(3);
   });
 });
+
+describe("resolvePaneLayout - 실행 화면 결과 칸 (ICT-492 ly-2)", () => {
+  // 실행 화면: 가운데 칸 최소 640, 결과 칸 최소 560, 폭 조절 막대 6
+  const exec = (containerWidth, mode = "auto") =>
+    resolvePaneLayout({
+      mode,
+      containerWidth,
+      desiredWidth: 640,
+      listMinWidth: 640,
+      detailMinWidth: 560,
+      overlayMinWidth: 520,
+      gutterWidth: 6,
+    });
+
+  it("가운데 칸과 결과 칸이 다 들어가면 3단으로 나란히 둔다", () => {
+    expect(exec(1286)).toMatchObject({ tier: 3, width: 640, overlay: false });
+    expect(exec(1206)).toMatchObject({ tier: 3, width: 560 });
+  });
+
+  it("나란히 둘 폭이 모자라면 결과 칸을 겹치고 케이스 목록 앞쪽 340px 을 남긴다", () => {
+    expect(exec(1205)).toMatchObject({ tier: 2, overlay: true, width: 640 });
+    expect(exec(900)).toMatchObject({ tier: 2, width: 560 });
+  });
+
+  it("겹친 칸은 나란히 둘 때보다 좁은 최소 폭(520)까지 2단을 쓴다", () => {
+    // 1280px 화면: 실행 목록이 펼쳐진 칸 폭 894 → 겹친 칸 554
+    expect(exec(894)).toMatchObject({ tier: 2, width: 554 });
+    expect(exec(860)).toMatchObject({ tier: 2, width: 520 });
+  });
+
+  it("겹쳐도 결과 칸 최소 폭이 안 되면 1단으로 전체 폭을 덮는다", () => {
+    expect(exec(859)).toMatchObject({ tier: 1, width: 859, overlay: true });
+  });
+});
