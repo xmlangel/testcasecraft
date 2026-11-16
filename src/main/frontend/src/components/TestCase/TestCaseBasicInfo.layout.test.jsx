@@ -44,8 +44,13 @@ const renderInfo = (props = {}) =>
 
 describe("TestCaseBasicInfo 접지 않는 2열 격자 (ICT-494 tl-3)", () => {
   it("접는 묶음(아코디언) 없이 필드를 바로 보인다", () => {
-    const { container } = renderInfo();
-    expect(container.querySelector(".MuiAccordion-root")).toBeNull();
+    renderInfo();
+    // 기본 정보 격자는 접지 않는다. 연결 항목만 따로 접는다(tl-6).
+    expect(
+      screen
+        .getByTestId("testcase-info-grid")
+        .querySelector(".MuiAccordion-root"),
+    ).toBeNull();
     expect(screen.queryByText("테스트케이스 정보")).toBeNull();
     expect(screen.getByTestId("testcase-name-input")).toBeVisible();
   });

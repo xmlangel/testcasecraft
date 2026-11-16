@@ -134,6 +134,16 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("testcase.form.button.more", "testcase", "더보기 메뉴 버튼", "더보기");
     // ICT-494 tl-3: 상세 격자 맨 위 소유자 칸(작성자로 대신한다)
     createTranslationKeyIfNotExists("testcase.form.owner", "testcase", "소유자 필드", "소유자");
+    // ICT-494 tl-6: 태그·RAG·연결 케이스·JUnit 을 묶는 「연결 항목」 접이식
+    createTranslationKeyIfNotExists("testcase.form.linkItems", "testcase", "연결 항목 접이식 머리", "연결 항목");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkSummary.tags", "testcase", "연결 항목 개수 - 태그", "태그");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkSummary.rag", "testcase", "연결 항목 개수 - RAG 문서", "RAG");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkSummary.linkedTestCases", "testcase", "연결 항목 개수 - 연결 케이스", "연결 케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkSummary.junit", "testcase", "연결 항목 개수 - JUnit 케이스", "JUnit");
 
     // 추가 폼 필드들
     createTranslationKeyIfNotExists(
