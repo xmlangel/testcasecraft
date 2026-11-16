@@ -64,3 +64,39 @@ describe("MemoizedTreeItem 자동화 표시 (ICT-487)", () => {
     expect(screen.queryByTestId("tree-automated-icon-f1")).toBeNull();
   });
 });
+
+describe("MemoizedTreeItem 케이스 ID·한 줄 이름 (ICT-491)", () => {
+  it("케이스 ID 를 이름 앞에 표시한다", () => {
+    renderItem({
+      id: "c1",
+      type: "testcase",
+      name: "로그인",
+      displayId: "TC-13",
+    });
+    const id = screen.getByTestId("tree-case-id-c1");
+    const name = screen.getByTestId("tree-node-name-c1");
+    expect(id).toHaveTextContent("TC-13");
+    expect(
+      id.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("긴 이름을 말줄임 없이 한 줄로 전부 그린다", () => {
+    const longName = "아주 긴 테스트 케이스 이름 ".repeat(10).trim();
+    renderItem({
+      id: "c2",
+      type: "testcase",
+      name: longName,
+      displayId: "TC-2",
+    });
+    const name = screen.getByTestId("tree-node-name-c2");
+    expect(name).toHaveTextContent(longName);
+    expect(name).toHaveStyle({ whiteSpace: "nowrap" });
+    expect(name).not.toHaveStyle({ textOverflow: "ellipsis" });
+  });
+
+  it("폴더 행에는 케이스 ID 를 그리지 않는다", () => {
+    renderItem({ id: "f1", type: "folder", name: "폴더", displayId: "X-1" });
+    expect(screen.queryByTestId("tree-case-id-f1")).toBeNull();
+  });
+});

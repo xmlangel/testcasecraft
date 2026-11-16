@@ -457,7 +457,8 @@ const TestCaseTree = ({
         sx={{
           height: "100%",
           flexGrow: 1,
-          overflowY: "auto",
+          // ICT-491 B2: 긴 케이스 이름을 자르지 않으므로 트리 칸에 가로 스크롤을 둔다
+          overflow: "auto",
           position: "relative",
           "& .MuiTreeItem-content": { padding: "4px 8px" },
         }}
@@ -491,7 +492,9 @@ const TestCaseTree = ({
                   position: "absolute",
                   top: 0,
                   left: 0,
-                  width: "100%",
+                  // 행이 이름 길이만큼 늘어나 가로 스크롤 영역을 만든다(최소 칸 폭)
+                  width: "max-content",
+                  minWidth: "100%",
                   height: `${virtualItem.size}px`,
                   transform: `translateY(${virtualItem.start}px)`,
                 }}

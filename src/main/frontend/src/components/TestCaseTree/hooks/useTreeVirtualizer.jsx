@@ -59,7 +59,7 @@ export const useTreeVirtualizer = ({
   const virtualizer = useVirtualizer({
     count: flatData.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 36,
+    estimateSize: () => 32, // ICT-491 B2: 행 높이 28~32px
     overscan: 10,
   });
 
