@@ -75,3 +75,32 @@ describe("FolderCaseList 3단 분할 목록 (ICT-491)", () => {
     );
   });
 });
+
+describe("FolderCaseList 좁은 가운데 칸 (ICT-494 tl-1)", () => {
+  const withPriority = items.map((item) =>
+    item.id === "c1" ? { ...item, priority: "HIGH" } : item,
+  );
+
+  it("hidePriority 면 우선순위 열을 감추고 ID·이름·소유자·최근 결과는 남긴다", () => {
+    render(
+      <FolderCaseList
+        folder={folder}
+        items={withPriority}
+        compact
+        hidePriority
+      />,
+    );
+    expect(screen.queryByText("우선순위")).toBeNull();
+    expect(screen.queryByText("HIGH")).toBeNull();
+    expect(screen.getByText("ID")).toBeInTheDocument();
+    expect(screen.getByText("이름")).toBeInTheDocument();
+    expect(screen.getByText("소유자")).toBeInTheDocument();
+    expect(screen.getByText("최근 결과")).toBeInTheDocument();
+  });
+
+  it("hidePriority 가 없으면 우선순위 열을 그대로 그린다", () => {
+    render(<FolderCaseList folder={folder} items={withPriority} compact />);
+    expect(screen.getByText("우선순위")).toBeInTheDocument();
+    expect(screen.getByText("HIGH")).toBeInTheDocument();
+  });
+});

@@ -59,12 +59,16 @@ import usePaneLayoutMode from "../../hooks/usePaneLayoutMode.js";
 import useEscapeToClose from "../../hooks/useEscapeToClose.js";
 import PaneLayoutSelector from "../common/PaneLayoutSelector.jsx";
 import {
-  clampDetailWidth,
+  clampListWidth,
+  detailWidthForList,
   resolvePaneLayout,
   resolveListContextId,
+  CASE_LIST_DEFAULT_WIDTH,
+  CASE_LIST_MIN_WIDTH,
+  CASE_LIST_PRIORITY_MIN_WIDTH,
   DETAIL_PANE_DEFAULT_WIDTH,
   DETAIL_PANE_MIN_WIDTH,
-  LIST_PANE_MIN_WIDTH,
+  SPLIT_GUTTER_WIDTH,
 } from "./splitPane.js";
 
 const TestCaseHybridForm = ({
@@ -296,7 +300,8 @@ const TestCaseHybridForm = ({
   // ICT-491: 케이스를 열어도 가운데 칸의 케이스 목록을 그대로 둔다(트리 | 목록 | 상세).
   // listContextId 는 가운데 칸에 남길 목록(폴더 또는 가상 노드)이다.
   const [listContextId, setListContextId] = useState(null);
-  const [detailWidth, setDetailWidth] = useState(DETAIL_PANE_DEFAULT_WIDTH);
+  // ICT-494 tl-1: 목록 폭을 정하고 상세 칸이 나머지를 쓴다(상세가 가장 넓다).
+  const [listWidth, setListWidth] = useState(CASE_LIST_DEFAULT_WIDTH);
   const [detailMaximized, setDetailMaximized] = useState(false);
   useEffect(() => {
     setListContextId((prev) =>
@@ -351,18 +356,29 @@ const TestCaseHybridForm = ({
   const layoutWidth = splitViewWidth
     ? splitViewWidth - (treeHiddenByLayout ? treeReserveWidth : 0)
     : 0;
+  const desiredDetailWidth = detailWidthForList({
+    containerWidth: layoutWidth,
+    listWidth,
+    detailMinWidth: DETAIL_PANE_MIN_WIDTH,
+    fallbackWidth: DETAIL_PANE_DEFAULT_WIDTH,
+  });
   const paneLayout = resolvePaneLayout({
     mode: layoutMode,
     containerWidth: layoutWidth,
-    desiredWidth: detailWidth,
-    listMinWidth: LIST_PANE_MIN_WIDTH,
+    desiredWidth: desiredDetailWidth,
+    listMinWidth: CASE_LIST_MIN_WIDTH,
     detailMinWidth: DETAIL_PANE_MIN_WIDTH,
   });
   const showListPane = isSplitView && !detailMaximized;
   const isOverlay = showListPane && paneLayout.overlay;
   const detailVisible = !isOverlay || overlayOpen;
-  const effectiveDetailWidthRef = useRef(paneLayout.width);
-  effectiveDetailWidthRef.current = paneLayout.width;
+  // 3단에서 목록이 실제로 차지하는 폭. 좁으면 우선순위 열을 감춘다.
+  const listPaneWidth =
+    layoutWidth && !paneLayout.overlay
+      ? layoutWidth - paneLayout.width - SPLIT_GUTTER_WIDTH
+      : listWidth;
+  const effectiveListWidthRef = useRef(listPaneWidth);
+  effectiveListWidthRef.current = listPaneWidth;
 
   const wantTreeHidden =
     isOverlay && overlayOpen && paneLayout.tier === 1 && treeReserveWidth > 0;
@@ -386,11 +402,9 @@ const TestCaseHybridForm = ({
   );
 
   const handleDetailResize = useCallback((dx) => {
-    // 막대는 상세 칸 왼쪽에 있으므로 오른쪽으로 끌면 상세가 좁아진다.
-    // 화면에 맞춰 줄어든 폭에서 출발해야 끄는 즉시 반응한다.
-    setDetailWidth(() =>
-      clampDetailWidth(effectiveDetailWidthRef.current - dx),
-    );
+    // 막대는 상세 칸 왼쪽에 있으므로 오른쪽으로 끌면 목록이 넓어지고 상세가 좁아진다.
+    // 화면에 맞춰 정해진 목록 폭에서 출발해야 끄는 즉시 반응한다.
+    setListWidth(() => clampListWidth(effectiveListWidthRef.current + dx));
   }, []);
 
   const handleCloseDetail = useCallback(() => {
@@ -920,7 +934,7 @@ const TestCaseHybridForm = ({
             <Box
               sx={{
                 flex: 1,
-                minWidth: isOverlay ? 0 : LIST_PANE_MIN_WIDTH,
+                minWidth: isOverlay ? 0 : CASE_LIST_MIN_WIDTH,
                 overflow: "auto",
                 pr: 1,
               }}
@@ -936,6 +950,9 @@ const TestCaseHybridForm = ({
                 latestResults={latestResults}
                 selectedId={selectedItem?.id}
                 compact
+                hidePriority={
+                  !isOverlay && listPaneWidth < CASE_LIST_PRIORITY_MIN_WIDTH
+                }
               />
             </Box>
             {!isOverlay && (

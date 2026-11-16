@@ -21,6 +21,41 @@ export const LIST_PANE_MIN_WIDTH = 600;
 // 폭 조절 막대(6px)와 상세 칸 왼쪽 여백(12px)
 export const SPLIT_GUTTER_WIDTH = 18;
 
+// ICT-494 tl-1: 케이스 화면은 목록 폭을 먼저 정하고 상세 칸이 나머지를 쓴다(상세가 가장 넓다).
+// Testiny 기준(1600px 화면) 폴더 300 · 목록 450 · 상세 약 720.
+export const CASE_LIST_DEFAULT_WIDTH = 450;
+// 우선순위 열을 빼면 이 폭에서도 이름이 한 글자씩 접히지 않는다.
+export const CASE_LIST_MIN_WIDTH = 400;
+export const CASE_LIST_MAX_WIDTH = 900;
+// 목록이 이 폭보다 좁으면 우선순위 열을 감춘다. 우선순위는 상세 칸에서 그대로 보인다.
+export const CASE_LIST_PRIORITY_MIN_WIDTH = 560;
+
+export const clampListWidth = (width) =>
+  Math.min(CASE_LIST_MAX_WIDTH, Math.max(CASE_LIST_MIN_WIDTH, width));
+
+/**
+ * 목록 폭(listWidth)을 먼저 정하고 상세 칸이 나머지를 쓰게 할 때 상세 칸에 바랄 폭을 구한다.
+ * 자리가 좁으면 목록을 listMinWidth 까지 먼저 줄여 상세가 목록보다 좁아지지 않게 한다.
+ * containerWidth 가 0 이면(아직 재지 못함) fallbackWidth 를 쓴다.
+ * detailMinWidth 아래로는 바라지 않는다. 그래도 모자라면 resolvePaneLayout 이 단계를 내린다.
+ */
+export const detailWidthForList = ({
+  containerWidth,
+  listWidth,
+  detailMinWidth,
+  fallbackWidth,
+  listMinWidth = CASE_LIST_MIN_WIDTH,
+  gutterWidth = SPLIT_GUTTER_WIDTH,
+}) => {
+  if (!containerWidth) return fallbackWidth;
+  const half = Math.floor((containerWidth - gutterWidth) / 2);
+  const effectiveList = Math.min(listWidth, Math.max(listMinWidth, half));
+  return Math.max(
+    detailMinWidth,
+    Math.floor(containerWidth - effectiveList - gutterWidth),
+  );
+};
+
 /**
  * 3단 분할에서 오른쪽(상세) 칸에 실제로 줄 폭을 정한다.
  * 가운데 칸이 listMinWidth 아래로 내려가지 않게, 먼저 상세 칸을 detailMinWidth 까지 줄이고

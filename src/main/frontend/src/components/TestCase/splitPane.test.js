@@ -8,6 +8,11 @@ import {
   resolveListContextId,
   DETAIL_PANE_MIN_WIDTH,
   DETAIL_PANE_MAX_WIDTH,
+  detailWidthForList,
+  clampListWidth,
+  CASE_LIST_DEFAULT_WIDTH,
+  CASE_LIST_MIN_WIDTH,
+  CASE_LIST_MAX_WIDTH,
 } from "./splitPane.js";
 import {
   VIRTUAL_ALL_CASES_ID,
@@ -226,5 +231,67 @@ describe("resolvePaneLayout - 실행 화면 결과 칸 (ICT-492 ly-2)", () => {
 
   it("겹쳐도 결과 칸 최소 폭이 안 되면 1단으로 전체 폭을 덮는다", () => {
     expect(exec(859)).toMatchObject({ tier: 1, width: 859, overlay: true });
+  });
+});
+
+describe("detailWidthForList (ICT-494 tl-1 상세가 나머지를 쓴다)", () => {
+  const base = { listWidth: 450, detailMinWidth: 380, fallbackWidth: 640 };
+
+  it("폭을 아직 재지 못했으면 기본 폭을 쓴다", () => {
+    expect(detailWidthForList({ ...base, containerWidth: 0 })).toBe(640);
+  });
+
+  it("1600px 화면(트리 300)에서 상세 칸이 목록보다 넓다", () => {
+    // 분할 칸 폭 약 1150 = 1600 - 아이콘 메뉴·트리·여백. 1150 - 450 - 18 = 682
+    const width = detailWidthForList({ ...base, containerWidth: 1150 });
+    expect(width).toBe(682);
+    expect(width).toBeGreaterThan(base.listWidth);
+  });
+
+  it("상세 최소 폭 아래로는 바라지 않는다", () => {
+    expect(detailWidthForList({ ...base, containerWidth: 700 })).toBe(380);
+  });
+
+  it("자리가 좁으면 목록을 먼저 줄여 상세가 목록보다 좁아지지 않게 한다", () => {
+    // 1280px 화면 분할 칸 약 844. 반으로 나누면 413 이라 목록을 413 으로 줄이고 상세도 413
+    expect(detailWidthForList({ ...base, containerWidth: 844 })).toBe(413);
+    // 목록 최소 폭(400) 아래로는 줄이지 않는다: 800 - 400 - 18 = 382
+    expect(detailWidthForList({ ...base, containerWidth: 800 })).toBe(382);
+  });
+
+  it("목록 폭을 늘리면 그만큼 상세가 줄어든다", () => {
+    expect(
+      detailWidthForList({ ...base, listWidth: 550, containerWidth: 1150 }),
+    ).toBe(582);
+  });
+});
+
+describe("clampListWidth", () => {
+  it("목록 폭을 허용 범위 안에 둔다", () => {
+    expect(clampListWidth(10)).toBe(CASE_LIST_MIN_WIDTH);
+    expect(clampListWidth(99999)).toBe(CASE_LIST_MAX_WIDTH);
+    expect(clampListWidth(CASE_LIST_DEFAULT_WIDTH)).toBe(450);
+  });
+});
+
+describe("케이스 화면 1600px 배치 (ICT-494 tl-1)", () => {
+  it("자동 배치에서 3단으로 나란히 두고 상세가 세 칸 중 가장 넓다", () => {
+    const containerWidth = 1150;
+    const desiredWidth = detailWidthForList({
+      containerWidth,
+      listWidth: CASE_LIST_DEFAULT_WIDTH,
+      detailMinWidth: DETAIL_PANE_MIN_WIDTH,
+      fallbackWidth: 640,
+    });
+    const layout = resolvePaneLayout({
+      containerWidth,
+      desiredWidth,
+      listMinWidth: CASE_LIST_MIN_WIDTH,
+      detailMinWidth: DETAIL_PANE_MIN_WIDTH,
+    });
+    expect(layout.tier).toBe(3);
+    // 트리 300 · 목록 450 보다 넓다
+    expect(layout.width).toBeGreaterThan(450);
+    expect(layout.width).toBeGreaterThan(300);
   });
 });
