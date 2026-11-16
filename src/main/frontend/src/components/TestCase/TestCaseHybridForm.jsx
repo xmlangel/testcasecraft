@@ -55,9 +55,12 @@ import useLatestResults from "../../hooks/useLatestResults.js";
 import { CHROME_ICON_SX } from "../common/iconSizes.js";
 import Resizer from "../common/Resizer.jsx";
 import useElementWidth from "../../hooks/useElementWidth.js";
+import usePaneLayoutMode from "../../hooks/usePaneLayoutMode.js";
+import useEscapeToClose from "../../hooks/useEscapeToClose.js";
+import PaneLayoutSelector from "../common/PaneLayoutSelector.jsx";
 import {
   clampDetailWidth,
-  fitDetailWidth,
+  resolvePaneLayout,
   resolveListContextId,
   DETAIL_PANE_DEFAULT_WIDTH,
   DETAIL_PANE_MIN_WIDTH,
@@ -69,6 +72,11 @@ const TestCaseHybridForm = ({
   projectId,
   onSave,
   onSelectTestCase,
+  // ICT-492: 1단에서는 트리를 접는다. 트리는 App 이 그리므로 접어 달라고 알린다.
+  // treeReserveWidth 는 트리가 보일 때 차지하는 폭(트리·막대·여백)이다.
+  treeReserveWidth = 0,
+  treeHiddenByLayout = false,
+  onTreeHiddenByLayoutChange,
 }) => {
   const params = useParams();
 
@@ -330,18 +338,52 @@ const TestCaseHybridForm = ({
     inputMode === "form" &&
     selectedItem?.type === "testcase" &&
     Boolean(listContext);
-  // 가운데 목록이 최소 폭 아래로 줄지 않게 상세 칸 폭을 화면에 맞춘다.
-  // 상세를 최소 폭까지 줄여도 모자라면 목록을 접고 상세만 보인다(분할 전 화면과 같음).
+  // ICT-492: 폭과 고른 배치로 1단·2단·3단을 정한다.
+  // 3단은 목록과 상세를 나란히, 2단은 상세를 목록 위에 오른쪽으로 겹쳐(목록의 ID·이름은 남김),
+  // 1단은 트리를 접고 상세를 전체 폭으로 겹친다. 겹친 칸을 닫아도 아래 목록은 그대로 남는다.
+  const [layoutMode, setLayoutMode] = usePaneLayoutMode();
+  const [overlayOpen, setOverlayOpen] = useState(true);
+  useEffect(() => {
+    setOverlayOpen(true);
+  }, [effectiveTestCaseId]);
   const [splitViewRef, splitViewWidth] = useElementWidth();
-  const detailFit = fitDetailWidth({
-    containerWidth: splitViewWidth,
+  // 1단에서 트리를 접으면 이 칸이 넓어진다. 단계가 오가지 않게 트리가 보일 때의 폭으로 판정한다.
+  const layoutWidth = splitViewWidth
+    ? splitViewWidth - (treeHiddenByLayout ? treeReserveWidth : 0)
+    : 0;
+  const paneLayout = resolvePaneLayout({
+    mode: layoutMode,
+    containerWidth: layoutWidth,
     desiredWidth: detailWidth,
     listMinWidth: LIST_PANE_MIN_WIDTH,
     detailMinWidth: DETAIL_PANE_MIN_WIDTH,
   });
-  const showListPane = isSplitView && !detailMaximized && !detailFit.collapsed;
-  const effectiveDetailWidthRef = useRef(detailFit.width);
-  effectiveDetailWidthRef.current = detailFit.width;
+  const showListPane = isSplitView && !detailMaximized;
+  const isOverlay = showListPane && paneLayout.overlay;
+  const detailVisible = !isOverlay || overlayOpen;
+  const effectiveDetailWidthRef = useRef(paneLayout.width);
+  effectiveDetailWidthRef.current = paneLayout.width;
+
+  const wantTreeHidden =
+    isOverlay && overlayOpen && paneLayout.tier === 1 && treeReserveWidth > 0;
+  useEffect(() => {
+    onTreeHiddenByLayoutChange?.(wantTreeHidden);
+  }, [wantTreeHidden, onTreeHiddenByLayoutChange]);
+  useEffect(
+    () => () => onTreeHiddenByLayoutChange?.(false),
+    [onTreeHiddenByLayoutChange],
+  );
+
+  const closeOverlay = useCallback(() => setOverlayOpen(false), []);
+  useEscapeToClose(isOverlay && overlayOpen, closeOverlay);
+
+  const handleSelectFromList = useCallback(
+    (item) => {
+      setOverlayOpen(true);
+      onSelectTestCase?.(item);
+    },
+    [onSelectTestCase],
+  );
 
   const handleDetailResize = useCallback((dx) => {
     // 막대는 상세 칸 왼쪽에 있으므로 오른쪽으로 끌면 상세가 좁아진다.
@@ -352,10 +394,15 @@ const TestCaseHybridForm = ({
   }, []);
 
   const handleCloseDetail = useCallback(() => {
+    // 겹친 칸은 감추기만 한다. 선택한 케이스와 목록 스크롤은 그대로 둔다.
+    if (isOverlay) {
+      setOverlayOpen(false);
+      return;
+    }
     if (!listContext || !onSelectTestCase) return;
     setDetailMaximized(false);
     onSelectTestCase(listContext.folder);
-  }, [listContext, onSelectTestCase]);
+  }, [isOverlay, listContext, onSelectTestCase]);
 
   // 선택 항목의 경로 브레드크럼 (조상 폴더 → 현재 항목)
   const breadcrumbItems = useMemo(() => {
@@ -808,53 +855,119 @@ const TestCaseHybridForm = ({
     return <Box sx={CHROME_ICON_SX}>{body}</Box>;
   }
 
-  // ICT-491 3단 분할: 케이스 목록(가운데) | 폭 조절 막대 | 상세(오른쪽). 칸마다 따로 스크롤한다.
+  // ICT-491·492 분할: 케이스 목록 | 상세. 3단은 나란히, 2단·1단은 상세를 목록 위에 겹친다.
+  // 단계가 바뀌어도 목록과 상세가 다시 그려지지 않게(스크롤·입력 유지) 요소 구조를 그대로 둔다.
+  const tier = paneLayout.tier;
+  let detailSx;
+  if (!showListPane) {
+    detailSx = { flex: 1, width: "auto", overflowY: "auto" };
+  } else if (!isOverlay) {
+    detailSx = {
+      flex: "0 0 auto",
+      width: paneLayout.width,
+      overflowY: "auto",
+      pl: 1.5,
+    };
+  } else {
+    detailSx = {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      right: 0,
+      width: tier === 2 ? paneLayout.width : "100%",
+      zIndex: 3,
+      display: overlayOpen ? "flex" : "none",
+      // background.paper 는 반투명(0.7)이라 아래 목록이 비친다. 겹친 칸은 불투명한 바탕을 쓴다.
+      bgcolor: "background.default",
+      boxShadow: 8,
+      borderRadius: tier === 2 ? "8px 0 0 8px" : 1,
+    };
+  }
+
   return (
     <Box
       ref={splitViewRef}
-      sx={{ ...CHROME_ICON_SX, display: "flex", height: "100%", minHeight: 0 }}
+      sx={{
+        ...CHROME_ICON_SX,
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+      }}
       data-testid="testcase-split-view"
+      data-pane-tier={showListPane ? tier : "max"}
     >
-      {showListPane && (
-        <>
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: LIST_PANE_MIN_WIDTH,
-              overflow: "auto",
-              pr: 1,
-            }}
-            data-testid="testcase-list-pane"
-          >
-            <FolderCaseList
-              folder={listContext.folder}
-              items={folderListItems}
-              rows={listContext.rows}
-              onSelectItem={onSelectTestCase}
-              favoriteIds={favoriteIds}
-              onToggleFavorite={(item) => toggleFavorite(item.id)}
-              latestResults={latestResults}
-              selectedId={selectedItem?.id}
-              compact
-            />
-          </Box>
-          <Resizer
-            onDrag={handleDetailResize}
-            testId="testcase-detail-resizer"
-          />
-        </>
-      )}
       <Box
         sx={{
-          flex: showListPane ? "0 0 auto" : 1,
-          width: showListPane ? detailFit.width : "auto",
-          minWidth: 0,
-          overflowY: "auto",
-          pl: showListPane ? 1.5 : 0,
+          display: "flex",
+          justifyContent: "flex-end",
+          mb: 0.5,
+          flexShrink: 0,
         }}
-        data-testid="testcase-detail-pane"
       >
-        {body}
+        <PaneLayoutSelector
+          mode={layoutMode}
+          onChange={setLayoutMode}
+          tier={tier}
+          downgraded={paneLayout.downgraded}
+        />
+      </Box>
+      <Box
+        sx={{ position: "relative", display: "flex", flex: 1, minHeight: 0 }}
+      >
+        {showListPane && (
+          <>
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: isOverlay ? 0 : LIST_PANE_MIN_WIDTH,
+                overflow: "auto",
+                pr: 1,
+              }}
+              data-testid="testcase-list-pane"
+            >
+              <FolderCaseList
+                folder={listContext.folder}
+                items={folderListItems}
+                rows={listContext.rows}
+                onSelectItem={handleSelectFromList}
+                favoriteIds={favoriteIds}
+                onToggleFavorite={(item) => toggleFavorite(item.id)}
+                latestResults={latestResults}
+                selectedId={selectedItem?.id}
+                compact
+              />
+            </Box>
+            {!isOverlay && (
+              <Resizer
+                onDrag={handleDetailResize}
+                testId="testcase-detail-resizer"
+              />
+            )}
+          </>
+        )}
+        <Box
+          sx={{ minWidth: 0, ...detailSx }}
+          data-testid="testcase-detail-pane"
+          data-overlay={isOverlay ? "true" : "false"}
+          aria-hidden={detailVisible ? undefined : true}
+        >
+          {isOverlay && tier === 2 ? (
+            <Resizer
+              onDrag={handleDetailResize}
+              testId="testcase-detail-resizer"
+            />
+          ) : null}
+          <Box
+            sx={
+              isOverlay
+                ? { flex: 1, minWidth: 0, overflowY: "auto", p: 1.5 }
+                : { display: "contents" }
+            }
+          >
+            {body}
+          </Box>
+        </Box>
       </Box>
     </Box>
   );
@@ -865,6 +978,9 @@ TestCaseHybridForm.propTypes = {
   projectId: PropTypes.string.isRequired,
   onSave: PropTypes.func,
   onSelectTestCase: PropTypes.func,
+  treeReserveWidth: PropTypes.number,
+  treeHiddenByLayout: PropTypes.bool,
+  onTreeHiddenByLayoutChange: PropTypes.func,
 };
 
 export default TestCaseHybridForm;

@@ -416,6 +416,11 @@ export const HEADER_HEIGHT = 40;
 export const gridTemplateColumns =
   "40px 110px minmax(260px, 2fr) minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
 
+// ICT-492: 결과 칸이 목록 위에 겹쳐(2단) 목록 앞쪽만 보일 때 쓰는 열 구성.
+// 폴더 열을 0 으로 접어 체크·ID 바로 뒤에 케이스명이 오게 한다. 폴더 행의 이름은 비어 있는 케이스명 자리로 넘쳐 보인다.
+export const gridTemplateColumnsPeek =
+  "40px 110px 0px minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
+
 // 개별 컬럼 스타일 (Grid에서는 display와 align만 필요)
 export const responsiveColumnSx = [
   { display: "flex", alignItems: "center", justifyContent: "center" }, // 0: checkbox
