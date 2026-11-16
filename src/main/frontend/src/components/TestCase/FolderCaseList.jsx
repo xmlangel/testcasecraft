@@ -88,6 +88,7 @@ const FolderCaseList = ({
   onEditFolder,
   favoriteIds,
   onToggleFavorite,
+  selectedId,
 }) => {
   const { t } = useI18n();
   const showFavorite = typeof onToggleFavorite === "function";
@@ -253,6 +254,11 @@ const FolderCaseList = ({
                   <TableRow
                     key={item.id}
                     hover
+                    // 3단 분할(ICT-491)에서 오른쪽 상세에 열린 케이스를 표시한다
+                    selected={
+                      selectedId != null &&
+                      String(item.id) === String(selectedId)
+                    }
                     onClick={() => onSelectItem && onSelectItem(item)}
                     sx={{ cursor: "pointer" }}
                     data-testid={`folder-case-row-${item.id}`}
@@ -427,6 +433,7 @@ FolderCaseList.propTypes = {
   onEditFolder: PropTypes.func,
   favoriteIds: PropTypes.instanceOf(Set),
   onToggleFavorite: PropTypes.func,
+  selectedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export default FolderCaseList;

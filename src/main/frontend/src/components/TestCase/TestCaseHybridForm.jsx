@@ -25,6 +25,9 @@ import {
   TableChart as SpreadsheetIcon,
   ChevronLeft as PrevIcon,
   ChevronRight as NextIcon,
+  Close as CloseIcon,
+  OpenInFull as MaximizeIcon,
+  CloseFullscreen as RestoreIcon,
 } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext.jsx";
@@ -49,6 +52,12 @@ import {
 import NoSelectionPlaceholder from "../common/NoSelectionPlaceholder.jsx";
 import useBookmarks from "../../hooks/useBookmarks.js";
 import { CHROME_ICON_SX } from "../common/iconSizes.js";
+import Resizer from "../common/Resizer.jsx";
+import {
+  clampDetailWidth,
+  resolveListContextId,
+  DETAIL_PANE_DEFAULT_WIDTH,
+} from "./splitPane.js";
 
 const TestCaseHybridForm = ({
   testCaseId,
@@ -270,6 +279,64 @@ const TestCaseHybridForm = ({
     return null;
   }, [effectiveTestCaseId, folderListItems, t]);
 
+  // ICT-491: 케이스를 열어도 가운데 칸의 케이스 목록을 그대로 둔다(트리 | 목록 | 상세).
+  // listContextId 는 가운데 칸에 남길 목록(폴더 또는 가상 노드)이다.
+  const [listContextId, setListContextId] = useState(null);
+  const [detailWidth, setDetailWidth] = useState(DETAIL_PANE_DEFAULT_WIDTH);
+  const [detailMaximized, setDetailMaximized] = useState(false);
+  useEffect(() => {
+    setListContextId((prev) =>
+      resolveListContextId(prev, effectiveTestCaseId, folderListItems),
+    );
+  }, [effectiveTestCaseId, folderListItems]);
+
+  const listContext = useMemo(() => {
+    if (!listContextId) return null;
+    if (listContextId === VIRTUAL_ALL_CASES_ID) {
+      return {
+        folder: {
+          id: VIRTUAL_ALL_CASES_ID,
+          name: t("testcase.tree.virtual.allCases", "모든 테스트케이스"),
+        },
+        rows: folderListItems
+          .filter((tc) => tc.type === "testcase")
+          .slice()
+          .sort((a, b) => (a.name || "").localeCompare(b.name || "")),
+      };
+    }
+    if (listContextId === VIRTUAL_UNFILED_ID) {
+      return {
+        folder: {
+          id: VIRTUAL_UNFILED_ID,
+          name: t("testcase.tree.virtual.unfiled", "폴더에 없는 테스트케이스"),
+        },
+        rows: folderListItems.filter((tc) => isUnfiledTestCase(tc)),
+      };
+    }
+    const folder = folderListItems.find(
+      (tc) => String(tc.id) === String(listContextId) && tc.type === "folder",
+    );
+    return folder ? { folder, rows: undefined } : null;
+  }, [listContextId, folderListItems, t]);
+
+  // 케이스를 고른 상태에서만 세 번째 칸이 열린다. 크게 보기면 목록을 접는다.
+  const isSplitView =
+    inputMode === "form" &&
+    selectedItem?.type === "testcase" &&
+    Boolean(listContext);
+  const showListPane = isSplitView && !detailMaximized;
+
+  const handleDetailResize = useCallback((dx) => {
+    // 막대는 상세 칸 왼쪽에 있으므로 오른쪽으로 끌면 상세가 좁아진다
+    setDetailWidth((w) => clampDetailWidth(w - dx));
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    if (!listContext || !onSelectTestCase) return;
+    setDetailMaximized(false);
+    onSelectTestCase(listContext.folder);
+  }, [listContext, onSelectTestCase]);
+
   // 선택 항목의 경로 브레드크럼 (조상 폴더 → 현재 항목)
   const breadcrumbItems = useMemo(() => {
     if (!selectedItem) return [];
@@ -389,8 +456,8 @@ const TestCaseHybridForm = ({
     }
   };
 
-  return (
-    <Box sx={CHROME_ICON_SX}>
+  const body = (
+    <>
       {/* 선택 항목 경로 브레드크럼 (조상 폴더 클릭 시 해당 폴더로 이동) + 이전/다음 케이스 */}
       {(breadcrumbItems.length > 0 || caseNav) && (
         <Box
@@ -479,6 +546,44 @@ const TestCaseHybridForm = ({
                   </IconButton>
                 </span>
               </Tooltip>
+              {isSplitView && (
+                <>
+                  <Tooltip
+                    title={
+                      detailMaximized
+                        ? t("testcase.split.restore", "목록과 함께 보기")
+                        : t("testcase.split.maximize", "크게 보기")
+                    }
+                  >
+                    <IconButton
+                      size="small"
+                      aria-label={
+                        detailMaximized
+                          ? t("testcase.split.restore", "목록과 함께 보기")
+                          : t("testcase.split.maximize", "크게 보기")
+                      }
+                      onClick={() => setDetailMaximized((v) => !v)}
+                      data-testid="testcase-detail-maximize"
+                    >
+                      {detailMaximized ? (
+                        <RestoreIcon fontSize="small" />
+                      ) : (
+                        <MaximizeIcon fontSize="small" />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={t("testcase.split.close", "상세 닫기")}>
+                    <IconButton
+                      size="small"
+                      aria-label={t("testcase.split.close", "상세 닫기")}
+                      onClick={handleCloseDetail}
+                      data-testid="testcase-detail-close"
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
             </Box>
           )}
         </Box>
@@ -662,6 +767,53 @@ const TestCaseHybridForm = ({
           allData={testCases}
         />
       )}
+    </>
+  );
+
+  if (!isSplitView) {
+    return <Box sx={CHROME_ICON_SX}>{body}</Box>;
+  }
+
+  // ICT-491 3단 분할: 케이스 목록(가운데) | 폭 조절 막대 | 상세(오른쪽). 칸마다 따로 스크롤한다.
+  return (
+    <Box
+      sx={{ ...CHROME_ICON_SX, display: "flex", height: "100%", minHeight: 0 }}
+      data-testid="testcase-split-view"
+    >
+      {showListPane && (
+        <>
+          <Box
+            sx={{ flex: 1, minWidth: 280, overflow: "auto", pr: 1 }}
+            data-testid="testcase-list-pane"
+          >
+            <FolderCaseList
+              folder={listContext.folder}
+              items={folderListItems}
+              rows={listContext.rows}
+              onSelectItem={onSelectTestCase}
+              favoriteIds={favoriteIds}
+              onToggleFavorite={(item) => toggleFavorite(item.id)}
+              selectedId={selectedItem?.id}
+            />
+          </Box>
+          <Resizer
+            onDrag={handleDetailResize}
+            testId="testcase-detail-resizer"
+          />
+        </>
+      )}
+      <Box
+        sx={{
+          flex: showListPane ? "0 1 auto" : 1,
+          width: showListPane ? detailWidth : "auto",
+          minWidth: 0,
+          overflowY: "auto",
+          pl: showListPane ? 1.5 : 0,
+        }}
+        data-testid="testcase-detail-pane"
+      >
+        {body}
+      </Box>
     </Box>
   );
 };

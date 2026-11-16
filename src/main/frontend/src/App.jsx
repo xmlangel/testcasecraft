@@ -47,6 +47,7 @@ const PlanExecutionWorkspace = React.lazy(
   () => import("./components/PlanExecutionWorkspace.jsx"),
 );
 const TestCaseTree = React.lazy(() => import("./components/TestCaseTree.jsx"));
+import Resizer from "./components/common/Resizer.jsx";
 const TestCaseHybridForm = React.lazy(
   () => import("./components/TestCase/TestCaseHybridForm.jsx"),
 );
@@ -188,51 +189,6 @@ function loadUIState() {
     return {};
   }
 }
-
-// 리사이저 컴포넌트
-const Resizer = ({ onDrag }) => {
-  const dragging = useRef(false);
-
-  const handleMouseDown = (e) => {
-    dragging.current = true;
-    document.body.style.cursor = "col-resize";
-  };
-
-  const handleMouseMove = (e) => {
-    if (!dragging.current) return;
-    onDrag(e.movementX);
-  };
-
-  const handleMouseUp = () => {
-    dragging.current = false;
-    document.body.style.cursor = "";
-  };
-
-  React.useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-    // eslint-disable-next-line
-  }, []);
-
-  return (
-    <Box
-      sx={{
-        width: "6px",
-        cursor: "col-resize",
-        background: "#eee",
-        flexShrink: 0,
-        zIndex: 2,
-        "&:hover": { background: "#ccc" },
-      }}
-      onMouseDown={handleMouseDown}
-      data-testid="resizer"
-    />
-  );
-};
 
 const AppContent = () => {
   const theme = useTheme();
