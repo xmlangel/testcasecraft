@@ -458,10 +458,64 @@ const TestCaseHybridForm = ({
     }
   };
 
+  // ICT-491 C3: 상세 하단 고정 바의 왼쪽(이전 · n/N · 다음 · 닫기). 저장 버튼은 폼이 오른쪽에 그린다.
+  const caseNavBar = caseNav ? (
+    <Box
+      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+      data-testid="testcase-nav"
+    >
+      <Tooltip title={t("testcase.nav.prev", "이전 케이스")}>
+        <span>
+          <IconButton
+            size="small"
+            aria-label={t("testcase.nav.prev", "이전 케이스")}
+            disabled={!caseNav.prevId}
+            onClick={() => goToCase(caseNav.prevId)}
+            data-testid="testcase-nav-prev"
+          >
+            <PrevIcon fontSize="small" />
+          </IconButton>
+        </span>
+      </Tooltip>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        data-testid="testcase-nav-position"
+      >
+        {caseNav.index + 1} / {caseNav.total}
+      </Typography>
+      <Tooltip title={t("testcase.nav.next", "다음 케이스")}>
+        <span>
+          <IconButton
+            size="small"
+            aria-label={t("testcase.nav.next", "다음 케이스")}
+            disabled={!caseNav.nextId}
+            onClick={() => goToCase(caseNav.nextId)}
+            data-testid="testcase-nav-next"
+          >
+            <NextIcon fontSize="small" />
+          </IconButton>
+        </span>
+      </Tooltip>
+      {isSplitView && (
+        <Tooltip title={t("testcase.split.close", "상세 닫기")}>
+          <IconButton
+            size="small"
+            aria-label={t("testcase.split.close", "상세 닫기")}
+            onClick={handleCloseDetail}
+            data-testid="testcase-detail-close"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )}
+    </Box>
+  ) : null;
+
   const body = (
     <>
-      {/* 선택 항목 경로 브레드크럼 (조상 폴더 클릭 시 해당 폴더로 이동) + 이전/다음 케이스 */}
-      {(breadcrumbItems.length > 0 || caseNav) && (
+      {/* 선택 항목 경로 브레드크럼 (조상 폴더 클릭 시 해당 폴더로 이동) + 크게 보기 */}
+      {(breadcrumbItems.length > 0 || isSplitView) && (
         <Box
           sx={{
             display: "flex",
@@ -504,87 +558,44 @@ const TestCaseHybridForm = ({
               )}
             </Breadcrumbs>
           )}
-          {caseNav && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.5,
-                ml: "auto",
-                flexShrink: 0,
-              }}
-              data-testid="testcase-nav"
-            >
-              <Tooltip title={t("testcase.nav.prev", "이전 케이스")}>
-                <span>
-                  <IconButton
-                    size="small"
-                    aria-label={t("testcase.nav.prev", "이전 케이스")}
-                    disabled={!caseNav.prevId}
-                    onClick={() => goToCase(caseNav.prevId)}
-                    data-testid="testcase-nav-prev"
-                  >
-                    <PrevIcon fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                data-testid="testcase-nav-position"
+          {isSplitView && (
+            <Box sx={{ ml: "auto", flexShrink: 0, display: "flex" }}>
+              <Tooltip
+                title={
+                  detailMaximized
+                    ? t("testcase.split.restore", "목록과 함께 보기")
+                    : t("testcase.split.maximize", "크게 보기")
+                }
               >
-                {caseNav.index + 1} / {caseNav.total}
-              </Typography>
-              <Tooltip title={t("testcase.nav.next", "다음 케이스")}>
-                <span>
+                <IconButton
+                  size="small"
+                  aria-label={
+                    detailMaximized
+                      ? t("testcase.split.restore", "목록과 함께 보기")
+                      : t("testcase.split.maximize", "크게 보기")
+                  }
+                  onClick={() => setDetailMaximized((v) => !v)}
+                  data-testid="testcase-detail-maximize"
+                >
+                  {detailMaximized ? (
+                    <RestoreIcon fontSize="small" />
+                  ) : (
+                    <MaximizeIcon fontSize="small" />
+                  )}
+                </IconButton>
+              </Tooltip>
+              {/* 하단 바가 없는 경우(목록 밖 케이스·새 케이스)에도 닫을 수 있게 둔다 */}
+              {!caseNav && (
+                <Tooltip title={t("testcase.split.close", "상세 닫기")}>
                   <IconButton
                     size="small"
-                    aria-label={t("testcase.nav.next", "다음 케이스")}
-                    disabled={!caseNav.nextId}
-                    onClick={() => goToCase(caseNav.nextId)}
-                    data-testid="testcase-nav-next"
+                    aria-label={t("testcase.split.close", "상세 닫기")}
+                    onClick={handleCloseDetail}
+                    data-testid="testcase-detail-close"
                   >
-                    <NextIcon fontSize="small" />
+                    <CloseIcon fontSize="small" />
                   </IconButton>
-                </span>
-              </Tooltip>
-              {isSplitView && (
-                <>
-                  <Tooltip
-                    title={
-                      detailMaximized
-                        ? t("testcase.split.restore", "목록과 함께 보기")
-                        : t("testcase.split.maximize", "크게 보기")
-                    }
-                  >
-                    <IconButton
-                      size="small"
-                      aria-label={
-                        detailMaximized
-                          ? t("testcase.split.restore", "목록과 함께 보기")
-                          : t("testcase.split.maximize", "크게 보기")
-                      }
-                      onClick={() => setDetailMaximized((v) => !v)}
-                      data-testid="testcase-detail-maximize"
-                    >
-                      {detailMaximized ? (
-                        <RestoreIcon fontSize="small" />
-                      ) : (
-                        <MaximizeIcon fontSize="small" />
-                      )}
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title={t("testcase.split.close", "상세 닫기")}>
-                    <IconButton
-                      size="small"
-                      aria-label={t("testcase.split.close", "상세 닫기")}
-                      onClick={handleCloseDetail}
-                      data-testid="testcase-detail-close"
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </>
+                </Tooltip>
               )}
             </Box>
           )}
@@ -747,6 +758,7 @@ const TestCaseHybridForm = ({
             testCaseId={effectiveTestCaseId}
             projectId={effectiveProjectId}
             onSave={handleFormSave}
+            footerNav={caseNavBar}
           />
         )
       ) : inputMode === "spreadsheet" ? (
