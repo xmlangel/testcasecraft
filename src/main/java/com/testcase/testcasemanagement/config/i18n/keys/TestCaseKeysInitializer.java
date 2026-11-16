@@ -144,6 +144,13 @@ public class TestCaseKeysInitializer {
         "testcase.form.linkSummary.linkedTestCases", "testcase", "연결 항목 개수 - 연결 케이스", "연결 케이스");
     createTranslationKeyIfNotExists(
         "testcase.form.linkSummary.junit", "testcase", "연결 항목 개수 - JUnit 케이스", "JUnit");
+    // ICT-495 cl-4: 상세 상단 한 줄 요약(수정자 짧은 라벨)과 식별 정보 접이식·복사 버튼
+    createTranslationKeyIfNotExists(
+        "testcase.form.updatedByShort", "testcase", "정보 요약 줄 - 수정자 짧은 라벨", "수정");
+    createTranslationKeyIfNotExists(
+        "testcase.form.identity", "testcase", "ID·Parent ID·Project ID 를 펼치는 버튼", "식별 정보");
+    createTranslationKeyIfNotExists("testcase.form.copy", "testcase", "값 복사 버튼", "복사");
+    createTranslationKeyIfNotExists("testcase.form.copied", "testcase", "복사 완료 안내", "복사됨");
 
     // 추가 폼 필드들
     createTranslationKeyIfNotExists(

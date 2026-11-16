@@ -251,6 +251,11 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.form.linkSummary.junit", languageCode, "JUnit", createdBy);
     createTranslationIfNotExists(
+        "testcase.form.updatedByShort", languageCode, "Updated by", createdBy);
+    createTranslationIfNotExists("testcase.form.identity", languageCode, "Identifiers", createdBy);
+    createTranslationIfNotExists("testcase.form.copy", languageCode, "Copy", createdBy);
+    createTranslationIfNotExists("testcase.form.copied", languageCode, "Copied", createdBy);
+    createTranslationIfNotExists(
         "testcase.message.selectProject",
         languageCode,
         "Please select a project first.",

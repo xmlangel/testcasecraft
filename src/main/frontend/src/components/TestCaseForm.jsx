@@ -1587,8 +1587,8 @@ const TestCaseForm = ({
 
           {/* 상세 정보 탭 */}
           <TabPanel value={tabValue} index={0}>
-            {/* ICT-494 tl-3: 접지 않는 한 장짜리 양식 — 2열 격자(소유자·우선순위 / 이름 / 설명 /
-                유형 / ID·Parent) → 사용자 정의 필드 → 전제 조건 → 테스트 단계·기대 결과 */}
+            {/* ICT-494 tl-3 → ICT-495 cl-4: 이름 / 설명 → 실행 유형·우선순위·기법 한 줄 →
+                연결 항목(접힘) → 소유자·Parent·순서·수정자·식별 정보 한 줄 → 전제 조건 → 단계·기대 결과 */}
             <Grid container spacing={2}>
               <Grid size={12}>
                 <TestCaseBasicInfo

@@ -328,6 +328,10 @@ public class KoreanTestCaseAndAutomationTranslations {
         "testcase.form.linkSummary.linkedTestCases", languageCode, "연결 케이스", createdBy);
     createTranslationIfNotExists(
         "testcase.form.linkSummary.junit", languageCode, "JUnit", createdBy);
+    createTranslationIfNotExists("testcase.form.updatedByShort", languageCode, "수정", createdBy);
+    createTranslationIfNotExists("testcase.form.identity", languageCode, "식별 정보", createdBy);
+    createTranslationIfNotExists("testcase.form.copy", languageCode, "복사", createdBy);
+    createTranslationIfNotExists("testcase.form.copied", languageCode, "복사됨", createdBy);
 
     // 검증 제안 메시지 한글
     createTranslationIfNotExists(
