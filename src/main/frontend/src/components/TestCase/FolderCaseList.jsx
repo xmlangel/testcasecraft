@@ -140,6 +140,8 @@ const FolderCaseList = ({
   onToggleFavorite,
   selectedId,
   compact = false,
+  // ICT-494 tl-1: 3단 가운데 칸이 좁을 때 우선순위 열을 감춘다(우선순위는 상세 칸에 남는다)
+  hidePriority = false,
   latestResults,
 }) => {
   const { t } = useI18n();
@@ -230,6 +232,9 @@ const FolderCaseList = ({
   // 3단 분할(ICT-491)의 가운데 칸은 좁으므로 ID·이름·우선순위만 남긴다(compact)
   const showFolderColumn = !compact && (Boolean(rows) || hasNestedCases);
   const showDetailColumns = !compact;
+  const showPriority = !hidePriority;
+  // 좁은 칸에서는 아이콘·즐겨찾기 열을 줄여 이름 열 자리를 남긴다
+  const iconColumnWidth = compact ? 36 : 48;
   // 경로 기준: 가상 목록은 전체 경로, 폴더 선택 시 선택 폴더 기준 상대 경로
   const pathBaseId = rows ? null : folder.id;
 
@@ -280,14 +285,14 @@ const FolderCaseList = ({
           <Table size="small" sx={{ tableLayout: "fixed" }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: 48 }} />
-                {showFavorite && <TableCell sx={{ width: 48 }} />}
+                <TableCell sx={{ width: iconColumnWidth }} />
+                {showFavorite && <TableCell sx={{ width: iconColumnWidth }} />}
                 {showFolderColumn && (
                   <TableCell sx={{ width: "20%" }}>
                     {t("testcase.folderList.column.folder", "폴더")}
                   </TableCell>
                 )}
-                <TableCell sx={{ width: 96 }}>
+                <TableCell sx={{ width: compact ? 104 : 96 }}>
                   {t("testcase.folderList.column.id", "ID")}
                 </TableCell>
                 <TableCell
@@ -307,10 +312,12 @@ const FolderCaseList = ({
                     {t("testcase.folderList.column.expectedResult", "기대결과")}
                   </TableCell>
                 )}
-                <TableCell sx={{ width: compact ? 88 : 110 }}>
-                  {t("testcase.folderList.column.priority", "우선순위")}
-                </TableCell>
-                <TableCell sx={{ width: compact ? 88 : 120 }}>
+                {showPriority && (
+                  <TableCell sx={{ width: compact ? 88 : 110 }}>
+                    {t("testcase.folderList.column.priority", "우선순위")}
+                  </TableCell>
+                )}
+                <TableCell sx={{ width: compact ? 80 : 120 }}>
                   {t("testcase.folderList.column.owner", "소유자")}
                 </TableCell>
                 <TableCell sx={{ width: compact ? 64 : 80 }}>
@@ -491,16 +498,18 @@ const FolderCaseList = ({
                         )}
                       </TableCell>
                     )}
-                    <TableCell>
-                      {!isChildFolder && item.priority && (
-                        <Chip
-                          label={item.priority}
-                          size="small"
-                          color={PRIORITY_COLOR[item.priority] || "default"}
-                          variant="outlined"
-                        />
-                      )}
-                    </TableCell>
+                    {showPriority && (
+                      <TableCell>
+                        {!isChildFolder && item.priority && (
+                          <Chip
+                            label={item.priority}
+                            size="small"
+                            color={PRIORITY_COLOR[item.priority] || "default"}
+                            variant="outlined"
+                          />
+                        )}
+                      </TableCell>
+                    )}
                     {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정) */}
                     <TableCell data-testid={`folder-case-owner-${item.id}`}>
                       {!isChildFolder && item.createdBy && (
@@ -543,6 +552,7 @@ FolderCaseList.propTypes = {
   onToggleFavorite: PropTypes.func,
   selectedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   compact: PropTypes.bool,
+  hidePriority: PropTypes.bool,
   latestResults: PropTypes.object,
 };
 

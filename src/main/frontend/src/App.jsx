@@ -333,7 +333,8 @@ const AppContent = () => {
   };
 
   // 트리/폼 사이즈 상태 및 트리 표시/숨김 상태 (ICT-315)
-  const [treeWidth, setTreeWidth] = useState(340); // px
+  // ICT-494 tl-1: Testiny 폴더 칸(300px)에 맞춘다. 340 이면 1600px 화면에서 상세 칸이 가장 좁았다.
+  const [treeWidth, setTreeWidth] = useState(300); // px
   const [treeVisible, setTreeVisible] = useState(uiState.treeVisible ?? true); // 트리 표시/숨김 상태
   const minWidth = 200;
   const maxWidth = 600;

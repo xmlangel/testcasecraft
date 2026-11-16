@@ -239,6 +239,17 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists("testcase.button.addStep", languageCode, "Add Step", createdBy);
     createTranslationIfNotExists(
         "testcase.form.button.add", languageCode, "Add New Case", createdBy);
+    createTranslationIfNotExists("testcase.form.button.edit", languageCode, "Edit", createdBy);
+    createTranslationIfNotExists("testcase.form.button.more", languageCode, "More", createdBy);
+    createTranslationIfNotExists("testcase.form.owner", languageCode, "Owner", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkItems", languageCode, "Linked items", createdBy);
+    createTranslationIfNotExists("testcase.form.linkSummary.tags", languageCode, "Tags", createdBy);
+    createTranslationIfNotExists("testcase.form.linkSummary.rag", languageCode, "RAG", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkSummary.linkedTestCases", languageCode, "Linked cases", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkSummary.junit", languageCode, "JUnit", createdBy);
     createTranslationIfNotExists(
         "testcase.message.selectProject",
         languageCode,

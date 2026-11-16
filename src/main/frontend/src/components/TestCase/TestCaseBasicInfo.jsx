@@ -1,16 +1,12 @@
 import React from "react";
 import PropTypes from "prop-types";
 import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   TextField,
   Typography,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  FormControlLabel,
   Switch,
   Autocomplete,
   Chip,
@@ -18,14 +14,20 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import {
-  ExpandMore as ExpandMoreIcon,
   AutoAwesome as AutoAwesomeIcon,
+  ExpandMore as ExpandMoreIcon,
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import MarkdownFieldEditor from "./MarkdownFieldEditor.jsx";
-import { normalizeExecutionType } from "../../utils/executionType.js";
+import {
+  isAutomatedCase,
+  normalizeExecutionType,
+} from "../../utils/executionType.js";
 
 /**
  * Priority 값을 정규화 (Medium → MEDIUM, High → HIGH, Low → LOW)
@@ -39,8 +41,12 @@ const normalizePriority = (priority) => {
   return "MEDIUM";
 };
 
+// 상세 칸이 이 폭 이상이면 2열 격자로 둔다. 1600px 3단의 상세 칸(약 700px)은 2열,
+// 2단·1단 겹침처럼 좁은 칸은 1열이다.
+export const INFO_GRID_TWO_COLUMN_MIN_WIDTH = 520;
+
 /**
- * 테스트케이스 기본 정보 아코디언 컴포넌트
+ * 테스트케이스 기본 정보(ICT-494 tl-3: 접지 않는 2열 격자)
  */
 const TestCaseBasicInfo = ({
   testCase,
@@ -48,8 +54,6 @@ const TestCaseBasicInfo = ({
   availableTags,
   linkedDocuments,
   ragDocuments,
-  testCaseInfoOpen,
-  setTestCaseInfoOpen,
   isViewer,
   t,
   theme,
@@ -75,22 +79,107 @@ const TestCaseBasicInfo = ({
   autoAiMode = false,
   onAutoAiModeChange = () => {},
   visibility = {},
+  metadataSlot = null,
 }) => {
   // 기본은 표시 (visibility 가 비어 있거나 미정의 필드는 true)
   const isVisible = (key) => visibility[key] !== false;
+  const automated = isAutomatedCase(testCase);
+  // ICT-494 tl-6: 태그·RAG 문서·연결 케이스·JUnit 은 「연결 항목」 하나로 접어 둔다.
+  // 머리 줄에는 보이는 칸의 개수만 적는다. 연결 케이스·JUnit 은 자동화 케이스일 때만 센다.
+  const linkSummary = [
+    isVisible("tags") && {
+      key: "tags",
+      label: t("testcase.form.linkSummary.tags", "태그"),
+      count: (testCase.tags || []).length,
+    },
+    isVisible("linkedDocuments") && {
+      key: "rag",
+      label: t("testcase.form.linkSummary.rag", "RAG"),
+      count: linkedDocuments.length,
+    },
+    automated &&
+      isVisible("linkedTestCases") && {
+        key: "linkedTestCases",
+        label: t("testcase.form.linkSummary.linkedTestCases", "연결 케이스"),
+        count: linkedTestCases.length,
+      },
+    automated &&
+      isVisible("linkedJunitCases") && {
+        key: "junit",
+        label: t("testcase.form.linkSummary.junit", "JUnit"),
+        count: linkedJunitCases.length,
+      },
+  ].filter(Boolean);
+  const hasLinkSection = linkSummary.length > 0 || linkedByTestCases.length > 0;
   return (
-    <Accordion
-      expanded={testCaseInfoOpen}
-      onChange={() => setTestCaseInfoOpen((v) => !v)}
+    // ICT-494 tl-3: 접는 묶음을 없애고 Testiny 처럼 한 장짜리 2열 격자로 둔다.
+    // 순서: 소유자·우선순위 / 이름 / 설명 / 자동화·실행 유형 / 테스트 기법 / ID·Parent
+    //      → 사용자 정의 필드(태그·연결 항목) → 전제 조건·사후 조건. 단계는 이 아래(TestCaseForm).
+    // 칸 폭이 좁으면(2단·1단 겹침, 좁은 화면) 한 열로 내려온다(컨테이너 폭 기준).
+    <Box
+      data-testid="testcase-info-section"
+      sx={{ containerType: "inline-size", mb: 2 }}
     >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="subtitle2">
-          {t("testcase.info.title", "테스트케이스 정보")}
-        </Typography>
-      </AccordionSummary>
-      <AccordionDetails>
+      <Box
+        data-testid="testcase-info-grid"
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr)",
+          columnGap: 2,
+          alignItems: "start",
+          [`@container (min-width: ${INFO_GRID_TWO_COLUMN_MIN_WIDTH}px)`]: {
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          },
+          // 이름·설명처럼 긴 필드는 한 줄 전체를 쓴다
+          "& > .info-full": { gridColumn: "1 / -1" },
+        }}
+      >
+        {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정과 같다) */}
+        <TextField
+          label={t("testcase.form.owner", "소유자")}
+          value={testCase.createdBy || ""}
+          fullWidth
+          margin="normal"
+          variant="outlined"
+          placeholder="—"
+          slotProps={{
+            input: { readOnly: true },
+            htmlInput: { "data-testid": "testcase-owner-field" },
+          }}
+        />
+
+        {isVisible("priority") ? (
+          <FormControl fullWidth margin="normal" disabled={isViewer}>
+            <InputLabel id="priority-select-label">
+              {t("testcase.form.priority", "우선순위")}
+            </InputLabel>
+            <Select
+              labelId="priority-select-label"
+              value={normalizePriority(testCase.priority)}
+              label={t("testcase.form.priority", "우선순위")}
+              onChange={onChange("priority")}
+              data-testid="testcase-priority-select"
+            >
+              <MenuItem value="HIGH">
+                {t("testcase.priority.high", "높음")}
+              </MenuItem>
+              <MenuItem value="MEDIUM">
+                {t("testcase.priority.medium", "보통")}
+              </MenuItem>
+              <MenuItem value="LOW">
+                {t("testcase.priority.low", "낮음")}
+              </MenuItem>
+            </Select>
+          </FormControl>
+        ) : (
+          <Box />
+        )}
+
         {/* Name 필드 + AI 생성 버튼 */}
-        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+        <Box
+          className="info-full"
+          sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}
+        >
           <TextField
             label={t("testcase.form.name", "이름")}
             value={testCase.name || ""}
@@ -202,25 +291,448 @@ const TestCaseBasicInfo = ({
         </Box>
 
         {isVisible("description") && (
-          <MarkdownFieldEditor
-            label={t("testcase.form.description", "설명")}
-            value={testCase.description || ""}
+          <Box className="info-full">
+            <MarkdownFieldEditor
+              label={t("testcase.form.description", "설명")}
+              value={testCase.description || ""}
+              placeholder={t(
+                "testcase.form.testcaseDescription",
+                "테스트케이스 설명",
+              )}
+              height={120}
+              isViewer={isViewer}
+              theme={theme}
+              t={t}
+              onChange={(value) => onTestCaseChange("description", value)}
+              onPaste={(event) =>
+                onMarkdownPaste(event, { type: "field", field: "description" })
+              }
+              testid="testcase-description-input"
+            />
+          </Box>
+        )}
+
+        {/* ICT-494 tl-5: 「자동화 여부」 토글은 없앴다. 실행 유형 하나로 고르고 자동화 여부는 그 값을 따른다. */}
+        {isVisible("executionType") && (
+          <FormControl fullWidth margin="normal" disabled={isViewer}>
+            <InputLabel id="execution-type-select-label">
+              {t("testcase.form.executionType", "Manual/Automation")}
+            </InputLabel>
+            <Select
+              labelId="execution-type-select-label"
+              value={normalizeExecutionType(
+                testCase.executionType,
+                testCase.isAutomated,
+              )}
+              label={t("testcase.form.executionType", "Manual/Automation")}
+              onChange={(event) => {
+                onTestCaseChange("executionType", event.target.value);
+              }}
+            >
+              <MenuItem value="Manual">
+                {t("testcase.executionType.manual", "Manual")}
+              </MenuItem>
+              <MenuItem value="Automation">
+                {t("testcase.executionType.automation", "Automation")}
+              </MenuItem>
+              <MenuItem value="Hybrid">
+                {t("testcase.executionType.hybrid", "Hybrid")}
+              </MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
+        {isVisible("testTechnique") && (
+          <TextField
+            label={t("testcase.form.testTechnique", "테스트 기법")}
+            value={testCase.testTechnique || ""}
+            onChange={onChange("testTechnique")}
+            fullWidth
+            margin="normal"
+            variant="outlined"
+            disabled={isViewer}
             placeholder={t(
-              "testcase.form.testcaseDescription",
-              "테스트케이스 설명",
+              "testcase.form.testTechniquePlaceholder",
+              "예: 경계값 분석, 의사결정 테이블 등",
             )}
-            height={120}
-            isViewer={isViewer}
-            theme={theme}
-            t={t}
-            onChange={(value) => onTestCaseChange("description", value)}
-            onPaste={(event) =>
-              onMarkdownPaste(event, { type: "field", field: "description" })
-            }
-            testid="testcase-description-input"
           />
         )}
 
+        {/* ID·Parent 정보(상위가 넘겨줌). 접지 않고 같은 격자에 둔다. */}
+        {metadataSlot}
+      </Box>
+
+      {/* 사용자 정의 필드: 태그·연결 항목. 처음에는 접어 두고 머리 줄에 개수를 적는다. */}
+      {hasLinkSection && (
+        <Accordion
+          data-testid="testcase-custom-fields"
+          disableGutters
+          variant="outlined"
+          sx={{ mt: 2, "&::before": { display: "none" } }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="testcase-link-items-content"
+            id="testcase-link-items-header"
+            data-testid="testcase-link-items-summary"
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {t("testcase.form.linkItems", "연결 항목")}
+            </Typography>
+            {linkSummary.length > 0 && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: 1 }}
+                data-testid="testcase-link-items-counts"
+              >
+                {linkSummary
+                  .map(({ label, count }) => `${label} ${count}`)
+                  .join(" · ")}
+              </Typography>
+            )}
+          </AccordionSummary>
+          <AccordionDetails sx={{ pt: 0 }}>
+            <Box
+              data-testid="testcase-link-items"
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1fr)",
+                columnGap: 2,
+                alignItems: "start",
+                [`@container (min-width: ${INFO_GRID_TWO_COLUMN_MIN_WIDTH}px)`]:
+                  {
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  },
+                "& > .info-full": { gridColumn: "1 / -1" },
+              }}
+            >
+              {isVisible("tags") && (
+                <Autocomplete
+                  multiple
+                  freeSolo
+                  options={availableTags}
+                  value={testCase.tags || []}
+                  onChange={(event, newValue) => onTagChange(newValue)}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => {
+                      const { key, ...tagProps } = getTagProps({ index });
+                      return (
+                        <Chip
+                          key={key}
+                          variant="outlined"
+                          label={option}
+                          {...tagProps}
+                          disabled={isViewer}
+                        />
+                      );
+                    })
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label={t("testcase.form.tags", "태그")}
+                      placeholder={t(
+                        "testcase.form.tagsPlaceholder",
+                        "태그를 입력하고 Enter를 누르세요",
+                      )}
+                      helperText={t(
+                        "testcase.helper.tags",
+                        "여러 태그를 입력할 수 있습니다",
+                      )}
+                      margin="normal"
+                    />
+                  )}
+                  disabled={isViewer}
+                />
+              )}
+
+              {isVisible("linkedDocuments") && (
+                <Autocomplete
+                  multiple
+                  options={ragDocuments}
+                  value={linkedDocuments}
+                  onChange={(event, newValue) =>
+                    onLinkedDocumentsChange(newValue)
+                  }
+                  getOptionLabel={(option) => option.fileName || ""}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  }
+                  renderOption={(props, option) => {
+                    const { key, ...optionProps } = props;
+                    return (
+                      <li key={option.id} {...optionProps}>
+                        {option.fileName}
+                      </li>
+                    );
+                  }}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => {
+                      const { key, ...tagProps } = getTagProps({ index });
+                      return (
+                        <Chip
+                          key={option.id || index}
+                          variant="outlined"
+                          label={option.fileName}
+                          {...tagProps}
+                          disabled={isViewer}
+                        />
+                      );
+                    })
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label={t(
+                        "testcase.form.linkedDocuments",
+                        "연결된 RAG 문서",
+                      )}
+                      placeholder={t(
+                        "testcase.form.linkedDocumentsPlaceholder",
+                        "RAG 문서를 선택하세요",
+                      )}
+                      helperText={t(
+                        "testcase.helper.linkedDocuments",
+                        "RAG 문서를 연결하면 AI가 참고할 수 있습니다",
+                      )}
+                      margin="normal"
+                    />
+                  )}
+                  disabled={isViewer}
+                />
+              )}
+
+              {/* 실행 유형이 Automation·Hybrid 일 때만 노출 — 연결된 테스트케이스 / JUnit 자동화 케이스 */}
+              {automated && isVisible("linkedTestCases") && (
+                <Autocomplete
+                  className="info-full"
+                  multiple
+                  options={testCaseOptions}
+                  value={linkedTestCases}
+                  onChange={(event, newValue) =>
+                    onLinkedTestCasesChange(newValue)
+                  }
+                  getOptionLabel={(option) =>
+                    option.displayId
+                      ? `${option.displayId} · ${option.name}`
+                      : option.name || option.id || ""
+                  }
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  }
+                  renderOption={(props, option) => {
+                    const { key, ...optionProps } = props;
+                    return (
+                      <li key={option.id} {...optionProps}>
+                        {option.displayId
+                          ? `${option.displayId} · ${option.name}`
+                          : option.name}
+                      </li>
+                    );
+                  }}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => {
+                      const { key, ...tagProps } = getTagProps({ index });
+                      return (
+                        <Chip
+                          key={option.id || index}
+                          variant="outlined"
+                          icon={<OpenInNewIcon style={{ fontSize: 15 }} />}
+                          label={
+                            option.displayId
+                              ? `${option.displayId} · ${option.name}`
+                              : option.name || option.id
+                          }
+                          {...tagProps}
+                          clickable
+                          onClick={() => onOpenLinkedTestCase(option)}
+                          title={t(
+                            "testcase.helper.openLinkedTestCase",
+                            "클릭하면 해당 테스트케이스로 이동합니다",
+                          )}
+                          sx={{ cursor: "pointer" }}
+                          disabled={isViewer}
+                        />
+                      );
+                    })
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label={t(
+                        "testcase.form.linkedTestCases",
+                        "연결된 테스트케이스",
+                      )}
+                      placeholder={t(
+                        "testcase.form.linkedTestCasesPlaceholder",
+                        "연결할 테스트케이스를 선택하세요",
+                      )}
+                      helperText={t(
+                        "testcase.helper.linkedTestCases",
+                        "이 자동화 케이스와 연관된 다른 테스트케이스를 연결합니다",
+                      )}
+                      margin="normal"
+                    />
+                  )}
+                  disabled={isViewer}
+                />
+              )}
+
+              {automated && isVisible("linkedJunitCases") && (
+                <Autocomplete
+                  className="info-full"
+                  multiple
+                  options={junitCaseOptions}
+                  value={linkedJunitCases}
+                  loading={junitLoading}
+                  filterOptions={(x) => x}
+                  onChange={(event, newValue) =>
+                    onLinkedJunitCasesChange(newValue)
+                  }
+                  onInputChange={(event, newInput, reason) => {
+                    if (reason === "input") onJunitSearchChange(newInput);
+                  }}
+                  getOptionLabel={(option) =>
+                    option.className
+                      ? `${option.className}.${option.name}`
+                      : option.displayTitle || option.name || option.id || ""
+                  }
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  }
+                  renderOption={(props, option) => {
+                    const { key, ...optionProps } = props;
+                    return (
+                      <li key={option.id} {...optionProps}>
+                        {option.className
+                          ? `${option.className}.${option.name}`
+                          : option.name}
+                        {option.status ? ` [${option.status}]` : ""}
+                      </li>
+                    );
+                  }}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => {
+                      const { key, ...tagProps } = getTagProps({ index });
+                      const canOpen = Boolean(option.testResultId);
+                      return (
+                        <Chip
+                          key={option.id || index}
+                          variant="outlined"
+                          icon={
+                            canOpen ? (
+                              <OpenInNewIcon style={{ fontSize: 15 }} />
+                            ) : undefined
+                          }
+                          label={
+                            option.className
+                              ? `${option.className}.${option.name}`
+                              : option.name || option.id
+                          }
+                          {...tagProps}
+                          clickable={canOpen}
+                          onClick={
+                            canOpen
+                              ? () => onOpenLinkedJunitCase(option)
+                              : undefined
+                          }
+                          title={
+                            canOpen
+                              ? t(
+                                  "testcase.helper.openLinkedJunitCase",
+                                  "클릭하면 해당 JUnit 결과로 이동합니다",
+                                )
+                              : undefined
+                          }
+                          sx={canOpen ? { cursor: "pointer" } : undefined}
+                          disabled={isViewer}
+                        />
+                      );
+                    })
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      label={t(
+                        "testcase.form.linkedJunitCases",
+                        "연결된 자동화(JUnit) 케이스",
+                      )}
+                      placeholder={t(
+                        "testcase.form.linkedJunitCasesPlaceholder",
+                        "자동화 JUnit 케이스를 검색·선택하세요",
+                      )}
+                      helperText={t(
+                        "testcase.helper.linkedJunitCases",
+                        "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다 (동일 XML 재업로드 시 다시 연결 필요)",
+                      )}
+                      margin="normal"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {junitLoading ? (
+                              <CircularProgress color="inherit" size={18} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  disabled={isViewer}
+                />
+              )}
+
+              {/* 역방향(읽기 전용): 이 테스트케이스를 연결한 다른 테스트케이스 */}
+              {linkedByTestCases.length > 0 && (
+                <Box className="info-full" sx={{ mt: 2 }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mb: 0.5 }}
+                  >
+                    {t(
+                      "testcase.form.linkedByTestCases",
+                      "이 테스트케이스를 연결한 케이스",
+                    )}{" "}
+                    ({linkedByTestCases.length})
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                    {linkedByTestCases.map((option) => (
+                      <Chip
+                        key={option.id}
+                        variant="outlined"
+                        size="small"
+                        icon={<OpenInNewIcon style={{ fontSize: 15 }} />}
+                        clickable
+                        onClick={() => onOpenLinkedTestCase(option)}
+                        title={t(
+                          "testcase.helper.openLinkedTestCase",
+                          "클릭하면 해당 테스트케이스로 이동합니다",
+                        )}
+                        sx={{ cursor: "pointer" }}
+                        label={
+                          option.displayId
+                            ? `${option.displayId} · ${option.name}`
+                            : option.name || option.id
+                        }
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </AccordionDetails>
+        </Accordion>
+      )}
+
+      {/* 전제 조건 → (사후 조건) → 단계(TestCaseForm) 순서 */}
+      <Box data-testid="testcase-conditions">
         {isVisible("preCondition") && (
           <MarkdownFieldEditor
             label={t("testcase.form.preCondition", "사전 조건")}
@@ -259,409 +771,8 @@ const TestCaseBasicInfo = ({
             }
           />
         )}
-
-        {/* ICT-491 C1: 짧은 필드는 칸 폭이 허락하는 만큼 2열 이상으로 묶는다.
-            칸이 좁으면(3단 분할의 상세 칸) 한 열로 돌아간다. */}
-        <Box
-          data-testid="testcase-short-fields"
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-            columnGap: 2,
-            alignItems: "start",
-          }}
-        >
-          {isVisible("isAutomated") && (
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={Boolean(testCase.isAutomated)}
-                  onChange={(event) => {
-                    if (isViewer) return;
-                    const { checked } = event.target;
-                    onTestCaseChange("isAutomated", checked, true);
-                  }}
-                  color="primary"
-                  disabled={isViewer}
-                />
-              }
-              sx={{ mt: 2 }}
-              label={t("testcase.form.isAutomated", "자동화 여부")}
-            />
-          )}
-
-          {isVisible("executionType") && (
-            <FormControl fullWidth margin="normal" disabled={isViewer}>
-              <InputLabel id="execution-type-select-label">
-                {t("testcase.form.executionType", "Manual/Automation")}
-              </InputLabel>
-              <Select
-                labelId="execution-type-select-label"
-                value={normalizeExecutionType(
-                  testCase.executionType,
-                  testCase.isAutomated,
-                )}
-                label={t("testcase.form.executionType", "Manual/Automation")}
-                onChange={(event) => {
-                  onTestCaseChange("executionType", event.target.value, false);
-                }}
-              >
-                <MenuItem value="Manual">
-                  {t("testcase.executionType.manual", "Manual")}
-                </MenuItem>
-                <MenuItem value="Automation">
-                  {t("testcase.executionType.automation", "Automation")}
-                </MenuItem>
-                <MenuItem value="Hybrid">
-                  {t("testcase.executionType.hybrid", "Hybrid")}
-                </MenuItem>
-              </Select>
-            </FormControl>
-          )}
-
-          {isVisible("testTechnique") && (
-            <TextField
-              label={t("testcase.form.testTechnique", "테스트 기법")}
-              value={testCase.testTechnique || ""}
-              onChange={onChange("testTechnique")}
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              disabled={isViewer}
-              placeholder={t(
-                "testcase.form.testTechniquePlaceholder",
-                "예: 경계값 분석, 의사결정 테이블 등",
-              )}
-            />
-          )}
-
-          {isVisible("priority") && (
-            <FormControl fullWidth margin="normal" disabled={isViewer}>
-              <InputLabel id="priority-select-label">
-                {t("testcase.form.priority", "우선순위")}
-              </InputLabel>
-              <Select
-                labelId="priority-select-label"
-                value={normalizePriority(testCase.priority)}
-                label={t("testcase.form.priority", "우선순위")}
-                onChange={onChange("priority")}
-              >
-                <MenuItem value="HIGH">
-                  {t("testcase.priority.high", "높음")}
-                </MenuItem>
-                <MenuItem value="MEDIUM">
-                  {t("testcase.priority.medium", "보통")}
-                </MenuItem>
-                <MenuItem value="LOW">
-                  {t("testcase.priority.low", "낮음")}
-                </MenuItem>
-              </Select>
-            </FormControl>
-          )}
-        </Box>
-
-        {isVisible("tags") && (
-          <Autocomplete
-            multiple
-            freeSolo
-            options={availableTags}
-            value={testCase.tags || []}
-            onChange={(event, newValue) => onTagChange(newValue)}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => {
-                const { key, ...tagProps } = getTagProps({ index });
-                return (
-                  <Chip
-                    key={key}
-                    variant="outlined"
-                    label={option}
-                    {...tagProps}
-                    disabled={isViewer}
-                  />
-                );
-              })
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                variant="outlined"
-                label={t("testcase.form.tags", "태그")}
-                placeholder={t(
-                  "testcase.form.tagsPlaceholder",
-                  "태그를 입력하고 Enter를 누르세요",
-                )}
-                helperText={t(
-                  "testcase.helper.tags",
-                  "여러 태그를 입력할 수 있습니다",
-                )}
-                margin="normal"
-              />
-            )}
-            disabled={isViewer}
-          />
-        )}
-
-        {isVisible("linkedDocuments") && (
-          <Autocomplete
-            multiple
-            options={ragDocuments}
-            value={linkedDocuments}
-            onChange={(event, newValue) => onLinkedDocumentsChange(newValue)}
-            getOptionLabel={(option) => option.fileName || ""}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderOption={(props, option) => {
-              const { key, ...optionProps } = props;
-              return (
-                <li key={option.id} {...optionProps}>
-                  {option.fileName}
-                </li>
-              );
-            }}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => {
-                const { key, ...tagProps } = getTagProps({ index });
-                return (
-                  <Chip
-                    key={option.id || index}
-                    variant="outlined"
-                    label={option.fileName}
-                    {...tagProps}
-                    disabled={isViewer}
-                  />
-                );
-              })
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                variant="outlined"
-                label={t("testcase.form.linkedDocuments", "연결된 RAG 문서")}
-                placeholder={t(
-                  "testcase.form.linkedDocumentsPlaceholder",
-                  "RAG 문서를 선택하세요",
-                )}
-                helperText={t(
-                  "testcase.helper.linkedDocuments",
-                  "RAG 문서를 연결하면 AI가 참고할 수 있습니다",
-                )}
-                margin="normal"
-              />
-            )}
-            disabled={isViewer}
-          />
-        )}
-
-        {/* 자동화 여부 체크 시에만 노출 — 연결된 테스트케이스 / JUnit 자동화 케이스 */}
-        {Boolean(testCase.isAutomated) && isVisible("linkedTestCases") && (
-          <Autocomplete
-            multiple
-            options={testCaseOptions}
-            value={linkedTestCases}
-            onChange={(event, newValue) => onLinkedTestCasesChange(newValue)}
-            getOptionLabel={(option) =>
-              option.displayId
-                ? `${option.displayId} · ${option.name}`
-                : option.name || option.id || ""
-            }
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderOption={(props, option) => {
-              const { key, ...optionProps } = props;
-              return (
-                <li key={option.id} {...optionProps}>
-                  {option.displayId
-                    ? `${option.displayId} · ${option.name}`
-                    : option.name}
-                </li>
-              );
-            }}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => {
-                const { key, ...tagProps } = getTagProps({ index });
-                return (
-                  <Chip
-                    key={option.id || index}
-                    variant="outlined"
-                    icon={<OpenInNewIcon style={{ fontSize: 15 }} />}
-                    label={
-                      option.displayId
-                        ? `${option.displayId} · ${option.name}`
-                        : option.name || option.id
-                    }
-                    {...tagProps}
-                    clickable
-                    onClick={() => onOpenLinkedTestCase(option)}
-                    title={t(
-                      "testcase.helper.openLinkedTestCase",
-                      "클릭하면 해당 테스트케이스로 이동합니다",
-                    )}
-                    sx={{ cursor: "pointer" }}
-                    disabled={isViewer}
-                  />
-                );
-              })
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                variant="outlined"
-                label={t(
-                  "testcase.form.linkedTestCases",
-                  "연결된 테스트케이스",
-                )}
-                placeholder={t(
-                  "testcase.form.linkedTestCasesPlaceholder",
-                  "연결할 테스트케이스를 선택하세요",
-                )}
-                helperText={t(
-                  "testcase.helper.linkedTestCases",
-                  "이 자동화 케이스와 연관된 다른 테스트케이스를 연결합니다",
-                )}
-                margin="normal"
-              />
-            )}
-            disabled={isViewer}
-          />
-        )}
-
-        {Boolean(testCase.isAutomated) && isVisible("linkedJunitCases") && (
-          <Autocomplete
-            multiple
-            options={junitCaseOptions}
-            value={linkedJunitCases}
-            loading={junitLoading}
-            filterOptions={(x) => x}
-            onChange={(event, newValue) => onLinkedJunitCasesChange(newValue)}
-            onInputChange={(event, newInput, reason) => {
-              if (reason === "input") onJunitSearchChange(newInput);
-            }}
-            getOptionLabel={(option) =>
-              option.className
-                ? `${option.className}.${option.name}`
-                : option.displayTitle || option.name || option.id || ""
-            }
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderOption={(props, option) => {
-              const { key, ...optionProps } = props;
-              return (
-                <li key={option.id} {...optionProps}>
-                  {option.className
-                    ? `${option.className}.${option.name}`
-                    : option.name}
-                  {option.status ? ` [${option.status}]` : ""}
-                </li>
-              );
-            }}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => {
-                const { key, ...tagProps } = getTagProps({ index });
-                const canOpen = Boolean(option.testResultId);
-                return (
-                  <Chip
-                    key={option.id || index}
-                    variant="outlined"
-                    icon={
-                      canOpen ? (
-                        <OpenInNewIcon style={{ fontSize: 15 }} />
-                      ) : undefined
-                    }
-                    label={
-                      option.className
-                        ? `${option.className}.${option.name}`
-                        : option.name || option.id
-                    }
-                    {...tagProps}
-                    clickable={canOpen}
-                    onClick={
-                      canOpen ? () => onOpenLinkedJunitCase(option) : undefined
-                    }
-                    title={
-                      canOpen
-                        ? t(
-                            "testcase.helper.openLinkedJunitCase",
-                            "클릭하면 해당 JUnit 결과로 이동합니다",
-                          )
-                        : undefined
-                    }
-                    sx={canOpen ? { cursor: "pointer" } : undefined}
-                    disabled={isViewer}
-                  />
-                );
-              })
-            }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                variant="outlined"
-                label={t(
-                  "testcase.form.linkedJunitCases",
-                  "연결된 자동화(JUnit) 케이스",
-                )}
-                placeholder={t(
-                  "testcase.form.linkedJunitCasesPlaceholder",
-                  "자동화 JUnit 케이스를 검색·선택하세요",
-                )}
-                helperText={t(
-                  "testcase.helper.linkedJunitCases",
-                  "이 테스트케이스를 자동화한 실제 JUnit 케이스를 연결합니다 (동일 XML 재업로드 시 다시 연결 필요)",
-                )}
-                margin="normal"
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {junitLoading ? (
-                        <CircularProgress color="inherit" size={18} />
-                      ) : null}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                }}
-              />
-            )}
-            disabled={isViewer}
-          />
-        )}
-
-        {/* 역방향(읽기 전용): 이 테스트케이스를 연결한 다른 테스트케이스 */}
-        {linkedByTestCases.length > 0 && (
-          <Box sx={{ mt: 2 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: "block", mb: 0.5 }}
-            >
-              {t(
-                "testcase.form.linkedByTestCases",
-                "이 테스트케이스를 연결한 케이스",
-              )}{" "}
-              ({linkedByTestCases.length})
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {linkedByTestCases.map((option) => (
-                <Chip
-                  key={option.id}
-                  variant="outlined"
-                  size="small"
-                  icon={<OpenInNewIcon style={{ fontSize: 15 }} />}
-                  clickable
-                  onClick={() => onOpenLinkedTestCase(option)}
-                  title={t(
-                    "testcase.helper.openLinkedTestCase",
-                    "클릭하면 해당 테스트케이스로 이동합니다",
-                  )}
-                  sx={{ cursor: "pointer" }}
-                  label={
-                    option.displayId
-                      ? `${option.displayId} · ${option.name}`
-                      : option.name || option.id
-                  }
-                />
-              ))}
-            </Box>
-          </Box>
-        )}
-      </AccordionDetails>
-    </Accordion>
+      </Box>
+    </Box>
   );
 };
 
@@ -671,9 +782,8 @@ TestCaseBasicInfo.propTypes = {
   availableTags: PropTypes.array,
   linkedDocuments: PropTypes.array,
   ragDocuments: PropTypes.array,
-  testCaseInfoOpen: PropTypes.bool.isRequired,
-  setTestCaseInfoOpen: PropTypes.func.isRequired,
   visibility: PropTypes.object,
+  metadataSlot: PropTypes.node,
   isViewer: PropTypes.bool,
   t: PropTypes.func.isRequired,
   theme: PropTypes.object.isRequired,

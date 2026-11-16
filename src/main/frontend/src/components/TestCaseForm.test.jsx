@@ -103,10 +103,30 @@ const mockNull = vi.hoisted(() => () => ({ default: () => null }));
 vi.mock("./TestCase/TestCaseVersionHistory.jsx", mockNull);
 vi.mock("./TestCase/FieldVisibilityMenu.jsx", mockNull);
 vi.mock("./TestCase/TestCaseAttachments.jsx", mockNull);
-vi.mock("./TestCase/TestCaseFormHeader.jsx", mockNull);
+// 머리(TestCaseFormHeader)는 저장 버튼이 있어 그대로 그린다(ICT-494 tl-2). 버전 표시만 뺀다.
+vi.mock("./TestCase/VersionIndicator.jsx", mockNull);
 // TestCaseFormMetadata 는 H1(부모 이동 태그정리) 테스트에서 Parent ID 편집이
 // 필요해 모킹하지 않는다(MUI 만 의존해 가볍다).
-vi.mock("./TestCase/TestCaseBasicInfo.jsx", mockNull);
+// ICT-494 tl-3: ID·Parent(TestCaseFormMetadata)는 기본 정보 격자 안에 들어가므로
+// 기본 정보는 넘겨받은 metadataSlot 만 그리게 둔다.
+// ICT-494 tl-5: 실행 유형 변경 경로를 시험하려고 그 호출만 버튼으로 남긴다.
+vi.mock("./TestCase/TestCaseBasicInfo.jsx", () => ({
+  default: ({ metadataSlot, onTestCaseChange }) => (
+    <>
+      {metadataSlot ?? null}
+      <button
+        type="button"
+        data-testid="mock-execution-type-hybrid"
+        onClick={() => onTestCaseChange("executionType", "Hybrid")}
+      />
+      <button
+        type="button"
+        data-testid="mock-execution-type-manual"
+        onClick={() => onTestCaseChange("executionType", "Manual")}
+      />
+    </>
+  ),
+}));
 vi.mock("./TestCase/TestStepsTable.jsx", mockNull);
 vi.mock("./TestCase/MarkdownFieldEditor.jsx", mockNull);
 vi.mock("./TestCase/InlineImageDialog.jsx", mockNull);
@@ -316,7 +336,7 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
     ).toBeInTheDocument();
   });
 
-  it("하단 고정 바에 이전·다음 이동(footerNav)과 저장 버튼을 함께 그린다 (ICT-491)", async () => {
+  it("하단 고정 바에는 이전·다음 이동(footerNav)만 두고 저장 버튼은 위에 붙은 머리에 하나만 둔다 (ICT-491·494)", async () => {
     render(
       <TestCaseForm
         testCaseId="tc1"
@@ -328,10 +348,36 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
 
     const footer = await screen.findByTestId("testcase-form-footer");
     expect(footer).toContainElement(screen.getByTestId("footer-nav-slot"));
-    expect(footer).toContainElement(
-      await screen.findByTestId("testcase-save-button"),
-    );
     expect(footer).toHaveStyle({ position: "sticky" });
+
+    const header = screen.getByTestId("testcase-form-header");
+    const saveButtons = await screen.findAllByTestId("testcase-save-button");
+    expect(saveButtons).toHaveLength(1);
+    expect(header).toContainElement(saveButtons[0]);
+    expect(footer).not.toContainElement(saveButtons[0]);
+    expect(header).toHaveStyle({ position: "sticky" });
+    // 아래 줄에 있던 취소·버전 생성 중복이 없다
+    expect(screen.getAllByTestId("testcase-cancel-button")).toHaveLength(1);
+    expect(footer.textContent).not.toContain("버전 생성");
+  });
+
+  it("footerNav 가 없으면 하단 바를 그리지 않는다 (ICT-494)", async () => {
+    render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
+    await screen.findByTestId("testcase-form-header");
+    expect(screen.queryByTestId("testcase-form-footer")).toBeNull();
+  });
+
+  it("머리 줄에 상위가 넘긴 입력 모드 전환(headerExtra)을 함께 그린다 (ICT-494)", async () => {
+    render(
+      <TestCaseForm
+        testCaseId="tc1"
+        projectId="p1"
+        onSave={vi.fn()}
+        headerExtra={<div data-testid="input-mode-slot" />}
+      />,
+    );
+    const row = await screen.findByTestId("testcase-header-row");
+    expect(row).toContainElement(screen.getByTestId("input-mode-slot"));
   });
 
   it("단계와 전체 기대 결과를 넓은 칸에서 나란히 두는 격자 배치를 쓴다 (ICT-491)", async () => {
@@ -339,5 +385,75 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
 
     const layout = await screen.findByTestId("testcase-steps-expected-layout");
     expect(layout).toHaveStyle({ display: "grid" });
+  });
+});
+
+describe("TestCaseForm 실행 유형과 자동화 여부 (ICT-494 tl-5)", () => {
+  beforeEach(() => {
+    addTestCase.mockReset().mockResolvedValue({ id: "new-1", name: "신규 TC" });
+    appCtx.testCases = [];
+    api.mockReset().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    });
+  });
+
+  const saveAndGetPayload = async () => {
+    fireEvent.click(await screen.findByTestId("testcase-save-button"));
+    await waitFor(() => expect(addTestCase).toHaveBeenCalledTimes(1));
+    return addTestCase.mock.calls[0][0];
+  };
+
+  it("실행 유형을 Hybrid 로 바꾸면 isAutomated 가 참으로 함께 저장된다", async () => {
+    render(
+      <TestCaseForm
+        projectId="p1"
+        onSave={vi.fn()}
+        initialData={{ name: "신규 TC", executionType: "Manual" }}
+      />,
+    );
+    fireEvent.click(await screen.findByTestId("mock-execution-type-hybrid"));
+    expect(await saveAndGetPayload()).toMatchObject({
+      executionType: "Hybrid",
+      isAutomated: true,
+    });
+  });
+
+  it("실행 유형을 Manual 로 바꾸면 isAutomated 가 거짓으로 함께 저장된다", async () => {
+    render(
+      <TestCaseForm
+        projectId="p1"
+        onSave={vi.fn()}
+        initialData={{
+          name: "신규 TC",
+          executionType: "Automation",
+          isAutomated: true,
+        }}
+      />,
+    );
+    fireEvent.click(await screen.findByTestId("mock-execution-type-manual"));
+    expect(await saveAndGetPayload()).toMatchObject({
+      executionType: "Manual",
+      isAutomated: false,
+    });
+  });
+
+  it("두 값이 어긋난 케이스는 저장할 때 실행 유형 쪽으로 맞춘다", async () => {
+    render(
+      <TestCaseForm
+        projectId="p1"
+        onSave={vi.fn()}
+        initialData={{
+          name: "신규 TC",
+          executionType: "Manual",
+          isAutomated: true,
+        }}
+      />,
+    );
+    expect(await saveAndGetPayload()).toMatchObject({
+      executionType: "Manual",
+      isAutomated: false,
+    });
   });
 });

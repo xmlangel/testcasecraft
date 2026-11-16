@@ -318,6 +318,16 @@ public class KoreanTestCaseAndAutomationTranslations {
         createdBy);
 
     createTranslationIfNotExists("testcase.form.button.add", languageCode, "새 케이스 추가", createdBy);
+    createTranslationIfNotExists("testcase.form.button.edit", languageCode, "수정", createdBy);
+    createTranslationIfNotExists("testcase.form.button.more", languageCode, "더보기", createdBy);
+    createTranslationIfNotExists("testcase.form.owner", languageCode, "소유자", createdBy);
+    createTranslationIfNotExists("testcase.form.linkItems", languageCode, "연결 항목", createdBy);
+    createTranslationIfNotExists("testcase.form.linkSummary.tags", languageCode, "태그", createdBy);
+    createTranslationIfNotExists("testcase.form.linkSummary.rag", languageCode, "RAG", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkSummary.linkedTestCases", languageCode, "연결 케이스", createdBy);
+    createTranslationIfNotExists(
+        "testcase.form.linkSummary.junit", languageCode, "JUnit", createdBy);
 
     // 검증 제안 메시지 한글
     createTranslationIfNotExists(
