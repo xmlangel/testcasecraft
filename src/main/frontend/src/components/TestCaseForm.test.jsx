@@ -243,6 +243,8 @@ describe("TestCaseForm 부모 이동 시 태그 정리 (H1)", () => {
     render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
 
     // 원본 parentId(folderOld) 로드 후 Parent ID 를 새 폴더로 변경
+    // ICT-495 cl-4: Parent ID 는 「식별 정보」를 펼쳐야 보인다
+    fireEvent.click(await screen.findByTestId("testcase-ids-toggle"));
     const parentField = await screen.findByLabelText("Parent ID");
     fireEvent.change(parentField, { target: { value: "folderNew" } });
 
@@ -261,6 +263,8 @@ describe("TestCaseForm 부모 이동 시 태그 정리 (H1)", () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
 
+    // ICT-495 cl-4: Parent ID 는 「식별 정보」를 펼쳐야 보인다
+    fireEvent.click(await screen.findByTestId("testcase-ids-toggle"));
     const parentField = await screen.findByLabelText("Parent ID");
     fireEvent.change(parentField, { target: { value: "folderNew" } });
     fireEvent.click(await screen.findByTestId("testcase-save-button"));
@@ -309,7 +313,7 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
     localStorage.setItem("testcase-manager-form-view-mode", "view");
     render(<TestCaseForm testCaseId="tc1" projectId="p1" onSave={vi.fn()} />);
 
-    await screen.findByLabelText("Parent ID");
+    await screen.findByTestId("testcase-ids-toggle");
     expect(screen.queryByTestId("testcase-save-button")).toBeNull();
   });
 
@@ -359,6 +363,20 @@ describe("TestCaseForm 편집/보기 전환 (ICT-486)", () => {
     // 아래 줄에 있던 취소·버전 생성 중복이 없다
     expect(screen.getAllByTestId("testcase-cancel-button")).toHaveLength(1);
     expect(footer.textContent).not.toContain("버전 생성");
+  });
+
+  it("이전·다음(headerNav)은 하단 바가 아니라 머리 동작 줄에 그린다 (ICT-495 cl-3)", async () => {
+    render(
+      <TestCaseForm
+        testCaseId="tc1"
+        projectId="p1"
+        onSave={vi.fn()}
+        headerNav={<div data-testid="header-nav-slot">2 / 5</div>}
+      />,
+    );
+    const row = await screen.findByTestId("testcase-header-row");
+    expect(row).toContainElement(screen.getByTestId("header-nav-slot"));
+    expect(screen.queryByTestId("testcase-form-footer")).toBeNull();
   });
 
   it("footerNav 가 없으면 하단 바를 그리지 않는다 (ICT-494)", async () => {

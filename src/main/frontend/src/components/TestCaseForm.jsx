@@ -104,6 +104,8 @@ const TestCaseForm = ({
   footerNav,
   // ICT-494 tl-2: 상세 머리 한 줄에 함께 둘 요소(개별 폼·스프레드시트 전환)
   headerExtra,
+  // ICT-495 cl-3: 머리 동작 줄 오른쪽 끝(더보기 앞)에 둘 이전·n/N·다음
+  headerNav,
 }) => {
   const {
     testCases,
@@ -1511,6 +1513,7 @@ const TestCaseForm = ({
           isRagRegistering={rag.isRegistering}
           onRagRegister={isFolder ? undefined : rag.register}
           headerExtra={headerExtra}
+          headerNav={headerNav}
           saveDisabled={isSaveDisabled()}
         />
 
@@ -1584,8 +1587,8 @@ const TestCaseForm = ({
 
           {/* 상세 정보 탭 */}
           <TabPanel value={tabValue} index={0}>
-            {/* ICT-494 tl-3: 접지 않는 한 장짜리 양식 — 2열 격자(소유자·우선순위 / 이름 / 설명 /
-                유형 / ID·Parent) → 사용자 정의 필드 → 전제 조건 → 테스트 단계·기대 결과 */}
+            {/* ICT-494 tl-3 → ICT-495 cl-4: 이름 / 설명 → 실행 유형·우선순위·기법 한 줄 →
+                연결 항목(접힘) → 소유자·Parent·순서·수정자·식별 정보 한 줄 → 전제 조건 → 단계·기대 결과 */}
             <Grid container spacing={2}>
               <Grid size={12}>
                 <TestCaseBasicInfo
@@ -1759,8 +1762,9 @@ const TestCaseForm = ({
         </Box>
       </CardContent>
 
-      {/* ICT-491 C3: 하단 고정 바. 상세를 스크롤해도 이전·n/N·다음·닫기가 늘 보인다.
-          ICT-494 tl-2: 취소·저장·버전 생성은 머리와 겹쳐 하단에서 뺐다. 머리는 상세 위에 붙어 있다. */}
+      {/* ICT-491 C3: 하단 고정 바. 상세를 스크롤해도 늘 보인다.
+          ICT-494 tl-2: 취소·저장·버전 생성은 머리와 겹쳐 하단에서 뺐다. 머리는 상세 위에 붙어 있다.
+          ICT-495 cl-3: 이전·n/N·다음은 머리(headerNav)로 올렸다. 여기에는 닫기만 남는다. */}
       {footerNav && (
         <CardActions
           sx={{
@@ -1862,6 +1866,7 @@ TestCaseForm.propTypes = {
   initialData: PropTypes.object,
   footerNav: PropTypes.node,
   headerExtra: PropTypes.node,
+  headerNav: PropTypes.node,
 };
 
 export default TestCaseForm;

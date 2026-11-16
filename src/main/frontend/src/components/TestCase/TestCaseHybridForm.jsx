@@ -537,8 +537,9 @@ const TestCaseHybridForm = ({
     }
   };
 
-  // ICT-491 C3: 상세 하단 고정 바의 왼쪽(이전 · n/N · 다음 · 닫기). 저장 버튼은 폼이 오른쪽에 그린다.
-  const caseNavBar = caseNav ? (
+  // ICT-495 cl-3: 이전 · n/N · 다음은 상세 머리 동작 줄의 오른쪽 끝([저장][취소] 또는 [수정] 뒤,
+  // 더보기 앞)에 둔다. 저장하지 않은 변경 확인은 goToCase 가 그대로 맡는다.
+  const caseNavControls = caseNav ? (
     <Box
       sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
       data-testid="testcase-nav"
@@ -576,7 +577,14 @@ const TestCaseHybridForm = ({
           </IconButton>
         </span>
       </Tooltip>
-      {isSplitView && (
+    </Box>
+  ) : null;
+
+  // 하단 고정 바에는 닫기만 남긴다(분할 화면에서 목록 안의 케이스를 열었을 때).
+  // 목록 밖 케이스·새 케이스는 경로 줄 오른쪽의 닫기를 쓴다.
+  const caseFooterBar =
+    caseNav && isSplitView ? (
+      <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
         <Tooltip title={t("testcase.split.close", "상세 닫기")}>
           <IconButton
             size="small"
@@ -587,9 +595,8 @@ const TestCaseHybridForm = ({
             <CloseIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-      )}
-    </Box>
-  ) : null;
+      </Box>
+    ) : null;
 
   // 입력 모드 선택 — 편집 권한이 있을 때만 내보인다. 없으면 개별 폼만 쓴다.
   // ICT-494 tl-2: 케이스 폼을 열면 이 전환을 폼 머리 한 줄에 아이콘으로(compact) 넣는다.
@@ -847,7 +854,8 @@ const TestCaseHybridForm = ({
             testCaseId={effectiveTestCaseId}
             projectId={effectiveProjectId}
             onSave={handleFormSave}
-            footerNav={caseNavBar}
+            footerNav={caseFooterBar}
+            headerNav={caseNavControls}
             headerExtra={renderInputModeToggle(true)}
           />
         )

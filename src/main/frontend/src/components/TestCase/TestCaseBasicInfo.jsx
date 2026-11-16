@@ -46,7 +46,7 @@ const normalizePriority = (priority) => {
 export const INFO_GRID_TWO_COLUMN_MIN_WIDTH = 520;
 
 /**
- * 테스트케이스 기본 정보(ICT-494 tl-3: 접지 않는 2열 격자)
+ * 테스트케이스 기본 정보(ICT-494 tl-3 → ICT-495 cl-4: 상단 세 줄 압축)
  */
 const TestCaseBasicInfo = ({
   testCase,
@@ -112,10 +112,11 @@ const TestCaseBasicInfo = ({
   ].filter(Boolean);
   const hasLinkSection = linkSummary.length > 0 || linkedByTestCases.length > 0;
   return (
-    // ICT-494 tl-3: 접는 묶음을 없애고 Testiny 처럼 한 장짜리 2열 격자로 둔다.
-    // 순서: 소유자·우선순위 / 이름 / 설명 / 자동화·실행 유형 / 테스트 기법 / ID·Parent
-    //      → 사용자 정의 필드(태그·연결 항목) → 전제 조건·사후 조건. 단계는 이 아래(TestCaseForm).
-    // 칸 폭이 좁으면(2단·1단 겹침, 좁은 화면) 한 열로 내려온다(컨테이너 폭 기준).
+    // ICT-495 cl-4: 이름 / 설명 다음 상단을 세 줄로 줄였다.
+    //   1) 실행 유형 · 우선순위 · 테스트 기법(작은 입력칸, 좁으면 줄바꿈)
+    //   2) 연결 항목(접힘)
+    //   3) 소유자 · Parent · 순서 · 수정자 · 식별 정보 한 줄 요약
+    // → 전제 조건·사후 조건. 단계는 이 아래(TestCaseForm).
     <Box
       data-testid="testcase-info-section"
       sx={{ containerType: "inline-size", mb: 2 }}
@@ -134,47 +135,6 @@ const TestCaseBasicInfo = ({
           "& > .info-full": { gridColumn: "1 / -1" },
         }}
       >
-        {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정과 같다) */}
-        <TextField
-          label={t("testcase.form.owner", "소유자")}
-          value={testCase.createdBy || ""}
-          fullWidth
-          margin="normal"
-          variant="outlined"
-          placeholder="—"
-          slotProps={{
-            input: { readOnly: true },
-            htmlInput: { "data-testid": "testcase-owner-field" },
-          }}
-        />
-
-        {isVisible("priority") ? (
-          <FormControl fullWidth margin="normal" disabled={isViewer}>
-            <InputLabel id="priority-select-label">
-              {t("testcase.form.priority", "우선순위")}
-            </InputLabel>
-            <Select
-              labelId="priority-select-label"
-              value={normalizePriority(testCase.priority)}
-              label={t("testcase.form.priority", "우선순위")}
-              onChange={onChange("priority")}
-              data-testid="testcase-priority-select"
-            >
-              <MenuItem value="HIGH">
-                {t("testcase.priority.high", "높음")}
-              </MenuItem>
-              <MenuItem value="MEDIUM">
-                {t("testcase.priority.medium", "보통")}
-              </MenuItem>
-              <MenuItem value="LOW">
-                {t("testcase.priority.low", "낮음")}
-              </MenuItem>
-            </Select>
-          </FormControl>
-        ) : (
-          <Box />
-        )}
-
         {/* Name 필드 + AI 생성 버튼 */}
         <Box
           className="info-full"
@@ -311,10 +271,27 @@ const TestCaseBasicInfo = ({
             />
           </Box>
         )}
+      </Box>
 
+      {/* ICT-495 cl-4: 실행 유형 · 우선순위 · 테스트 기법을 작은 입력칸으로 한 줄에 둔다.
+          실행 유형·우선순위는 내용 폭만, 테스트 기법이 나머지를 쓴다. 칸이 좁으면 줄바꿈된다. */}
+      <Box
+        data-testid="testcase-type-row"
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: 1,
+          mt: 1,
+        }}
+      >
         {/* ICT-494 tl-5: 「자동화 여부」 토글은 없앴다. 실행 유형 하나로 고르고 자동화 여부는 그 값을 따른다. */}
         {isVisible("executionType") && (
-          <FormControl fullWidth margin="normal" disabled={isViewer}>
+          <FormControl
+            size="small"
+            disabled={isViewer}
+            sx={{ width: 160, flexShrink: 0 }}
+          >
             <InputLabel id="execution-type-select-label">
               {t("testcase.form.executionType", "Manual/Automation")}
             </InputLabel>
@@ -342,24 +319,50 @@ const TestCaseBasicInfo = ({
           </FormControl>
         )}
 
+        {isVisible("priority") && (
+          <FormControl
+            size="small"
+            disabled={isViewer}
+            sx={{ width: 160, flexShrink: 0 }}
+          >
+            <InputLabel id="priority-select-label">
+              {t("testcase.form.priority", "우선순위")}
+            </InputLabel>
+            <Select
+              labelId="priority-select-label"
+              value={normalizePriority(testCase.priority)}
+              label={t("testcase.form.priority", "우선순위")}
+              onChange={onChange("priority")}
+              data-testid="testcase-priority-select"
+            >
+              <MenuItem value="HIGH">
+                {t("testcase.priority.high", "높음")}
+              </MenuItem>
+              <MenuItem value="MEDIUM">
+                {t("testcase.priority.medium", "보통")}
+              </MenuItem>
+              <MenuItem value="LOW">
+                {t("testcase.priority.low", "낮음")}
+              </MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
         {isVisible("testTechnique") && (
           <TextField
             label={t("testcase.form.testTechnique", "테스트 기법")}
             value={testCase.testTechnique || ""}
             onChange={onChange("testTechnique")}
-            fullWidth
-            margin="normal"
+            size="small"
             variant="outlined"
             disabled={isViewer}
             placeholder={t(
               "testcase.form.testTechniquePlaceholder",
               "예: 경계값 분석, 의사결정 테이블 등",
             )}
+            sx={{ flex: "1 1 220px", minWidth: 0 }}
           />
         )}
-
-        {/* ID·Parent 정보(상위가 넘겨줌). 접지 않고 같은 격자에 둔다. */}
-        {metadataSlot}
       </Box>
 
       {/* 사용자 정의 필드: 태그·연결 항목. 처음에는 접어 두고 머리 줄에 개수를 적는다. */}
@@ -368,7 +371,7 @@ const TestCaseBasicInfo = ({
           data-testid="testcase-custom-fields"
           disableGutters
           variant="outlined"
-          sx={{ mt: 2, "&::before": { display: "none" } }}
+          sx={{ mt: 1, "&::before": { display: "none" } }}
         >
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
@@ -730,6 +733,9 @@ const TestCaseBasicInfo = ({
           </AccordionDetails>
         </Accordion>
       )}
+
+      {/* ICT-495 cl-4: 정보성 필드(소유자·Parent·순서·수정자·식별 정보) 한 줄 요약(상위가 넘겨줌) */}
+      {metadataSlot}
 
       {/* 전제 조건 → (사후 조건) → 단계(TestCaseForm) 순서 */}
       <Box data-testid="testcase-conditions">

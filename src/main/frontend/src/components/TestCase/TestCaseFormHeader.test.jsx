@@ -226,3 +226,57 @@ describe("TestCaseFormHeader 머리 한 줄과 더보기 메뉴 (ICT-494 tl-2)",
     expect(screen.getByTestId("testcase-save-button")).toBeDisabled();
   });
 });
+
+describe("TestCaseFormHeader 이전·다음 위치 (ICT-495 cl-3)", () => {
+  const nav = <div data-testid="header-nav-slot">‹ 2 / 5 ›</div>;
+  const follows = (a, b) =>
+    Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const menuProps = { onDelete: vi.fn() };
+
+  it("편집 중이면 [취소][저장] 다음, 더보기 앞에 이전·다음을 둔다", () => {
+    render(
+      <TestCaseFormHeader
+        {...baseProps}
+        {...menuProps}
+        viewMode="edit"
+        headerNav={nav}
+      />,
+    );
+    const row = screen.getByTestId("testcase-header-row");
+    const slot = screen.getByTestId("header-nav-slot");
+    expect(row).toContainElement(slot);
+    expect(follows(screen.getByTestId("testcase-cancel-button"), slot)).toBe(
+      true,
+    );
+    expect(follows(screen.getByTestId("testcase-save-button"), slot)).toBe(
+      true,
+    );
+    expect(
+      follows(slot, screen.getByTestId("testcase-header-more-button")),
+    ).toBe(true);
+  });
+
+  it("보기 모드면 [수정] 다음, 더보기 앞의 같은 자리에 둔다", () => {
+    render(
+      <TestCaseFormHeader
+        {...baseProps}
+        {...menuProps}
+        isViewer
+        viewMode="view"
+        onViewModeChange={vi.fn()}
+        // 보기 모드의 더보기에는 RAG 등록만 남는다
+        ragStatus="notVectorized"
+        onRagRegister={vi.fn()}
+        headerNav={nav}
+      />,
+    );
+    const slot = screen.getByTestId("header-nav-slot");
+    expect(screen.getByTestId("testcase-header-row")).toContainElement(slot);
+    expect(
+      follows(screen.getByTestId("testcase-header-edit-button"), slot),
+    ).toBe(true);
+    expect(
+      follows(slot, screen.getByTestId("testcase-header-more-button")),
+    ).toBe(true);
+  });
+});

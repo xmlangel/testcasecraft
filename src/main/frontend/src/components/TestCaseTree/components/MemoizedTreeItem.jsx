@@ -232,8 +232,9 @@ const MemoizedTreeItem = React.memo(
           </Tooltip>
         )}
 
-        {/* 이름 영역 (ICT-491 B2): 케이스 ID 를 이름 앞에 두고, 이름은 자르거나 줄바꿈하지 않고
-            한 줄로 전부 보인다. 넘치는 폭은 트리 칸의 가로 스크롤로 본다. */}
+        {/* 이름 영역 (ICT-491 B2): 이름은 자르거나 줄바꿈하지 않고 한 줄로 전부 보인다.
+            넘치는 폭은 트리 칸의 가로 스크롤로 본다. 케이스 ID 는 목록에 있으므로
+            트리에는 그리지 않는다(ICT-495 cl-2). */}
         <Box
           sx={{
             display: "flex",
@@ -244,16 +245,6 @@ const MemoizedTreeItem = React.memo(
             whiteSpace: "nowrap",
           }}
         >
-          {!isFolder(node) && node.displayId && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              data-testid={`tree-case-id-${node.id}`}
-              sx={{ fontFamily: "monospace", flexShrink: 0 }}
-            >
-              {node.displayId}
-            </Typography>
-          )}
           <Typography
             variant="body2"
             data-testid={`tree-node-name-${node.id}`}

@@ -55,17 +55,16 @@ describe("TestCaseBasicInfo 접지 않는 2열 격자 (ICT-494 tl-3)", () => {
     expect(screen.getByTestId("testcase-name-input")).toBeVisible();
   });
 
-  it("격자 순서는 소유자·우선순위 → 이름 → 설명 → 실행 유형이다", () => {
-    renderInfo();
-    const grid = screen.getByTestId("testcase-info-grid");
+  it("이름 → 설명 → 실행 유형·우선순위·기법 한 줄 → 연결 항목 → 정보 요약 순서다 (ICT-495 cl-4)", () => {
+    renderInfo({ metadataSlot: <div data-testid="meta-slot" /> });
     const order = [
-      screen.getByTestId("testcase-owner-field"),
-      screen.getByLabelText("우선순위"),
       screen.getByTestId("testcase-name-input"),
       screen.getByTestId("testcase-description-input"),
-      screen.getByLabelText("Manual/Automation"),
+      screen.getByTestId("testcase-type-row"),
+      screen.getByTestId("testcase-custom-fields"),
+      screen.getByTestId("meta-slot"),
+      screen.getByTestId("testcase-conditions"),
     ];
-    order.forEach((el) => expect(grid).toContainElement(el));
     for (let i = 1; i < order.length; i += 1) {
       expect(
         order[i - 1].compareDocumentPosition(order[i]) &
@@ -74,17 +73,31 @@ describe("TestCaseBasicInfo 접지 않는 2열 격자 (ICT-494 tl-3)", () => {
     }
   });
 
-  it("소유자 칸은 작성자를 읽기 전용으로 보인다", () => {
+  it("실행 유형·우선순위·테스트 기법을 작은 입력칸으로 한 줄에 둔다 (ICT-495 cl-4)", () => {
     renderInfo();
-    const owner = screen.getByTestId("testcase-owner-field");
-    expect(owner).toHaveValue("admin");
-    expect(owner).toHaveAttribute("readonly");
+    const row = screen.getByTestId("testcase-type-row");
+    expect(row).toHaveStyle({ display: "flex", flexWrap: "wrap" });
+    const exec = within(row).getByLabelText("Manual/Automation");
+    const prio = within(row).getByLabelText("우선순위");
+    const tech = within(row).getByLabelText("테스트 기법");
+    [exec, prio, tech].forEach((el) =>
+      expect(el.closest(".MuiInputBase-root")).toHaveClass(
+        "MuiInputBase-sizeSmall",
+      ),
+    );
+    // 우선순위는 소유자와 함께 맨 위에 있던 큰 칸에서 빠졌다
+    expect(
+      within(screen.getByTestId("testcase-info-grid")).queryByLabelText(
+        "우선순위",
+      ),
+    ).toBeNull();
   });
 
-  it("넘겨받은 ID·Parent 항목을 같은 격자 안에 둔다", () => {
-    renderInfo({ metadataSlot: <div data-testid="meta-slot" /> });
-    expect(screen.getByTestId("testcase-info-grid")).toContainElement(
-      screen.getByTestId("meta-slot"),
+  it("연결 항목은 처음에 접혀 있다 (ICT-495 cl-4)", () => {
+    renderInfo();
+    expect(screen.getByTestId("testcase-link-items-summary")).toHaveAttribute(
+      "aria-expanded",
+      "false",
     );
   });
 
