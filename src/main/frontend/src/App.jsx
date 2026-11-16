@@ -337,6 +337,12 @@ const AppContent = () => {
   const [treeVisible, setTreeVisible] = useState(uiState.treeVisible ?? true); // 트리 표시/숨김 상태
   const minWidth = 200;
   const maxWidth = 600;
+  // ICT-492: 케이스 화면이 1단(상세를 전체 폭으로 겹침)일 때 트리를 잠시 접는다.
+  // 사용자가 정한 표시/숨김(treeVisible)은 바꾸지 않는다.
+  const [treeHiddenByLayout, setTreeHiddenByLayout] = useState(false);
+  const treeShown = treeVisible && !treeHiddenByLayout;
+  // 트리 칸 + 폭 조절 막대(6px) + 입력 영역 왼쪽 여백(8px)
+  const treeReserveWidth = treeVisible ? treeWidth + 14 : 0;
 
   // 트리 토글 핸들러 (ICT-315)
   const handleTreeToggle = () => {
@@ -1273,7 +1279,7 @@ const AppContent = () => {
                         )}
 
                         {/* 트리 영역 */}
-                        {treeVisible && (
+                        {treeShown && (
                           <>
                             <Paper
                               sx={{
@@ -1333,7 +1339,7 @@ const AppContent = () => {
                           sx={{
                             flex: 1,
                             minWidth: 0,
-                            ml: treeVisible ? 1 : 0,
+                            ml: treeShown ? 1 : 0,
                             transition: "margin-left 0.3s ease-in-out",
                             height: "100%",
                             overflowY: "auto",
@@ -1347,6 +1353,9 @@ const AppContent = () => {
                             }
                             testCaseId={activeTestCaseId}
                             onSelectTestCase={handleSelectTestCase}
+                            treeReserveWidth={treeReserveWidth}
+                            treeHiddenByLayout={treeHiddenByLayout}
+                            onTreeHiddenByLayoutChange={setTreeHiddenByLayout}
                           />
                         </Box>
                       </Box>
