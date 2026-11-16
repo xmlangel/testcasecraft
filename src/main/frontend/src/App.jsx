@@ -192,6 +192,9 @@ function loadUIState() {
 
 const AppContent = () => {
   const theme = useTheme();
+  // ICT-491 A3: 촘촘 모드에서는 상단 헤더를 64px → 48px 로 줄여 본문 세로 공간을 늘린다
+  const isCompactDensity = theme.density === "compact";
+  const headerHeight = isCompactDensity ? 48 : 64;
   const { t, initialized: i18nInitialized } = useTranslation();
   const { mode, toggleTheme } = useCustomTheme();
 
@@ -872,7 +875,10 @@ const AppContent = () => {
     <>
       <CssBaseline />
       <AppBar position="static">
-        <Toolbar variant="dense" sx={{ minHeight: "64px !important" }}>
+        <Toolbar
+          variant="dense"
+          sx={{ minHeight: `${headerHeight}px !important` }}
+        >
           <Box
             sx={{
               display: "flex",
@@ -890,7 +896,7 @@ const AppContent = () => {
               src="/testcasecraft_transparent.png"
               alt="TestCaseCraft"
               sx={{
-                height: 60,
+                height: headerHeight - 4,
                 width: "auto",
                 objectFit: "contain",
               }}
@@ -899,7 +905,7 @@ const AppContent = () => {
               variant="caption"
               sx={{
                 ml: 1,
-                mt: "22px",
+                mt: isCompactDensity ? "14px" : "22px",
                 fontWeight: "bold",
                 // 헤더 텍스트 색을 그대로 따라 라이트/다크·헤더 배경 변화에도 항상 보이게
                 color: "inherit",

@@ -794,6 +794,7 @@ const TestCaseHybridForm = ({
               favoriteIds={favoriteIds}
               onToggleFavorite={(item) => toggleFavorite(item.id)}
               selectedId={selectedItem?.id}
+              compact
             />
           </Box>
           <Resizer
