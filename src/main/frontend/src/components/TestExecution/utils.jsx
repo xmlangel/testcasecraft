@@ -413,13 +413,102 @@ export const HEADER_HEIGHT = 40;
 
 // Grid 템플릿 정의 - 모든 행에서 동일한 컬럼 너비 보장
 // 폴더 열은 접힘 배지(총계 + 판정 4종)와 폴더명이 한 줄에 같이 들어가야 해 최소 폭을 넓게 잡는다.
-export const gridTemplateColumns =
-  "40px 110px minmax(260px, 2fr) minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
+// ICT-498: 행마다 grid 가 따로라 케이스명 열은 내용 폭(max-content)을 쓸 수 없다. 화면에 올라온 케이스 중
+// 가장 긴 이름이 한 줄에 들어가는 폭을 재서 모든 행에 같은 최소 폭으로 준다. 넘치면 목록이 가로 스크롤된다.
+export const CASE_NAME_COLUMN_MIN_WIDTH = 200;
+const FOLDER_COLUMN_MIN_WIDTH = 260;
+// 케이스명 열 안에서 이름 말고 차지하는 폭: 왼쪽 여백 8 + 문서 아이콘 20 + 간격 8 + 간격 8 + 우선순위 칩 약 80 + 여유 16
+export const CASE_NAME_COLUMN_EXTRA_WIDTH = 140;
+// 케이스명 열과 폴더 열을 뺀 나머지 열의 최소 폭 합(체크 40 · ID 110 · 결과 80 · 실행일시 110 · 실행자 90 ·
+// 비고 150 · 태그 100 · JIRA 90 · 입력 90 · 이전 결과 50 · 첨부 50)
+const OTHER_COLUMNS_MIN_WIDTH = 960;
+
+export const buildGridTemplateColumns = ({
+  peek = false,
+  caseNameWidth = CASE_NAME_COLUMN_MIN_WIDTH,
+} = {}) => {
+  const nameMin = Math.max(
+    CASE_NAME_COLUMN_MIN_WIDTH,
+    Math.ceil(caseNameWidth || 0),
+  );
+  const folder = peek ? "0px" : `minmax(${FOLDER_COLUMN_MIN_WIDTH}px, 2fr)`;
+  return `40px 110px ${folder} minmax(${nameMin}px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px`;
+};
+
+// 위 템플릿의 최소 폭 합. 행과 머리 줄에 min-width 로 줘서 칸이 좁으면 가로 스크롤로 넘긴다.
+export const gridMinWidth = ({
+  peek = false,
+  caseNameWidth = CASE_NAME_COLUMN_MIN_WIDTH,
+} = {}) =>
+  OTHER_COLUMNS_MIN_WIDTH +
+  (peek ? 0 : FOLDER_COLUMN_MIN_WIDTH) +
+  Math.max(CASE_NAME_COLUMN_MIN_WIDTH, Math.ceil(caseNameWidth || 0));
+
+export const gridTemplateColumns = buildGridTemplateColumns();
 
 // ICT-492: 결과 칸이 목록 위에 겹쳐(2단) 목록 앞쪽만 보일 때 쓰는 열 구성.
 // 폴더 열을 0 으로 접어 체크·ID 바로 뒤에 케이스명이 오게 한다. 폴더 행의 이름은 비어 있는 케이스명 자리로 넘쳐 보인다.
-export const gridTemplateColumnsPeek =
-  "40px 110px 0px minmax(200px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px";
+export const gridTemplateColumnsPeek = buildGridTemplateColumns({ peek: true });
+
+// 글자 폭 어림값(px). 측정 도구가 없을 때(시험 환경 등) 쓴다. 한글·전각은 글자 크기만큼, 그 밖은 0.62배로 본다.
+const estimateTextWidth = (text, fontSize) =>
+  Array.from(text).reduce(
+    (sum, ch) =>
+      sum +
+      (/[\u1100-\u11ff\u3000-\u9fff\uac00-\ud7af\uff00-\uffef]/.test(ch)
+        ? 1
+        : 0.62) *
+        fontSize,
+    0,
+  );
+
+let measureContext;
+const getMeasureContext = () => {
+  if (measureContext !== undefined) return measureContext;
+  measureContext = null;
+  try {
+    if (typeof OffscreenCanvas !== "undefined") {
+      measureContext = new OffscreenCanvas(1, 1).getContext("2d");
+    }
+  } catch {
+    measureContext = null;
+  }
+  return measureContext;
+};
+
+/**
+ * 케이스 이름 중 가장 긴 것이 한 줄에 들어가는 케이스명 열 폭(px)을 구한다.
+ * 폴더 행은 이름을 폴더 열에 그리므로 세지 않는다.
+ *
+ * @param {Array<{type?: string, name?: string}>} nodes 화면에 올라온 노드
+ * @param {{font?: string, fontSize?: number, measure?: (text: string) => number}} [options]
+ * @returns {number} 케이스명 열 최소 폭(px)
+ */
+export const computeCaseNameColumnWidth = (
+  nodes,
+  { font, fontSize = 14, measure } = {},
+) => {
+  let measureText = measure;
+  if (!measureText) {
+    const ctx = font ? getMeasureContext() : null;
+    if (ctx) {
+      ctx.font = font;
+      measureText = (text) => ctx.measureText(text).width;
+    } else {
+      measureText = (text) => estimateTextWidth(text, fontSize);
+    }
+  }
+  let longest = 0;
+  (nodes || []).forEach((node) => {
+    if (!node || node.type === "folder" || !node.name) return;
+    longest = Math.max(longest, measureText(String(node.name)));
+  });
+  if (!longest) return CASE_NAME_COLUMN_MIN_WIDTH;
+  return Math.max(
+    CASE_NAME_COLUMN_MIN_WIDTH,
+    Math.ceil(longest + CASE_NAME_COLUMN_EXTRA_WIDTH),
+  );
+};
 
 // 개별 컬럼 스타일 (Grid에서는 display와 align만 필요)
 export const responsiveColumnSx = [

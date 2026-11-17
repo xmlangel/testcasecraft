@@ -13,6 +13,11 @@ import {
   collectAncestorFolderIds,
   collectFolderIds,
   computeFolderResultCounts,
+  buildGridTemplateColumns,
+  gridMinWidth,
+  computeCaseNameColumnWidth,
+  CASE_NAME_COLUMN_MIN_WIDTH,
+  CASE_NAME_COLUMN_EXTRA_WIDTH,
 } from "./utils.jsx";
 
 // 전체화면 결과 뷰가 목록 화면의 필터 순서를 그대로 따르도록 하는
@@ -375,5 +380,63 @@ describe("computeFolderResultCounts", () => {
     const counts = computeFolderResultCounts(nodes, new Map());
     expect(counts.get("a").total).toBe(1);
     expect(counts.get("b").total).toBe(1);
+  });
+});
+
+// ICT-498: 케이스명을 줄바꿈하지 않고 한 줄로 보이도록 열 폭을 가장 긴 이름에 맞춘다
+describe("case name column width", () => {
+  const measure = (text) => text.length * 10;
+
+  it("returns the minimum width when there are no cases", () => {
+    expect(computeCaseNameColumnWidth([], { measure })).toBe(
+      CASE_NAME_COLUMN_MIN_WIDTH,
+    );
+    expect(computeCaseNameColumnWidth(undefined, { measure })).toBe(
+      CASE_NAME_COLUMN_MIN_WIDTH,
+    );
+  });
+
+  it("fits the longest case name and ignores folder names", () => {
+    const nodes = [
+      { type: "folder", name: "x".repeat(100) },
+      { type: "testcase", name: "a".repeat(30) },
+      { type: "testcase", name: "b".repeat(40) },
+    ];
+    expect(computeCaseNameColumnWidth(nodes, { measure })).toBe(
+      400 + CASE_NAME_COLUMN_EXTRA_WIDTH,
+    );
+  });
+
+  it("keeps the minimum width for short names", () => {
+    const nodes = [{ type: "testcase", name: "ab" }];
+    expect(computeCaseNameColumnWidth(nodes, { measure })).toBe(
+      CASE_NAME_COLUMN_MIN_WIDTH,
+    );
+  });
+
+  it("estimates wide characters wider than narrow ones without a measurer", () => {
+    const korean = computeCaseNameColumnWidth([
+      { type: "testcase", name: "가".repeat(40) },
+    ]);
+    const latin = computeCaseNameColumnWidth([
+      { type: "testcase", name: "a".repeat(40) },
+    ]);
+    expect(korean).toBeGreaterThan(latin);
+    expect(korean).toBe(40 * 14 + CASE_NAME_COLUMN_EXTRA_WIDTH);
+  });
+
+  it("puts the measured width into the grid template and minimum row width", () => {
+    const template = buildGridTemplateColumns({ caseNameWidth: 520 });
+    expect(template).toContain("minmax(520px, 3fr)");
+    expect(template).toContain("minmax(260px, 2fr)");
+    expect(
+      buildGridTemplateColumns({ peek: true, caseNameWidth: 520 }),
+    ).toMatch(/^40px 110px 0px minmax\(520px, 3fr\)/);
+    expect(gridMinWidth({ caseNameWidth: 520 })).toBe(
+      gridMinWidth({ caseNameWidth: 200 }) + 320,
+    );
+    expect(gridMinWidth({ peek: true, caseNameWidth: 520 })).toBe(
+      gridMinWidth({ caseNameWidth: 520 }) - 260,
+    );
   });
 });
