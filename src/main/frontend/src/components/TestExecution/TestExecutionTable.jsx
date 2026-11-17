@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback } from "react";
+import React, { memo, useState, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -31,13 +31,13 @@ import { useI18n } from "../../context/I18nContext.jsx";
 import { TestResult } from "../../models/testExecution.jsx";
 import JiraIssueLink from "./JiraIssueLink.jsx";
 import {
-  wrapName,
   getResultIcon,
   getDisplayValue,
   priorityColor,
   responsiveColumnSx,
-  gridTemplateColumns,
-  gridTemplateColumnsPeek,
+  buildGridTemplateColumns,
+  gridMinWidth,
+  computeCaseNameColumnWidth,
   FOLDER_RESULT_KEYS,
 } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
@@ -61,6 +61,8 @@ const ExecutionRow = memo(
     isSelected,
     isActive = false,
     peek = false,
+    gridColumns,
+    rowMinWidth,
     onSelectionChange,
     handleOpenResultForm,
     handleShowPrevResults,
@@ -107,10 +109,9 @@ const ExecutionRow = memo(
         data-active={isActive ? "true" : undefined}
         sx={{
           display: "grid",
-          gridTemplateColumns: peek
-            ? gridTemplateColumnsPeek
-            : gridTemplateColumns,
+          gridTemplateColumns: gridColumns,
           width: "100%",
+          minWidth: rowMinWidth,
           minHeight: 26,
           backgroundColor: isActive
             ? alpha(theme.palette.primary.main, 0.14)
@@ -319,9 +320,8 @@ const ExecutionRow = memo(
                   fontWeight: "bold",
                   lineHeight: 1.25,
                   color: theme.palette.primary.main,
-                  whiteSpace: "pre-line",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
+                  // ICT-498: 이름을 줄바꿈하지 않고 한 줄로 다 보인다. 열 폭이 가장 긴 이름에 맞춰져 있다.
+                  whiteSpace: "nowrap",
                   cursor: "pointer",
                   flex: 1,
                   "&:hover": {
@@ -332,7 +332,7 @@ const ExecutionRow = memo(
                 onClick={() => handleOpenResultForm(node.id)}
                 data-testid={`execution-table-case-name-${node.id}`}
               >
-                {wrapName(node.name)}
+                {node.name}
               </Typography>
               {node.priority && (
                 <Chip
@@ -697,6 +697,20 @@ const TestExecutionTable = ({
   const sentinelRef = React.useRef(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // ICT-498: 화면에 올라온 케이스 중 가장 긴 이름이 한 줄에 들어가게 케이스명 열 폭을 정한다.
+  const caseNameWidth = useMemo(
+    () =>
+      computeCaseNameColumnWidth(visibleData, {
+        font: `bold 14px ${theme.typography.fontFamily}`,
+      }),
+    [visibleData, theme.typography.fontFamily],
+  );
+  const gridColumns = useMemo(
+    () => buildGridTemplateColumns({ peek, caseNameWidth }),
+    [peek, caseNameWidth],
+  );
+  const rowMinWidth = gridMinWidth({ peek, caseNameWidth });
+
   // 복사 핸들러
   const handleCopyNotes = useCallback(async (text) => {
     const success = await copyToClipboard(text);
@@ -734,6 +748,8 @@ const TestExecutionTable = ({
         isSelected={selectedTestCases?.has(node.id) || false}
         isActive={activeTestCaseId != null && node.id === activeTestCaseId}
         peek={peek}
+        gridColumns={gridColumns}
+        rowMinWidth={rowMinWidth}
         onSelectionChange={onSelectionChange}
         handleOpenResultForm={handleOpenResultForm}
         handleShowPrevResults={handleShowPrevResults}
@@ -863,11 +879,9 @@ const TestExecutionTable = ({
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: peek
-                ? gridTemplateColumnsPeek
-                : gridTemplateColumns,
+              gridTemplateColumns: gridColumns,
               width: "100%",
-              // minWidth removed to allow fitting in screen
+              minWidth: rowMinWidth,
               position: "sticky",
               top: 0,
               zIndex: 1,
