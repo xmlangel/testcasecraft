@@ -58,6 +58,7 @@ import useElementWidth from "../../hooks/useElementWidth.js";
 import usePaneLayoutMode from "../../hooks/usePaneLayoutMode.js";
 import useEscapeToClose from "../../hooks/useEscapeToClose.js";
 import PaneLayoutSelector from "../common/PaneLayoutSelector.jsx";
+import ProjectHeaderSlot from "../common/ProjectHeaderSlot.jsx";
 import {
   clampListWidth,
   detailWidthForList,
@@ -929,13 +930,26 @@ const TestCaseHybridForm = ({
       data-testid="testcase-split-view"
       data-pane-tier={showListPane ? tier : "max"}
     >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          mb: 0.5,
-          flexShrink: 0,
-        }}
+      {/* ICT-496: 배치 전환은 프로젝트 머리 줄(북마크·설정 아이콘 옆)에 둬서 한 줄을 아낀다.
+          머리 줄이 없는 곳에서는 예전처럼 이 칸 위에 한 줄로 그린다. */}
+      <ProjectHeaderSlot
+        fallback={
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              mb: 0.5,
+              flexShrink: 0,
+            }}
+          >
+            <PaneLayoutSelector
+              mode={layoutMode}
+              onChange={setLayoutMode}
+              tier={tier}
+              downgraded={paneLayout.downgraded}
+            />
+          </Box>
+        }
       >
         <PaneLayoutSelector
           mode={layoutMode}
@@ -943,7 +957,7 @@ const TestCaseHybridForm = ({
           tier={tier}
           downgraded={paneLayout.downgraded}
         />
-      </Box>
+      </ProjectHeaderSlot>
       <Box
         sx={{ position: "relative", display: "flex", flex: 1, minHeight: 0 }}
       >

@@ -48,6 +48,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import useProjectRole from "../hooks/useProjectRole.js";
 import { canManageProjectMembers } from "./TestCaseTree/utils/permissionUtils.js";
 import { CHROME_ICON_SX } from "./common/iconSizes.js";
+import { PROJECT_HEADER_SLOT_ID } from "./common/ProjectHeaderSlot.jsx";
 
 // projectNavItems 의 icon 식별자 → 실제 아이콘 컴포넌트
 const TAB_ICONS = {
@@ -276,6 +277,12 @@ function ProjectHeader({
         </Menu>
 
         <Box sx={{ display: "flex", alignItems: "center" }}>
+          {/* ICT-496: 화면별 도구가 ProjectHeaderSlot 으로 이 자리에 들어온다 */}
+          <Box
+            id={PROJECT_HEADER_SLOT_ID}
+            data-testid="project-header-actions-slot"
+            sx={{ display: "flex", alignItems: "center", mr: 0.5 }}
+          />
           <IconButton
             size="small"
             sx={CHROME_ICON_SX}
