@@ -32,30 +32,33 @@ describe("FolderCaseList 한 줄 표시·가로 스크롤 (ICT-495 cl-1, ID 열 
     ["3단 compact", { compact: true }],
     ["좁은 칸 우선순위 숨김", { compact: true, hidePriority: true }],
     ["넓은 칸", {}],
-  ])("%s: 이름·소유자는 줄바꿈 없이 전부, ID 는 8글자 폭으로 그린다", (_label, props) => {
-    render(<FolderCaseList folder={folder} items={items} {...props} />);
+  ])(
+    "%s: 이름·소유자는 줄바꿈 없이 전부, ID 는 8글자 폭으로 그린다",
+    (_label, props) => {
+      render(<FolderCaseList folder={folder} items={items} {...props} />);
 
-    const name = screen.getByTestId("folder-case-name-c1");
-    expect(name).toHaveTextContent(longName);
-    expect(name).toHaveStyle({ whiteSpace: "nowrap" });
-    expect(name.textContent).not.toContain("…");
+      const name = screen.getByTestId("folder-case-name-c1");
+      expect(name).toHaveTextContent(longName);
+      expect(name).toHaveStyle({ whiteSpace: "nowrap" });
+      expect(name.textContent).not.toContain("…");
 
-    // ID 열은 XXX-XXXX 폭까지만 보이고, 긴 ID 는 말줄임하되 전체 값은 title 로 남는다
-    const id = screen.getByTestId("folder-case-id-c1");
-    expect(id).toHaveTextContent(longId);
-    expect(id).toHaveStyle({ width: "1%" });
-    expect(id.firstChild).toHaveStyle({
-      whiteSpace: "nowrap",
-      maxWidth: "8.5ch",
-      textOverflow: "ellipsis",
-    });
-    expect(id.firstChild).toHaveAttribute("title", longId);
+      // ID 열은 XXX-XXXX 폭까지만 보이고, 긴 ID 는 말줄임하되 전체 값은 title 로 남는다
+      const id = screen.getByTestId("folder-case-id-c1");
+      expect(id).toHaveTextContent(longId);
+      expect(id).toHaveStyle({ width: "1%" });
+      expect(id.firstChild).toHaveStyle({
+        whiteSpace: "nowrap",
+        maxWidth: "8.5ch",
+        textOverflow: "ellipsis",
+      });
+      expect(id.firstChild).toHaveAttribute("title", longId);
 
-    const owner = screen.getByTestId("folder-case-owner-c1");
-    expect(owner).toHaveTextContent(longOwner);
-    expect(owner.firstChild).toHaveStyle({ whiteSpace: "nowrap" });
-    expect(owner.firstChild).not.toHaveStyle({ textOverflow: "ellipsis" });
-  });
+      const owner = screen.getByTestId("folder-case-owner-c1");
+      expect(owner).toHaveTextContent(longOwner);
+      expect(owner.firstChild).toHaveStyle({ whiteSpace: "nowrap" });
+      expect(owner.firstChild).not.toHaveStyle({ textOverflow: "ellipsis" });
+    },
+  );
 
   it("형태 아이콘·즐겨찾기·ID 열은 내용 폭만 쓰고 좌우 여백을 줄인다", () => {
     render(
@@ -69,8 +72,14 @@ describe("FolderCaseList 한 줄 표시·가로 스크롤 (ICT-495 cl-1, ID 열 
     const row = screen.getByTestId("folder-case-row-c1");
     const [typeCell, favCell] = row.querySelectorAll("td");
     expect(typeCell).toHaveStyle({ width: "1%", paddingRight: "4px" });
-    expect(favCell).toHaveStyle({ width: "1%", paddingLeft: "0px", paddingRight: "0px" });
-    expect(screen.getByTestId("folder-case-id-c1")).toHaveStyle({ paddingLeft: "4px" });
+    expect(favCell).toHaveStyle({
+      width: "1%",
+      paddingLeft: "0px",
+      paddingRight: "0px",
+    });
+    expect(screen.getByTestId("folder-case-id-c1")).toHaveStyle({
+      paddingLeft: "4px",
+    });
   });
 
   it("표는 고정 배치를 쓰지 않고, 컨테이너에 가로 스크롤을 둔다", () => {
