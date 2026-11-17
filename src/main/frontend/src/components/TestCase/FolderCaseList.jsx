@@ -58,6 +58,16 @@ SingleLineText.propTypes = {
   sx: PropTypes.object,
 };
 
+// ID 열은 `XXX-XXXX`(8글자) 폭까지만 보인다. 열 폭을 내용 폭으로 줄여(width 1%) 표의 남는 폭을
+// 나눠 받지 않게 하고, 더 긴 ID 는 말줄임하고 전체 값은 title 로 보인다.
+const ID_COLUMN_SX = { ...SINGLE_LINE_SX, width: "1%" };
+const ID_TEXT_SX = {
+  fontFamily: "monospace",
+  maxWidth: "8.5ch",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
 // 설명·기대결과처럼 여러 줄인 열은 폭을 묶어 두고 그 안에서 줄바꿈한다(가로로 끝없이 늘지 않게)
 const MULTI_LINE_CELL_SX = { minWidth: 200, maxWidth: 320 };
 
@@ -325,7 +335,7 @@ const FolderCaseList = ({
                     {t("testcase.folderList.column.folder", "폴더")}
                   </TableCell>
                 )}
-                <TableCell sx={SINGLE_LINE_SX}>
+                <TableCell sx={ID_COLUMN_SX}>
                   {t("testcase.folderList.column.id", "ID")}
                 </TableCell>
                 <TableCell sx={SINGLE_LINE_SX}>
@@ -465,12 +475,16 @@ const FolderCaseList = ({
                         })()}
                       </TableCell>
                     )}
-                    <TableCell data-testid={`folder-case-id-${item.id}`}>
+                    <TableCell
+                      sx={ID_COLUMN_SX}
+                      data-testid={`folder-case-id-${item.id}`}
+                    >
                       {!isChildFolder && item.displayId && (
                         <SingleLineText
                           text={item.displayId}
                           color="text.secondary"
-                          sx={{ fontFamily: "monospace" }}
+                          title={item.displayId}
+                          sx={ID_TEXT_SX}
                         />
                       )}
                     </TableCell>
