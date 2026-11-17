@@ -42,6 +42,10 @@ import {
   matchesAutomationFilter,
 } from "./TestCaseTree/utils/treeFilter.js";
 import useCaseAutomationFilter from "../hooks/useCaseAutomationFilter.js";
+import {
+  resolveFilterExpanded,
+  toggleFilterCollapsed,
+} from "./TestCaseTree/filterExpansion.js";
 import TestCaseBulkOperations from "./TestCase/TestCaseBulkOperations.jsx";
 import testCaseService from "../services/testCaseService.js";
 import {
@@ -61,6 +65,9 @@ import {
  * - useTreeVirtualizer: 가상화 (flatData, virtualizer)
  * - TreeHeader / TreeContextMenu / TreeDialogs: UI 컴포넌트
  */
+// 필터가 걸린 동안 접은 폴더가 없을 때 쓰는 빈 집합(렌더마다 새로 만들지 않는다)
+const EMPTY_ID_SET = new Set();
+
 const TestCaseTree = ({
   projectId,
   onSelectTestCase,
@@ -333,15 +340,50 @@ const TestCaseTree = ({
   );
 
   // ── 4. 가상화 ──────────────────────────────────────────────────────────────
-  // 필터 활성 시 일치 경로의 폴더를 모두 펼침 (사용자 expanded 상태는 보존)
+  // 필터 활성 시 일치 경로의 폴더를 처음에 모두 펼침 (사용자 expanded 상태는 보존)
+  // ICT-497: 필터가 펼친 폴더도 사용자가 접을 수 있게, 필터가 걸린 동안 접은 폴더를 따로 기억한다.
+  // 필터 결과가 바뀌면(filterMatchedFolderIds 가 새 배열) 접은 기록을 버리고 다시 모두 펼친다.
+  const [filterCollapse, setFilterCollapse] = useState({
+    source: null,
+    ids: new Set(),
+  });
+  const filterCollapsedIds =
+    filterCollapse.source === filterMatchedFolderIds
+      ? filterCollapse.ids
+      : EMPTY_ID_SET;
   const effectiveExpanded = useMemo(
     () =>
-      filterMatchedFolderIds
-        ? Array.from(
-            new Set([...treeState.expanded, ...filterMatchedFolderIds]),
-          )
-        : treeState.expanded,
-    [filterMatchedFolderIds, treeState.expanded],
+      resolveFilterExpanded(
+        treeState.expanded,
+        filterMatchedFolderIds,
+        filterCollapsedIds,
+      ),
+    [filterMatchedFolderIds, treeState.expanded, filterCollapsedIds],
+  );
+  const handleToggleNode = useCallback(
+    (e, nodeId) => {
+      if (!filterMatchedFolderIds) {
+        treeState.handleToggleNode(e, nodeId);
+        return;
+      }
+      e.stopPropagation();
+      const wasExpanded = effectiveExpanded.includes(nodeId);
+      setFilterCollapse({
+        source: filterMatchedFolderIds,
+        ids: toggleFilterCollapsed(filterCollapsedIds, nodeId, wasExpanded),
+      });
+      // 사용자가 펼친 기록과도 맞춘다(필터를 풀었을 때 보이는 상태).
+      if (wasExpanded === treeState.expanded.includes(nodeId)) {
+        treeState.handleToggleNode(e, nodeId);
+      }
+    },
+    [
+      filterMatchedFolderIds,
+      filterCollapsedIds,
+      effectiveExpanded,
+      treeState.expanded,
+      treeState.handleToggleNode,
+    ],
   );
 
   const { flatData, virtualizer, parentRef } = useTreeVirtualizer({
@@ -510,7 +552,7 @@ const TestCaseTree = ({
 
             const isSelected = treeState.selected === node.id;
             const isChecked = treeState.checkedIds.includes(node.id);
-            const isExpanded = treeState.expanded.includes(node.id);
+            const isExpanded = effectiveExpanded.includes(node.id);
             const nodeOrder =
               actions.orderMap[node.id] ?? node.displayOrder ?? 0;
             const testCaseCount = isFolder(node)
@@ -536,7 +578,7 @@ const TestCaseTree = ({
                   isSelected={isSelected}
                   isChecked={isChecked}
                   isExpanded={isExpanded}
-                  onToggle={(e) => treeState.handleToggleNode(e, node.id)}
+                  onToggle={(e) => handleToggleNode(e, node.id)}
                   selectable={selectable}
                   userRole={projectRole}
                   orderEditMode={actions.orderEditMode}

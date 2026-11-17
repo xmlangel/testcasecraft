@@ -49,7 +49,7 @@ import useElementWidth from "../hooks/useElementWidth.js";
 import usePaneLayoutMode from "../hooks/usePaneLayoutMode.js";
 import useEscapeToClose from "../hooks/useEscapeToClose.js";
 import PaneLayoutSelector from "./common/PaneLayoutSelector.jsx";
-import { resolvePaneLayout, LIST_PEEK_WIDTH } from "./TestCase/splitPane.js";
+import { resolvePaneLayout } from "./TestCase/splitPane.js";
 import {
   getOrderedTestCaseIds,
   getFilteredNavTestCaseIds,
@@ -186,9 +186,6 @@ const SPLIT_WIDTH_STORAGE_KEY = "testcase-manager-execution-split-width";
 const SPLIT_MIN_WIDTH = 560;
 const SPLIT_MAX_WIDTH = 1200;
 const SPLIT_DEFAULT_WIDTH = 640;
-// ICT-492 겹친 결과 칸(2단)의 최소 폭. 단계 표는 720px 아래에서 실제 결과 편집기를 다음 줄로 내리므로
-// (ICT-491 fx-2) 520px 에서도 글자 단위로 접히지 않는다. 1280px 화면에서 2단을 쓰려면 554px 까지 내려야 한다.
-const SPLIT_OVERLAY_MIN_WIDTH = 520;
 // 가운데 칸(실행 요약·케이스 목록)이 이 폭 아래로 줄면 요약의 상태·시작일시가 한 글자 폭으로
 // 눌리고 케이스 목록이 케이스명 열까지만 보인다(1600px 캡처, gg-3).
 const EXECUTION_MAIN_MIN_WIDTH = 640;
@@ -338,9 +335,8 @@ const TestExecutionForm = ({
       ? saved
       : SPLIT_DEFAULT_WIDTH;
   });
-  // ICT-492: 폭과 고른 배치로 1단·2단·3단을 정한다(케이스 화면과 같은 규칙).
-  // 3단은 가운데 칸과 결과 칸을 나란히, 2단은 결과 칸을 가운데 칸 위에 오른쪽으로 겹쳐(케이스 목록의
-  // 앞쪽 열은 남김), 1단은 왼쪽 실행 목록을 접고 결과 칸을 전체 폭으로 겹친다.
+  // ICT-492·497: 폭과 고른 배치로 나란히(화면 표기 2단)와 겹침(1단)을 정한다(케이스 화면과 같은 규칙).
+  // 나란히는 가운데 칸과 결과 칸을 나란히 두고, 겹침은 왼쪽 실행 목록을 접고 결과 칸을 전체 폭으로 겹친다.
   // 겹친 칸을 닫아도 케이스 목록의 스크롤과 선택 표시는 그대로 남는다.
   const [layoutMode, setLayoutMode] = usePaneLayoutMode();
   const [resultOverlayOpen, setResultOverlayOpen] = useState(true);
@@ -355,8 +351,6 @@ const TestExecutionForm = ({
     desiredWidth: splitWidth,
     listMinWidth: EXECUTION_MAIN_MIN_WIDTH,
     detailMinWidth: SPLIT_MIN_WIDTH,
-    overlayMinWidth: SPLIT_OVERLAY_MIN_WIDTH,
-    peekWidth: LIST_PEEK_WIDTH,
     gutterWidth: RESIZER_WIDTH,
   });
   const canDockResult = isSplitCapable;
@@ -1541,7 +1535,7 @@ const TestExecutionForm = ({
     />
   ) : null;
 
-  // ICT-492 결과 칸: 3단은 오른쪽에 나란히, 2단·1단은 가운데 칸 위에 겹친다.
+  // ICT-492 결과 칸: 나란히(2단)는 오른쪽에 두고, 겹침(1단)은 가운데 칸 위에 덮는다.
   // 겹친 칸은 실행 화면 높이를 따라가고, 안쪽 칸이 화면 높이에 붙어(sticky) 따로 스크롤한다.
   let splitPane = null;
   if (showSplit && !isResultOverlay) {
@@ -1580,21 +1574,15 @@ const TestExecutionForm = ({
           top: layoutBarTop,
           bottom: 0,
           right: 0,
-          width: resultTier === 2 ? resultLayout.width : "100%",
+          width: "100%",
           zIndex: 3,
           display: resultOverlayOpen ? "flex" : "none",
           // background.paper 는 반투명(0.7)이라 아래 목록이 비친다. 겹친 칸은 불투명한 바탕을 쓴다.
           bgcolor: "background.default",
           boxShadow: 8,
-          borderRadius: resultTier === 2 ? "8px 0 0 8px" : 1,
+          borderRadius: 1,
         }}
       >
-        {resultTier === 2 ? (
-          <Resizer
-            onDrag={handleSplitResize}
-            testId="execution-result-resizer"
-          />
-        ) : null}
         <Box
           sx={{
             flex: 1,
@@ -1949,7 +1937,6 @@ const TestExecutionForm = ({
                 loadMore={loadMore}
                 handleOpenResultForm={handleOpenResultForm}
                 activeTestCaseId={showSplit ? splitCaseId : null}
-                peek={isResultOverlay && resultOverlayOpen && resultTier === 2}
                 handleShowPrevResults={handleShowPrevResults}
                 handleAttachmentClick={handleAttachmentClick}
                 handleCopyLink={handleCopyLink}

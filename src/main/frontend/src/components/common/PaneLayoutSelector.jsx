@@ -11,7 +11,8 @@ import {
 import { useTranslation } from "../../context/I18nContext";
 
 /**
- * ICT-492 배치 선택: 자동·1단·2단·3단.
+ * ICT-492·497 배치 선택: 자동·1단·2단.
+ * 2단(나란히)의 저장값은 이전 3단 선택이 이어지도록 "3" 을 그대로 쓴다.
  * 고른 배치가 폭에 맞지 않아 낮은 단으로 내려가면 옆에 실제 배치를 표시한다.
  */
 const PaneLayoutSelector = ({ mode, onChange, tier, downgraded = false }) => {
@@ -19,8 +20,7 @@ const PaneLayoutSelector = ({ mode, onChange, tier, downgraded = false }) => {
   const options = [
     { value: "auto", label: t("layout.pane.auto", "자동") },
     { value: "1", label: t("layout.pane.one", "1단") },
-    { value: "2", label: t("layout.pane.two", "2단") },
-    { value: "3", label: t("layout.pane.three", "3단") },
+    { value: "3", label: t("layout.pane.two", "2단") },
   ];
   const tierLabel = options.find((o) => o.value === String(tier))?.label;
 
@@ -74,9 +74,9 @@ const PaneLayoutSelector = ({ mode, onChange, tier, downgraded = false }) => {
 };
 
 PaneLayoutSelector.propTypes = {
-  mode: PropTypes.oneOf(["auto", "1", "2", "3"]).isRequired,
+  mode: PropTypes.oneOf(["auto", "1", "3"]).isRequired,
   onChange: PropTypes.func.isRequired,
-  tier: PropTypes.oneOf([1, 2, 3]),
+  tier: PropTypes.oneOf([1, 3]),
   downgraded: PropTypes.bool,
 };
 
