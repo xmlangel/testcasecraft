@@ -135,17 +135,19 @@ const TestCaseBasicInfo = ({
           "& > .info-full": { gridColumn: "1 / -1" },
         }}
       >
-        {/* Name 필드 + AI 생성 버튼 */}
+        {/* Name 필드 + AI 생성 버튼. ICT-496: AI 버튼·자동/수동 토글을 한 줄로 두어
+            Name 줄이 이름 입력칸 높이를 넘지 않게 한다(Description 과의 간격 축소). */}
         <Box
           className="info-full"
-          sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}
+          data-testid="testcase-name-row"
+          sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
         >
           <TextField
             label={t("testcase.form.name", "이름")}
             value={testCase.name || ""}
             onChange={onChange("name")}
             fullWidth
-            margin="normal"
+            margin="none"
             variant="outlined"
             error={!!errors.name}
             placeholder={t("testcase.form.testcaseName", "테스트케이스 이름")}
@@ -157,12 +159,12 @@ const TestCaseBasicInfo = ({
           {/* AI 자동 생성 버튼 - LLM이 활성화되어 있고 VIEWER가 아닌 경우만 표시 */}
           {!isViewer && isLlmAvailable && (
             <Box
+              data-testid="testcase-ai-controls"
               sx={{
                 display: "flex",
-                flexDirection: "column",
+                flexDirection: "row",
                 alignItems: "center",
-                mt: 1,
-                gap: 0.5,
+                gap: 0.25,
               }}
             >
               <Tooltip
@@ -182,7 +184,6 @@ const TestCaseBasicInfo = ({
                     disabled={isAiGenerating}
                     size="medium"
                     sx={{
-                      mt: 1,
                       background: isAiGenerating
                         ? "transparent"
                         : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary?.main || "#9c27b0"} 100%)`,
@@ -249,28 +250,6 @@ const TestCaseBasicInfo = ({
             </Box>
           )}
         </Box>
-
-        {isVisible("description") && (
-          <Box className="info-full">
-            <MarkdownFieldEditor
-              label={t("testcase.form.description", "설명")}
-              value={testCase.description || ""}
-              placeholder={t(
-                "testcase.form.testcaseDescription",
-                "테스트케이스 설명",
-              )}
-              height={120}
-              isViewer={isViewer}
-              theme={theme}
-              t={t}
-              onChange={(value) => onTestCaseChange("description", value)}
-              onPaste={(event) =>
-                onMarkdownPaste(event, { type: "field", field: "description" })
-              }
-              testid="testcase-description-input"
-            />
-          </Box>
-        )}
       </Box>
 
       {/* ICT-495 cl-4: 실행 유형 · 우선순위 · 테스트 기법을 작은 입력칸으로 한 줄에 둔다.
@@ -736,6 +715,29 @@ const TestCaseBasicInfo = ({
 
       {/* ICT-495 cl-4: 정보성 필드(소유자·Parent·순서·수정자·식별 정보) 한 줄 요약(상위가 넘겨줌) */}
       {metadataSlot}
+
+      {/* ICT-496: 설명은 실행 유형·연결 항목·정보 요약 다음, 전제 조건 앞에 둔다 */}
+      {isVisible("description") && (
+        <Box data-testid="testcase-description-block">
+          <MarkdownFieldEditor
+            label={t("testcase.form.description", "설명")}
+            value={testCase.description || ""}
+            placeholder={t(
+              "testcase.form.testcaseDescription",
+              "테스트케이스 설명",
+            )}
+            height={120}
+            isViewer={isViewer}
+            theme={theme}
+            t={t}
+            onChange={(value) => onTestCaseChange("description", value)}
+            onPaste={(event) =>
+              onMarkdownPaste(event, { type: "field", field: "description" })
+            }
+            testid="testcase-description-input"
+          />
+        </Box>
+      )}
 
       {/* 전제 조건 → (사후 조건) → 단계(TestCaseForm) 순서 */}
       <Box data-testid="testcase-conditions">
