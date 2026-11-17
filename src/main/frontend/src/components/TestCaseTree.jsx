@@ -37,7 +37,11 @@ import TreeHeader from "./TestCaseTree/components/TreeHeader.jsx";
 import TreeContextMenu from "./TestCaseTree/components/TreeContextMenu.jsx";
 import TreeDialogs from "./TestCaseTree/components/TreeDialogs.jsx";
 import TreeVirtualNodes from "./TestCaseTree/components/TreeVirtualNodes.jsx";
-import { AUTOMATION_FILTER } from "./TestCaseTree/utils/treeFilter.js";
+import {
+  AUTOMATION_FILTER,
+  matchesAutomationFilter,
+} from "./TestCaseTree/utils/treeFilter.js";
+import useCaseAutomationFilter from "../hooks/useCaseAutomationFilter.js";
 import TestCaseBulkOperations from "./TestCase/TestCaseBulkOperations.jsx";
 import testCaseService from "../services/testCaseService.js";
 import {
@@ -109,9 +113,18 @@ const TestCaseTree = ({
   // ── 0.5. 트리 필터 (이름 부분 일치, 조상/하위 경로 유지) ──────────────────
   const [filterText, setFilterText] = useState("");
   // ICT-488: 자동화 여부 필터 (전체·자동화·수동). 검색어와 AND 로 묶인다.
-  const [automationFilter, setAutomationFilter] = useState(
+  // ICT-496: 케이스 화면(selectable 아님)에서는 가운데 케이스 목록과 같은 값을 쓴다.
+  const [localAutomationFilter, setLocalAutomationFilter] = useState(
     AUTOMATION_FILTER.ALL,
   );
+  const [sharedAutomationFilter, setSharedAutomationFilter] =
+    useCaseAutomationFilter();
+  const automationFilter = selectable
+    ? localAutomationFilter
+    : sharedAutomationFilter;
+  const setAutomationFilter = selectable
+    ? setLocalAutomationFilter
+    : setSharedAutomationFilter;
 
   // ── 1. 트리 상태 (초기 orderMap은 빈 객체; actions에서 sync됨) ──────────────
   const treeState = useTestCaseTree({
@@ -277,15 +290,34 @@ const TestCaseTree = ({
   );
 
   // 폴더별 재귀 케이스 개수 (폴더 전용 모드에서도 정확한 수치 유지)
+  // ICT-496: 폴더·가상 노드 개수도 자동화 필터를 따른다(전체를 고르면 예전과 같다)
+  const automationCountSource = useMemo(
+    () =>
+      automationFilter === AUTOMATION_FILTER.ALL
+        ? treeState.filteredTestCases
+        : treeState.filteredTestCases.filter(
+            (tc) =>
+              tc &&
+              (tc.type !== "testcase" ||
+                matchesAutomationFilter(tc, automationFilter)),
+          ),
+    [treeState.filteredTestCases, automationFilter],
+  );
+  const automationCaseCount = useMemo(
+    () =>
+      automationCountSource.filter((tc) => tc && tc.type === "testcase").length,
+    [automationCountSource],
+  );
+
   const folderCaseCountMap = useMemo(
-    () => buildFolderCaseCountMap(treeState.filteredTestCases),
-    [treeState.filteredTestCases],
+    () => buildFolderCaseCountMap(automationCountSource),
+    [automationCountSource],
   );
 
   // 폴더 미지정 케이스 수 (가상 노드 배지)
   const unfiledCount = useMemo(
-    () => treeState.filteredTestCases.filter(isUnfiledTestCase).length,
-    [treeState.filteredTestCases],
+    () => automationCountSource.filter(isUnfiledTestCase).length,
+    [automationCountSource],
   );
 
   // 가상 노드 선택 → 우측 패널에 해당 목록 표시
@@ -602,7 +634,7 @@ const TestCaseTree = ({
       {!selectable && projectId && (
         <>
           <TreeVirtualNodes
-            allCount={treeState.totalTestCaseCount}
+            allCount={automationCaseCount}
             unfiledCount={unfiledCount}
             selectedId={
               typeof treeState.selected === "string" ? treeState.selected : null

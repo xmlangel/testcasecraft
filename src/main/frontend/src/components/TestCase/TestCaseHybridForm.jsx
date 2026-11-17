@@ -58,6 +58,11 @@ import useElementWidth from "../../hooks/useElementWidth.js";
 import usePaneLayoutMode from "../../hooks/usePaneLayoutMode.js";
 import useEscapeToClose from "../../hooks/useEscapeToClose.js";
 import PaneLayoutSelector from "../common/PaneLayoutSelector.jsx";
+import useCaseAutomationFilter from "../../hooks/useCaseAutomationFilter.js";
+import {
+  AUTOMATION_FILTER,
+  matchesAutomationFilter,
+} from "../TestCaseTree/utils/treeFilter.js";
 import ProjectHeaderSlot from "../common/ProjectHeaderSlot.jsx";
 import {
   clampListWidth,
@@ -260,15 +265,20 @@ const TestCaseHybridForm = ({
   const isFolderSelected = selectedItem?.type === "folder";
 
   // 폴더 케이스 목록에서 사용할 프로젝트 전체 항목 (유효성 필터만 적용)
+  // ICT-496: 트리의 자동화 필터(전체·자동화·수동)를 가운데 목록에도 건다. 폴더는 그대로 둔다.
+  const [automationFilter] = useCaseAutomationFilter();
   const folderListItems = useMemo(
     () =>
       testCases.filter(
         (tc) =>
           String(tc.projectId) === String(effectiveProjectId) &&
           tc.name &&
-          tc.name.trim().length > 0,
+          tc.name.trim().length > 0 &&
+          (automationFilter === AUTOMATION_FILTER.ALL ||
+            tc.type !== "testcase" ||
+            matchesAutomationFilter(tc, automationFilter)),
       ),
-    [testCases, effectiveProjectId],
+    [testCases, effectiveProjectId, automationFilter],
   );
 
   // 가상 노드 (전체 / 폴더 미지정) 목록 데이터
