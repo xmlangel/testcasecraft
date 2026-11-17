@@ -58,6 +58,12 @@ import useElementWidth from "../../hooks/useElementWidth.js";
 import usePaneLayoutMode from "../../hooks/usePaneLayoutMode.js";
 import useEscapeToClose from "../../hooks/useEscapeToClose.js";
 import PaneLayoutSelector from "../common/PaneLayoutSelector.jsx";
+import useCaseAutomationFilter from "../../hooks/useCaseAutomationFilter.js";
+import {
+  AUTOMATION_FILTER,
+  matchesAutomationFilter,
+} from "../TestCaseTree/utils/treeFilter.js";
+import ProjectHeaderSlot from "../common/ProjectHeaderSlot.jsx";
 import {
   clampListWidth,
   detailWidthForList,
@@ -65,7 +71,6 @@ import {
   resolveListContextId,
   CASE_LIST_DEFAULT_WIDTH,
   CASE_LIST_MIN_WIDTH,
-  CASE_LIST_PRIORITY_MIN_WIDTH,
   DETAIL_PANE_DEFAULT_WIDTH,
   DETAIL_PANE_MIN_WIDTH,
   SPLIT_GUTTER_WIDTH,
@@ -260,15 +265,20 @@ const TestCaseHybridForm = ({
   const isFolderSelected = selectedItem?.type === "folder";
 
   // 폴더 케이스 목록에서 사용할 프로젝트 전체 항목 (유효성 필터만 적용)
+  // ICT-496: 트리의 자동화 필터(전체·자동화·수동)를 가운데 목록에도 건다. 폴더는 그대로 둔다.
+  const [automationFilter] = useCaseAutomationFilter();
   const folderListItems = useMemo(
     () =>
       testCases.filter(
         (tc) =>
           String(tc.projectId) === String(effectiveProjectId) &&
           tc.name &&
-          tc.name.trim().length > 0,
+          tc.name.trim().length > 0 &&
+          (automationFilter === AUTOMATION_FILTER.ALL ||
+            tc.type !== "testcase" ||
+            matchesAutomationFilter(tc, automationFilter)),
       ),
-    [testCases, effectiveProjectId],
+    [testCases, effectiveProjectId, automationFilter],
   );
 
   // 가상 노드 (전체 / 폴더 미지정) 목록 데이터
@@ -372,7 +382,7 @@ const TestCaseHybridForm = ({
   const showListPane = isSplitView && !detailMaximized;
   const isOverlay = showListPane && paneLayout.overlay;
   const detailVisible = !isOverlay || overlayOpen;
-  // 3단에서 목록이 실제로 차지하는 폭. 좁으면 우선순위 열을 감춘다.
+  // 3단에서 목록이 실제로 차지하는 폭
   const listPaneWidth =
     layoutWidth && !paneLayout.overlay
       ? layoutWidth - paneLayout.width - SPLIT_GUTTER_WIDTH
@@ -930,13 +940,26 @@ const TestCaseHybridForm = ({
       data-testid="testcase-split-view"
       data-pane-tier={showListPane ? tier : "max"}
     >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          mb: 0.5,
-          flexShrink: 0,
-        }}
+      {/* ICT-496: 배치 전환은 프로젝트 머리 줄(북마크·설정 아이콘 옆)에 둬서 한 줄을 아낀다.
+          머리 줄이 없는 곳에서는 예전처럼 이 칸 위에 한 줄로 그린다. */}
+      <ProjectHeaderSlot
+        fallback={
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              mb: 0.5,
+              flexShrink: 0,
+            }}
+          >
+            <PaneLayoutSelector
+              mode={layoutMode}
+              onChange={setLayoutMode}
+              tier={tier}
+              downgraded={paneLayout.downgraded}
+            />
+          </Box>
+        }
       >
         <PaneLayoutSelector
           mode={layoutMode}
@@ -944,7 +967,7 @@ const TestCaseHybridForm = ({
           tier={tier}
           downgraded={paneLayout.downgraded}
         />
-      </Box>
+      </ProjectHeaderSlot>
       <Box
         sx={{ position: "relative", display: "flex", flex: 1, minHeight: 0 }}
       >
@@ -969,9 +992,6 @@ const TestCaseHybridForm = ({
                 latestResults={latestResults}
                 selectedId={selectedItem?.id}
                 compact
-                hidePriority={
-                  !isOverlay && listPaneWidth < CASE_LIST_PRIORITY_MIN_WIDTH
-                }
               />
             </Box>
             {!isOverlay && (

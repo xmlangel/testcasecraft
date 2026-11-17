@@ -55,14 +55,14 @@ describe("TestCaseBasicInfo 접지 않는 2열 격자 (ICT-494 tl-3)", () => {
     expect(screen.getByTestId("testcase-name-input")).toBeVisible();
   });
 
-  it("이름 → 설명 → 실행 유형·우선순위·기법 한 줄 → 연결 항목 → 정보 요약 순서다 (ICT-495 cl-4)", () => {
+  it("이름 → 실행 유형·우선순위·기법 한 줄 → 연결 항목 → 정보 요약 → 설명 순서다 (ICT-496)", () => {
     renderInfo({ metadataSlot: <div data-testid="meta-slot" /> });
     const order = [
       screen.getByTestId("testcase-name-input"),
-      screen.getByTestId("testcase-description-input"),
       screen.getByTestId("testcase-type-row"),
       screen.getByTestId("testcase-custom-fields"),
       screen.getByTestId("meta-slot"),
+      screen.getByTestId("testcase-description-input"),
       screen.getByTestId("testcase-conditions"),
     ];
     for (let i = 1; i < order.length; i += 1) {
@@ -126,5 +126,26 @@ describe("TestCaseBasicInfo 접지 않는 2열 격자 (ICT-494 tl-3)", () => {
     // 1600px 3단 상세 칸(약 700px)은 2열, 2단·1단 겹침처럼 좁은 칸(380~)은 1열
     expect(INFO_GRID_TWO_COLUMN_MIN_WIDTH).toBeGreaterThan(380);
     expect(INFO_GRID_TWO_COLUMN_MIN_WIDTH).toBeLessThan(640);
+  });
+});
+
+describe("TestCaseBasicInfo 이름 줄 높이 (ICT-496)", () => {
+  it("AI 버튼과 자동/수동 토글을 한 줄로 두고 이름 입력칸에 바깥 여백을 두지 않는다", () => {
+    renderInfo({
+      isLlmAvailable: true,
+      autoAiMode: false,
+      onAiGenerate: () => {},
+      onAutoAiModeChange: () => {},
+    });
+    expect(screen.getByTestId("testcase-name-row")).toHaveStyle({
+      alignItems: "center",
+    });
+    expect(screen.getByTestId("testcase-ai-controls")).toHaveStyle({
+      flexDirection: "row",
+    });
+    const field = screen
+      .getByTestId("testcase-name-input")
+      .closest(".MuiFormControl-root");
+    expect(field).not.toHaveClass("MuiFormControl-marginNormal");
   });
 });

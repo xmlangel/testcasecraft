@@ -255,8 +255,8 @@ describe("detailWidthForList (ICT-494 tl-1 상세가 나머지를 쓴다)", () =
   it("자리가 좁으면 목록을 먼저 줄여 상세가 목록보다 좁아지지 않게 한다", () => {
     // 1280px 화면 분할 칸 약 844. 반으로 나누면 413 이라 목록을 413 으로 줄이고 상세도 413
     expect(detailWidthForList({ ...base, containerWidth: 844 })).toBe(413);
-    // 목록 최소 폭(400) 아래로는 줄이지 않는다: 800 - 400 - 18 = 382
-    expect(detailWidthForList({ ...base, containerWidth: 800 })).toBe(382);
+    // 800px 칸도 반으로 나눈다: 목록 391 · 상세 800 - 391 - 18 = 391
+    expect(detailWidthForList({ ...base, containerWidth: 800 })).toBe(391);
   });
 
   it("목록 폭을 늘리면 그만큼 상세가 줄어든다", () => {
