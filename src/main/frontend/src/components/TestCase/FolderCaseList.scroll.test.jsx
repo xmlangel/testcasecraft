@@ -57,6 +57,22 @@ describe("FolderCaseList 한 줄 표시·가로 스크롤 (ICT-495 cl-1, ID 열 
     expect(owner.firstChild).not.toHaveStyle({ textOverflow: "ellipsis" });
   });
 
+  it("형태 아이콘·즐겨찾기·ID 열은 내용 폭만 쓰고 좌우 여백을 줄인다", () => {
+    render(
+      <FolderCaseList
+        folder={folder}
+        items={items}
+        favoriteIds={new Set()}
+        onToggleFavorite={() => {}}
+      />,
+    );
+    const row = screen.getByTestId("folder-case-row-c1");
+    const [typeCell, favCell] = row.querySelectorAll("td");
+    expect(typeCell).toHaveStyle({ width: "1%", paddingRight: "4px" });
+    expect(favCell).toHaveStyle({ width: "1%", paddingLeft: "0px", paddingRight: "0px" });
+    expect(screen.getByTestId("folder-case-id-c1")).toHaveStyle({ paddingLeft: "4px" });
+  });
+
   it("표는 고정 배치를 쓰지 않고, 컨테이너에 가로 스크롤을 둔다", () => {
     render(<FolderCaseList folder={folder} items={items} compact />);
     expect(screen.getByTestId("folder-case-table")).toHaveStyle({
