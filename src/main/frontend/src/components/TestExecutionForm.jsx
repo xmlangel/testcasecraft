@@ -184,11 +184,17 @@ const COMPACT_ACCORDION_SX = {
 const SPLIT_WIDTH_STORAGE_KEY = "testcase-manager-execution-split-width";
 // 결과 칸이 이 폭 아래로 줄면 제목과 단계 표(No·Step·Expected·Actual·Result)가 한 글자씩 접힌다(448px 실측).
 const SPLIT_MIN_WIDTH = 560;
-const SPLIT_MAX_WIDTH = 1200;
+// ICT-498: 결과 칸의 최대 폭은 화면 폭에서 정한다(목록 칸을 EXECUTION_MAIN_DRAG_MIN_WIDTH 까지 줄일 때까지).
+// 이 값은 저장된 폭을 읽을 때 깨진 값을 거르는 상한으로만 쓴다.
+const SPLIT_MAX_WIDTH = 4000;
 const SPLIT_DEFAULT_WIDTH = 640;
 // 가운데 칸(실행 요약·케이스 목록)이 이 폭 아래로 줄면 요약의 상태·시작일시가 한 글자 폭으로
 // 눌리고 케이스 목록이 케이스명 열까지만 보인다(1600px 캡처, gg-3).
+// 1단·2단을 정할 때만 쓴다. 이 폭이 안 나오면 2단(나란히)을 1단(겹침)으로 내린다.
 const EXECUTION_MAIN_MIN_WIDTH = 640;
+// ICT-498: 사용자가 막대를 끌어 줄일 때는 체크·ID 열까지 보이는 폭(여백 32 + 체크 40 + ID 110 + 테두리·스크롤 막대)까지 허용한다.
+// 목록 표는 가로 스크롤이라 나머지 열은 밀어서 본다.
+const EXECUTION_MAIN_DRAG_MIN_WIDTH = 200;
 const RESIZER_WIDTH = 6;
 // ICT-492 배치 선택 줄 높이. 겹친 결과 칸은 이 줄 아래에서 시작해 선택과 「폭이 좁아」 표시를 가리지 않는다.
 const LAYOUT_BAR_HEIGHT = 32;
@@ -345,7 +351,7 @@ const TestExecutionForm = ({
   const layoutWidth = splitViewWidth
     ? splitViewWidth - (listHiddenByLayout ? listReserveWidth : 0)
     : 0;
-  const resultLayout = resolvePaneLayout({
+  const baseResultLayout = resolvePaneLayout({
     mode: layoutMode,
     containerWidth: layoutWidth,
     desiredWidth: splitWidth,
@@ -353,6 +359,22 @@ const TestExecutionForm = ({
     detailMinWidth: SPLIT_MIN_WIDTH,
     gutterWidth: RESIZER_WIDTH,
   });
+  // ICT-498: 나란히로 정해진 뒤에는 사용자가 넓힌 결과 칸 폭을 목록이 ID 열 폭이 될 때까지 그대로 준다.
+  const splitMaxWidth = layoutWidth
+    ? layoutWidth - EXECUTION_MAIN_DRAG_MIN_WIDTH - RESIZER_WIDTH
+    : SPLIT_MAX_WIDTH;
+  const resultLayout =
+    baseResultLayout.tier === 3 && layoutWidth
+      ? {
+          ...baseResultLayout,
+          width: Math.max(
+            baseResultLayout.width,
+            Math.min(splitWidth, splitMaxWidth),
+          ),
+        }
+      : baseResultLayout;
+  const splitMaxWidthRef = useRef(splitMaxWidth);
+  splitMaxWidthRef.current = splitMaxWidth;
   const canDockResult = isSplitCapable;
   const isResultOpen = Boolean(canDockResult && splitCaseId && execution?.id);
   const isResultOverlay = isResultOpen && resultLayout.overlay;
@@ -386,7 +408,7 @@ const TestExecutionForm = ({
     // 화면에 맞춰 줄어든 폭에서 출발해야 끄는 즉시 반응한다.
     setSplitWidth(() => {
       const next = Math.min(
-        SPLIT_MAX_WIDTH,
+        Math.max(SPLIT_MIN_WIDTH, splitMaxWidthRef.current),
         Math.max(SPLIT_MIN_WIDTH, effectiveSplitWidthRef.current - dx),
       );
       localStorage.setItem(SPLIT_WIDTH_STORAGE_KEY, String(next));
@@ -1620,7 +1642,9 @@ const TestExecutionForm = ({
           ...(embedded ? { p: 2 } : PAGE_CONTAINER_SX.main),
           flex: 1,
           minWidth:
-            showSplit && !isResultOverlay ? EXECUTION_MAIN_MIN_WIDTH : 0,
+            showSplit && !isResultOverlay ? EXECUTION_MAIN_DRAG_MIN_WIDTH : 0,
+          // 줄인 칸 밖으로 요약·필터가 넘쳐 결과 칸을 덮지 않게 자른다(clip 은 스크롤 칸을 만들지 않아 sticky 가 유지된다).
+          overflowX: showSplit && !isResultOverlay ? "clip" : undefined,
         }}
       >
         {canDockResult && execution?.id ? (
