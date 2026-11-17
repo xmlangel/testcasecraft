@@ -58,6 +58,20 @@ SingleLineText.propTypes = {
   sx: PropTypes.object,
 };
 
+// ID 열은 `XXX-XXXX`(8글자) 폭까지만 보인다. 열 폭을 내용 폭으로 줄여(width 1%) 표의 남는 폭을
+// 나눠 받지 않게 하고, 더 긴 ID 는 말줄임하고 전체 값은 title 로 보인다.
+const ID_COLUMN_SX = { ...SINGLE_LINE_SX, width: "1%", pl: 0.5 };
+
+// 형태 아이콘·즐겨찾기 열은 아이콘 폭만 쓴다. 칸 좌우 여백(기본 16px)을 줄여 아이콘·별·ID 가 붙어 보이게 한다.
+const TYPE_ICON_COLUMN_SX = { width: "1%", pl: 1.5, pr: 0.5 };
+const FAVORITE_COLUMN_SX = { width: "1%", px: 0 };
+const ID_TEXT_SX = {
+  fontFamily: "monospace",
+  maxWidth: "8.5ch",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
 // 설명·기대결과처럼 여러 줄인 열은 폭을 묶어 두고 그 안에서 줄바꿈한다(가로로 끝없이 늘지 않게)
 const MULTI_LINE_CELL_SX = { minWidth: 200, maxWidth: 320 };
 
@@ -258,7 +272,6 @@ const FolderCaseList = ({
   const showDetailColumns = !compact;
   const showPriority = !hidePriority;
   // 좁은 칸에서는 아이콘·즐겨찾기 열을 줄여 이름 열 자리를 남긴다
-  const iconColumnWidth = compact ? 36 : 48;
   // 경로 기준: 가상 목록은 전체 경로, 폴더 선택 시 선택 폴더 기준 상대 경로
   const pathBaseId = rows ? null : folder.id;
 
@@ -318,14 +331,14 @@ const FolderCaseList = ({
           >
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: iconColumnWidth }} />
-                {showFavorite && <TableCell sx={{ width: iconColumnWidth }} />}
+                <TableCell sx={TYPE_ICON_COLUMN_SX} />
+                {showFavorite && <TableCell sx={FAVORITE_COLUMN_SX} />}
                 {showFolderColumn && (
                   <TableCell sx={SINGLE_LINE_SX}>
                     {t("testcase.folderList.column.folder", "폴더")}
                   </TableCell>
                 )}
-                <TableCell sx={SINGLE_LINE_SX}>
+                <TableCell sx={ID_COLUMN_SX}>
                   {t("testcase.folderList.column.id", "ID")}
                 </TableCell>
                 <TableCell sx={SINGLE_LINE_SX}>
@@ -370,7 +383,7 @@ const FolderCaseList = ({
                     sx={{ cursor: "pointer" }}
                     data-testid={`folder-case-row-${item.id}`}
                   >
-                    <TableCell>
+                    <TableCell sx={TYPE_ICON_COLUMN_SX}>
                       {isChildFolder ? (
                         <FolderIcon fontSize="small" color="primary" />
                       ) : (
@@ -378,7 +391,7 @@ const FolderCaseList = ({
                       )}
                     </TableCell>
                     {showFavorite && (
-                      <TableCell>
+                      <TableCell sx={FAVORITE_COLUMN_SX}>
                         {!isChildFolder &&
                           (() => {
                             const active =
@@ -465,12 +478,16 @@ const FolderCaseList = ({
                         })()}
                       </TableCell>
                     )}
-                    <TableCell data-testid={`folder-case-id-${item.id}`}>
+                    <TableCell
+                      sx={ID_COLUMN_SX}
+                      data-testid={`folder-case-id-${item.id}`}
+                    >
                       {!isChildFolder && item.displayId && (
                         <SingleLineText
                           text={item.displayId}
                           color="text.secondary"
-                          sx={{ fontFamily: "monospace" }}
+                          title={item.displayId}
+                          sx={ID_TEXT_SX}
                         />
                       )}
                     </TableCell>
