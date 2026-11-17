@@ -24,11 +24,9 @@ export const SPLIT_GUTTER_WIDTH = 18;
 // ICT-494 tl-1: 케이스 화면은 목록 폭을 먼저 정하고 상세 칸이 나머지를 쓴다(상세가 가장 넓다).
 // Testiny 기준(1600px 화면) 폴더 300 · 목록 450 · 상세 약 720.
 export const CASE_LIST_DEFAULT_WIDTH = 450;
-// 우선순위 열을 빼면 이 폭에서도 이름이 한 글자씩 접히지 않는다.
-export const CASE_LIST_MIN_WIDTH = 400;
+// ICT-496: 목록은 가로 스크롤이라 이름이 접히지 않는다. 형태 아이콘·즐겨찾기·ID 열까지 보이는 폭까지 줄일 수 있다.
+export const CASE_LIST_MIN_WIDTH = 180;
 export const CASE_LIST_MAX_WIDTH = 900;
-// 목록이 이 폭보다 좁으면 우선순위 열을 감춘다. 우선순위는 상세 칸에서 그대로 보인다.
-export const CASE_LIST_PRIORITY_MIN_WIDTH = 560;
 
 export const clampListWidth = (width) =>
   Math.min(CASE_LIST_MAX_WIDTH, Math.max(CASE_LIST_MIN_WIDTH, width));

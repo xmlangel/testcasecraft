@@ -65,7 +65,6 @@ import {
   resolveListContextId,
   CASE_LIST_DEFAULT_WIDTH,
   CASE_LIST_MIN_WIDTH,
-  CASE_LIST_PRIORITY_MIN_WIDTH,
   DETAIL_PANE_DEFAULT_WIDTH,
   DETAIL_PANE_MIN_WIDTH,
   SPLIT_GUTTER_WIDTH,
@@ -372,7 +371,7 @@ const TestCaseHybridForm = ({
   const showListPane = isSplitView && !detailMaximized;
   const isOverlay = showListPane && paneLayout.overlay;
   const detailVisible = !isOverlay || overlayOpen;
-  // 3단에서 목록이 실제로 차지하는 폭. 좁으면 우선순위 열을 감춘다.
+  // 3단에서 목록이 실제로 차지하는 폭
   const listPaneWidth =
     layoutWidth && !paneLayout.overlay
       ? layoutWidth - paneLayout.width - SPLIT_GUTTER_WIDTH
@@ -969,9 +968,6 @@ const TestCaseHybridForm = ({
                 latestResults={latestResults}
                 selectedId={selectedItem?.id}
                 compact
-                hidePriority={
-                  !isOverlay && listPaneWidth < CASE_LIST_PRIORITY_MIN_WIDTH
-                }
               />
             </Box>
             {!isOverlay && (

@@ -271,6 +271,8 @@ const FolderCaseList = ({
   const showFolderColumn = !compact && (Boolean(rows) || hasNestedCases);
   const showDetailColumns = !compact;
   const showPriority = !hidePriority;
+  // 3단 가운데 칸(compact)에서는 소유자를 빼고 우선순위·최근 결과까지만 보인다(ICT-496)
+  const showOwner = !compact;
   // 좁은 칸에서는 아이콘·즐겨찾기 열을 줄여 이름 열 자리를 남긴다
   // 경로 기준: 가상 목록은 전체 경로, 폴더 선택 시 선택 폴더 기준 상대 경로
   const pathBaseId = rows ? null : folder.id;
@@ -359,9 +361,11 @@ const FolderCaseList = ({
                     {t("testcase.folderList.column.priority", "우선순위")}
                   </TableCell>
                 )}
-                <TableCell sx={SINGLE_LINE_SX}>
-                  {t("testcase.folderList.column.owner", "소유자")}
-                </TableCell>
+                {showOwner && (
+                  <TableCell sx={SINGLE_LINE_SX}>
+                    {t("testcase.folderList.column.owner", "소유자")}
+                  </TableCell>
+                )}
                 <TableCell sx={{ ...SINGLE_LINE_SX, width: compact ? 64 : 80 }}>
                   {t("testcase.folderList.column.latestResult", "최근 결과")}
                 </TableCell>
@@ -565,14 +569,16 @@ const FolderCaseList = ({
                       </TableCell>
                     )}
                     {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정) */}
-                    <TableCell data-testid={`folder-case-owner-${item.id}`}>
-                      {!isChildFolder && item.createdBy && (
-                        <SingleLineText
-                          text={item.createdBy}
-                          color="text.secondary"
-                        />
-                      )}
-                    </TableCell>
+                    {showOwner && (
+                      <TableCell data-testid={`folder-case-owner-${item.id}`}>
+                        {!isChildFolder && item.createdBy && (
+                          <SingleLineText
+                            text={item.createdBy}
+                            color="text.secondary"
+                          />
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell>
                       {!isChildFolder && (
                         <LatestResultBar

@@ -33,7 +33,7 @@ describe("FolderCaseList 한 줄 표시·가로 스크롤 (ICT-495 cl-1, ID 열 
     ["좁은 칸 우선순위 숨김", { compact: true, hidePriority: true }],
     ["넓은 칸", {}],
   ])(
-    "%s: 이름·소유자는 줄바꿈 없이 전부, ID 는 8글자 폭으로 그린다",
+    "%s: 이름은 줄바꿈 없이 전부, ID 는 8글자 폭으로 그린다",
     (_label, props) => {
       render(<FolderCaseList folder={folder} items={items} {...props} />);
 
@@ -52,13 +52,16 @@ describe("FolderCaseList 한 줄 표시·가로 스크롤 (ICT-495 cl-1, ID 열 
         textOverflow: "ellipsis",
       });
       expect(id.firstChild).toHaveAttribute("title", longId);
-
-      const owner = screen.getByTestId("folder-case-owner-c1");
-      expect(owner).toHaveTextContent(longOwner);
-      expect(owner.firstChild).toHaveStyle({ whiteSpace: "nowrap" });
-      expect(owner.firstChild).not.toHaveStyle({ textOverflow: "ellipsis" });
     },
   );
+
+  it("넓은 칸의 소유자는 줄바꿈·말줄임 없이 전부 그린다", () => {
+    render(<FolderCaseList folder={folder} items={items} />);
+    const owner = screen.getByTestId("folder-case-owner-c1");
+    expect(owner).toHaveTextContent(longOwner);
+    expect(owner.firstChild).toHaveStyle({ whiteSpace: "nowrap" });
+    expect(owner.firstChild).not.toHaveStyle({ textOverflow: "ellipsis" });
+  });
 
   it("형태 아이콘·즐겨찾기·ID 열은 내용 폭만 쓰고 좌우 여백을 줄인다", () => {
     render(
