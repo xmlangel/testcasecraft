@@ -16,7 +16,7 @@ const readMode = () => {
 };
 
 /**
- * ICT-492 케이스·실행 화면이 함께 쓰는 배치 선택(자동·1단·2단·3단). localStorage 에 저장한다.
+ * ICT-492 케이스·실행 화면이 함께 쓰는 배치 선택(자동·1단·2단). localStorage 에 저장한다.
  * 반환값: [mode, setMode]
  */
 const usePaneLayoutMode = () => {

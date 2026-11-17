@@ -898,7 +898,7 @@ const TestCaseHybridForm = ({
     return <Box sx={CHROME_ICON_SX}>{body}</Box>;
   }
 
-  // ICT-491·492 분할: 케이스 목록 | 상세. 3단은 나란히, 2단·1단은 상세를 목록 위에 겹친다.
+  // ICT-491·492·497 분할: 케이스 목록 | 상세. 나란히(화면 표기 2단)와 겹침(1단) 두 가지다.
   // 단계가 바뀌어도 목록과 상세가 다시 그려지지 않게(스크롤·입력 유지) 요소 구조를 그대로 둔다.
   const tier = paneLayout.tier;
   let detailSx;
@@ -917,13 +917,13 @@ const TestCaseHybridForm = ({
       top: 0,
       bottom: 0,
       right: 0,
-      width: tier === 2 ? paneLayout.width : "100%",
+      width: "100%",
       zIndex: 3,
       display: overlayOpen ? "flex" : "none",
       // background.paper 는 반투명(0.7)이라 아래 목록이 비친다. 겹친 칸은 불투명한 바탕을 쓴다.
       bgcolor: "background.default",
       boxShadow: 8,
-      borderRadius: tier === 2 ? "8px 0 0 8px" : 1,
+      borderRadius: 1,
     };
   }
 
@@ -1008,12 +1008,6 @@ const TestCaseHybridForm = ({
           data-overlay={isOverlay ? "true" : "false"}
           aria-hidden={detailVisible ? undefined : true}
         >
-          {isOverlay && tier === 2 ? (
-            <Resizer
-              onDrag={handleDetailResize}
-              testId="testcase-detail-resizer"
-            />
-          ) : null}
           <Box
             sx={
               isOverlay

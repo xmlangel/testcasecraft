@@ -75,24 +75,22 @@ export const fitDetailWidth = ({
   return { width: 0, collapsed: true };
 };
 
-// ICT-492 1단·2단·3단 배치
-// 2단에서 겹친 상세 칸 왼쪽으로 남겨 둘 목록 폭. 이 폭이면 목록의 ID·이름이 보여서 다른 케이스를 바로 누를 수 있다.
-// 280px 이면 1280px 화면에서 아이콘·즐겨찾기 열 뒤로 이름이 몇 글자만 남았다.
-export const LIST_PEEK_WIDTH = 340;
-export const PANE_LAYOUT_MODES = ["auto", "1", "2", "3"];
+// ICT-492 배치 선택. ICT-497 에서 겹쳐 띄우는 중간 단계를 없앴다.
+// 화면에는 자동 · 1단 · 2단으로 보이고, 저장값은 이전 선택이 이어지도록 "1"(겹침)·"3"(나란히)을 그대로 쓴다.
+// 예전에 저장한 "2"(오른쪽으로 겹침)는 자동으로 읽는다.
+export const PANE_LAYOUT_MODES = ["auto", "1", "3"];
 export const PANE_LAYOUT_STORAGE_KEY = "testcase-manager-pane-layout-mode";
 
 export const normalizePaneLayoutMode = (value) =>
   PANE_LAYOUT_MODES.includes(String(value)) ? String(value) : "auto";
 
 /**
- * 칸 폭과 선택한 배치(자동·1단·2단·3단)로 실제 배치를 정한다.
- * - 3단: 목록과 상세를 나란히 둔다. 목록이 listMinWidth 아래로 줄지 않아야 한다.
- * - 2단: 상세를 목록 위에 오른쪽으로 겹쳐 띄운다. 목록 왼쪽 peekWidth 만큼은 가리지 않는다.
- * - 1단: 상세를 목록 위에 전체 폭으로 겹친다.
- * 고른 배치가 폭에 맞지 않으면 가로 스크롤 대신 한 단계씩 내려가고 downgraded 를 true 로 둔다.
- * containerWidth 가 0 이면(아직 재지 못함) 고른 배치를 그대로 쓴다(자동은 3단).
- * 반환값: { tier: 1|2|3, width: 상세 칸 폭(px, 1단은 containerWidth), overlay, downgraded }
+ * 칸 폭과 선택한 배치(자동 · 1단 · 2단)로 실제 배치를 정한다.
+ * - 나란히(tier 3, 화면 표기 2단): 목록과 상세를 나란히 둔다. 목록이 listMinWidth 아래로 줄지 않아야 한다.
+ * - 겹침(tier 1, 화면 표기 1단): 상세를 목록 위에 전체 폭으로 겹친다.
+ * 나란히를 골랐는데 폭이 모자라면 가로 스크롤 대신 겹침으로 내려가고 downgraded 를 true 로 둔다.
+ * containerWidth 가 0 이면(아직 재지 못함) 고른 배치를 그대로 쓴다(자동은 나란히).
+ * 반환값: { tier: 1|3, width: 상세 칸 폭(px, 겹침은 containerWidth), overlay, downgraded }
  */
 export const resolvePaneLayout = ({
   mode = "auto",
@@ -100,13 +98,10 @@ export const resolvePaneLayout = ({
   desiredWidth,
   listMinWidth,
   detailMinWidth,
-  // 겹친 칸(2단)의 최소 폭. 나란히 둘 때보다 좁게 허용할 수 있다(실행 화면 결과 칸).
-  overlayMinWidth = detailMinWidth,
-  peekWidth = LIST_PEEK_WIDTH,
   gutterWidth = SPLIT_GUTTER_WIDTH,
 }) => {
   const requested = normalizePaneLayoutMode(mode);
-  const wanted = requested === "auto" ? 3 : Number(requested);
+  const wanted = requested === "1" ? 1 : 3;
   const build = (tier, width) => ({
     tier,
     width,
@@ -125,13 +120,7 @@ export const resolvePaneLayout = ({
     detailMinWidth,
     gutterWidth,
   });
-  const overlayRoom = containerWidth - peekWidth;
-  const fits3 = !docked.collapsed;
-  const fits2 = overlayRoom >= overlayMinWidth;
-
-  if (wanted >= 3 && fits3) return build(3, docked.width);
-  if (wanted >= 2 && fits2)
-    return build(2, Math.floor(Math.min(desiredWidth, overlayRoom)));
+  if (wanted === 3 && !docked.collapsed) return build(3, docked.width);
   return build(1, containerWidth);
 };
 
