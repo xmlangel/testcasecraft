@@ -1652,7 +1652,15 @@ const TestCaseForm = ({
                     display: "grid",
                     gridTemplateColumns: "minmax(0, 1fr)",
                     columnGap: 2,
+                    rowGap: 2,
                     alignItems: "start",
+                    // MUI 는 펼친 Accordion 중 첫째가 아닌 것에만 위아래 16px 여백을 준다.
+                    // 나란히 놓으면 오른쪽 「기대 결과」만 16px 내려가므로 여백을 없애고 간격은 grid gap 으로 둔다.
+                    "& > .MuiAccordion-root, & > .MuiAccordion-root.Mui-expanded":
+                      {
+                        m: 0,
+                        "&::before": { display: "none" },
+                      },
                     "@container (min-width: 960px)": {
                       gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
                     },
