@@ -1652,9 +1652,19 @@ const TestCaseForm = ({
                     display: "grid",
                     gridTemplateColumns: "minmax(0, 1fr)",
                     columnGap: 2,
+                    rowGap: 2,
                     alignItems: "start",
+                    // MUI 는 펼친 Accordion 중 첫째가 아닌 것에만 위아래 16px 여백을 준다.
+                    // 나란히 놓으면 오른쪽 「기대 결과」만 16px 내려가므로 여백을 없애고 간격은 grid gap 으로 둔다.
+                    "& > .MuiAccordion-root, & > .MuiAccordion-root.Mui-expanded":
+                      {
+                        m: 0,
+                        "&::before": { display: "none" },
+                      },
+                    // 기대 결과 칸은 편집 도구 막대가 한 줄에 들어가는 360px 아래로 줄이지 않는다
+                    // (도구 막대 304px + 카드 안 여백 35px, 2026-11-19 실측). 남는 폭은 2:1 로 나눈다.
                     "@container (min-width: 960px)": {
-                      gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+                      gridTemplateColumns: "minmax(0, 2fr) minmax(360px, 1fr)",
                     },
                   }}
                 >
