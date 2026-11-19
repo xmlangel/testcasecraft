@@ -1661,8 +1661,10 @@ const TestCaseForm = ({
                         m: 0,
                         "&::before": { display: "none" },
                       },
+                    // 기대 결과 칸은 편집 도구 막대가 한 줄에 들어가는 360px 아래로 줄이지 않는다
+                    // (도구 막대 304px + 카드 안 여백 35px, 2026-11-19 실측). 남는 폭은 2:1 로 나눈다.
                     "@container (min-width: 960px)": {
-                      gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+                      gridTemplateColumns: "minmax(0, 2fr) minmax(360px, 1fr)",
                     },
                   }}
                 >
