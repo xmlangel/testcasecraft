@@ -295,6 +295,10 @@ function Dashboard({ embedded = false }) {
   // 폴더는 테스트케이스와 같은 테이블에 있어 총계에서 빠진다. 따로 세어 함께 보여준다.
   const totalFolders =
     dashboardData?.overview?.basicStatistics?.totalFolders ?? 0;
+  // ICT-500: totalCases 는 실행별 결과 건수라 케이스가 여러 실행에 들어 있으면 더 커진다.
+  // 머리 칩에는 실제 테스트케이스 수를 쓰고, 결과 차트·완료 건수는 totalCases 를 그대로 쓴다.
+  const totalTestCases =
+    dashboardData?.overview?.basicStatistics?.totalTestCases ?? totalCases;
   const completeRate =
     dashboardData?.summary?.completeRate ||
     (totalCases > 0 ? Math.round((lastResult.PASS / totalCases) * 100) : 0);
@@ -490,7 +494,7 @@ function Dashboard({ embedded = false }) {
                 <Grid>
                   <Chip
                     label={t("dashboard.project.totalTestCases", {
-                      count: totalCases,
+                      count: totalTestCases,
                     })}
                     color="info"
                     size="small"
