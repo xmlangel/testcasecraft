@@ -28,6 +28,7 @@ import {
   isAutomatedCase,
   normalizeExecutionType,
 } from "../../utils/executionType.js";
+import { FORM_LABEL_TYPOGRAPHY } from "../../styles/layoutConstants";
 
 /**
  * Priority 값을 정규화 (Medium → MEDIUM, High → HIGH, Low → LOW)
@@ -119,7 +120,8 @@ const TestCaseBasicInfo = ({
     // → 전제 조건·사후 조건. 단계는 이 아래(TestCaseForm).
     <Box
       data-testid="testcase-info-section"
-      sx={{ containerType: "inline-size", mb: 2 }}
+      // ICT-501: 입력칸 글자(MUI 기본 16px)를 다른 항목과 같은 14px 로 맞춘다.
+      sx={{ containerType: "inline-size", mb: 2, ...FORM_LABEL_TYPOGRAPHY }}
     >
       <Box
         data-testid="testcase-info-grid"
