@@ -841,6 +841,25 @@ public class I18nGapKeysInitializer {
         "projectNav.sidebar.collapse", "projectNav", "레이아웃 선택", "사이드바 접기");
     createTranslationKeyIfNotExists(
         "projectNav.sidebar.expand", "projectNav", "레이아웃 선택", "사이드바 펼치기");
+    // ICT-491 화면 밀도
+    createTranslationKeyIfNotExists("profile.density.title", "profile", "화면 밀도", "화면 밀도");
+    createTranslationKeyIfNotExists(
+        "profile.density.description",
+        "profile",
+        "화면 밀도",
+        "입력칸·버튼·탭의 크기와 간격을 고릅니다. 처음에는 촘촘으로 설정되어 있습니다.");
+    createTranslationKeyIfNotExists("profile.density.compact.name", "profile", "화면 밀도", "촘촘");
+    createTranslationKeyIfNotExists(
+        "profile.density.compact.summary",
+        "profile",
+        "화면 밀도",
+        "입력칸과 탭을 낮추고 버튼 글자를 그대로 둡니다. 목록과 상세를 한 화면에서 보기 좋습니다.");
+    createTranslationKeyIfNotExists("profile.density.comfortable.name", "profile", "화면 밀도", "기본");
+    createTranslationKeyIfNotExists(
+        "profile.density.comfortable.summary",
+        "profile",
+        "화면 밀도",
+        "입력칸과 버튼을 크게 두고 간격을 넓힙니다. 이전 화면과 같습니다.");
     // ICT-431: 검색 결과 기준 전체 선택
     createTranslationKeyIfNotExists(
         "testcase.tree.checkAll.all", "testcase", "ICT-431 검색 결과 선택", "전체 선택");

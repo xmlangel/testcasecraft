@@ -777,6 +777,29 @@ public class EnglishI18nGapTranslations {
         "projectNav.sidebar.collapse", languageCode, "Collapse sidebar", createdBy);
     createTranslationIfNotExists(
         "projectNav.sidebar.expand", languageCode, "Expand sidebar", createdBy);
+    // ICT-491 화면 밀도
+    createTranslationIfNotExists(
+        "profile.density.title", languageCode, "Screen density", createdBy);
+    createTranslationIfNotExists(
+        "profile.density.description",
+        languageCode,
+        "Choose the size and spacing of inputs, buttons, and tabs. Compact is selected by default.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.density.compact.name", languageCode, "Compact", createdBy);
+    createTranslationIfNotExists(
+        "profile.density.compact.summary",
+        languageCode,
+        "Lower inputs and tabs, and button labels keep their case. Lists and details fit on one"
+            + " screen.",
+        createdBy);
+    createTranslationIfNotExists(
+        "profile.density.comfortable.name", languageCode, "Default", createdBy);
+    createTranslationIfNotExists(
+        "profile.density.comfortable.summary",
+        languageCode,
+        "Larger inputs and buttons with wider spacing. Same as the previous screen.",
+        createdBy);
     // ICT-431
     createTranslationIfNotExists(
         "testcase.tree.checkAll.all", languageCode, "Select all", createdBy);

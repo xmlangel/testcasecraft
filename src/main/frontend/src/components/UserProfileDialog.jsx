@@ -36,7 +36,11 @@ import {
   Refresh as RefreshIcon,
   Palette as PaletteIcon,
 } from "@mui/icons-material";
-import { useTheme as useAppTheme } from "../context/ThemeContext.jsx";
+import {
+  useTheme as useAppTheme,
+  DENSITY_COMPACT,
+  DENSITY_COMFORTABLE,
+} from "../context/ThemeContext.jsx";
 import {
   describeMailSendResult,
   waitForMailSendResult,
@@ -69,7 +73,14 @@ function UserProfileDialog({
   const { updateUserProfile, fetchUserInfo } = useAppContext();
   const { currentLanguage, changeLanguage, t, forceReloadTranslations } =
     useI18n();
-  const { designSystem, setDesignSystem, mode, toggleTheme } = useAppTheme();
+  const {
+    designSystem,
+    setDesignSystem,
+    mode,
+    toggleTheme,
+    density,
+    setDensity,
+  } = useAppTheme();
   // 메뉴 구조(가로 탭 / 좌측 메뉴) — 서버에 사용자별로 저장된다
   const { navMode, setNavMode } = useNavMode();
 
@@ -903,6 +914,89 @@ function UserProfileDialog({
                         />
                       </CardContent>
                     </Card>
+                  </RadioGroup>
+                </FormControl>
+
+                <Divider sx={{ my: 3 }} />
+
+                {/* 화면 밀도 (ICT-491) — 촘촘을 고르면 입력칸·버튼·탭이 작아져
+                    한 화면에 목록과 상세가 함께 들어온다. 기본값은 촘촘이다. */}
+                <Typography variant="h6" gutterBottom>
+                  {t("profile.density.title", "화면 밀도")}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {t(
+                    "profile.density.description",
+                    "입력칸·버튼·탭의 크기와 간격을 고릅니다. 처음에는 촘촘으로 설정되어 있습니다.",
+                  )}
+                </Typography>
+                <FormControl component="fieldset" sx={{ width: "100%" }}>
+                  <RadioGroup
+                    value={density}
+                    onChange={(e) => setDensity(e.target.value)}
+                    data-testid="profile-density-group"
+                  >
+                    {[
+                      {
+                        value: DENSITY_COMPACT,
+                        testId: "profile-density-compact",
+                        title: t("profile.density.compact.name", "촘촘"),
+                        desc: t(
+                          "profile.density.compact.summary",
+                          "입력칸과 탭을 낮추고 버튼 글자를 그대로 둡니다. 목록과 상세를 한 화면에서 보기 좋습니다.",
+                        ),
+                      },
+                      {
+                        value: DENSITY_COMFORTABLE,
+                        testId: "profile-density-comfortable",
+                        title: t("profile.density.comfortable.name", "기본"),
+                        desc: t(
+                          "profile.density.comfortable.summary",
+                          "입력칸과 버튼을 크게 두고 간격을 넓힙니다. 이전 화면과 같습니다.",
+                        ),
+                      },
+                    ].map((option) => (
+                      <Card
+                        key={option.value}
+                        variant="outlined"
+                        sx={{
+                          mb: 2,
+                          borderColor:
+                            density === option.value
+                              ? "primary.main"
+                              : "divider",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setDensity(option.value)}
+                      >
+                        <CardContent sx={{ py: 1.5 }}>
+                          <FormControlLabel
+                            value={option.value}
+                            control={<Radio data-testid={option.testId} />}
+                            label={
+                              <Box>
+                                <Typography
+                                  variant="subtitle1"
+                                  sx={{ fontWeight: 600 }}
+                                >
+                                  {option.title}
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  {option.desc}
+                                </Typography>
+                              </Box>
+                            }
+                          />
+                        </CardContent>
+                      </Card>
+                    ))}
                   </RadioGroup>
                 </FormControl>
 

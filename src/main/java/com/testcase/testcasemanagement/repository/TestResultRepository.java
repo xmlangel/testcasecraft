@@ -39,6 +39,15 @@ public interface TestResultRepository extends JpaRepository<TestResult, String> 
           + "WHERE e.testPlanId = :testPlanId")
   List<Object[]> findResultRowsByTestPlanId(@Param("testPlanId") String testPlanId);
 
+  /**
+   * 프로젝트에서 실행된 결과를 (testCaseId, result, executedAt) 행으로 조회한다. 케이스 목록의 「최근 결과」 열이 케이스별 가장 최근 결과를 고를
+   * 때 쓴다(ICT-491). 세 컬럼만 읽어 첨부·태그 지연 로딩을 피한다.
+   */
+  @Query(
+      "SELECT r.testCaseId, r.result, r.executedAt FROM TestResult r JOIN r.testExecution e "
+          + "WHERE e.project.id = :projectId AND r.executedAt IS NOT NULL")
+  List<Object[]> findExecutedResultRowsByProjectId(@Param("projectId") String projectId);
+
   /** 실행 하나의 결과를 (testCaseId, result, executedAt) 행으로 조회한다. */
   @Query(
       "SELECT r.testCaseId, r.result, r.executedAt FROM TestResult r "

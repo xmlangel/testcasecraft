@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { debugLog } from "../../utils/logger";
 import testCaseService from "../../services/testCaseService.js";
+import { normalizeExecutionType } from "../../utils/executionType.js";
 import {
   Box,
   Typography,
@@ -181,9 +182,10 @@ const TestCaseDatasheetGrid = ({
           expectedResults: testCase.expectedResults || "",
           isAutomated:
             testCase.isAutomated === true || testCase.isAutomated === "Y",
-          executionType:
-            testCase.executionType ||
-            (testCase.isAutomated ? "Automation" : "Manual"),
+          executionType: normalizeExecutionType(
+            testCase.executionType,
+            testCase.isAutomated,
+          ),
           testTechnique: testCase.testTechnique || "",
           originalData: testCase,
         };

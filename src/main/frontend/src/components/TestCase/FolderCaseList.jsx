@@ -26,6 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { buildFolderCaseCountMap } from "../../utils/treeUtils.jsx";
+import { RESULT_COLORS } from "../../constants/statusColors.js";
 
 const PRIORITY_COLOR = {
   HIGH: "error",
@@ -69,6 +70,55 @@ const TruncatedText = ({ text, color = "text.primary" }) => {
   );
 };
 
+// 「최근 결과」 색 막대(ICT-491). 실행된 적 없는 케이스는 회색 막대로 둔다.
+const RESULT_LABEL_FALLBACK = {
+  PASS: "통과",
+  FAIL: "실패",
+  BLOCKED: "차단",
+  SKIPPED: "건너뜀",
+  NOT_RUN: "미실행",
+};
+
+const LatestResultBar = ({ latest, testId }) => {
+  const { t } = useI18n();
+  const result = latest?.result || "NOT_RUN";
+  const color =
+    RESULT_COLORS[result] ||
+    RESULT_COLORS[result.replace("_", "")] ||
+    RESULT_COLORS.NOTRUN;
+  const label = t(
+    `testcase.folderList.result.${result}`,
+    RESULT_LABEL_FALLBACK[result] || result,
+  );
+  const title = latest?.executedAt
+    ? `${label} · ${String(latest.executedAt).replace("T", " ").slice(0, 16)}`
+    : t("testcase.folderList.result.none", "실행 기록 없음");
+  return (
+    <Tooltip title={title} arrow>
+      <Box
+        data-testid={testId}
+        data-result={latest ? result : "NONE"}
+        aria-label={title}
+        sx={{
+          width: "100%",
+          maxWidth: 48,
+          height: 6,
+          borderRadius: 1,
+          bgcolor: latest ? color : "action.disabledBackground",
+        }}
+      />
+    </Tooltip>
+  );
+};
+
+LatestResultBar.propTypes = {
+  latest: PropTypes.shape({
+    result: PropTypes.string,
+    executedAt: PropTypes.string,
+  }),
+  testId: PropTypes.string,
+};
+
 TruncatedText.propTypes = {
   text: PropTypes.string,
   color: PropTypes.string,
@@ -88,6 +138,9 @@ const FolderCaseList = ({
   onEditFolder,
   favoriteIds,
   onToggleFavorite,
+  selectedId,
+  compact = false,
+  latestResults,
 }) => {
   const { t } = useI18n();
   const showFavorite = typeof onToggleFavorite === "function";
@@ -174,7 +227,9 @@ const FolderCaseList = ({
       (item) =>
         item.type === "testcase" && String(item.parentId) !== String(folder.id),
     );
-  const showFolderColumn = Boolean(rows) || hasNestedCases;
+  // 3단 분할(ICT-491)의 가운데 칸은 좁으므로 ID·이름·우선순위만 남긴다(compact)
+  const showFolderColumn = !compact && (Boolean(rows) || hasNestedCases);
+  const showDetailColumns = !compact;
   // 경로 기준: 가상 목록은 전체 경로, 폴더 선택 시 선택 폴더 기준 상대 경로
   const pathBaseId = rows ? null : folder.id;
 
@@ -232,17 +287,34 @@ const FolderCaseList = ({
                     {t("testcase.folderList.column.folder", "폴더")}
                   </TableCell>
                 )}
-                <TableCell sx={{ width: showFolderColumn ? "28%" : "34%" }}>
+                <TableCell sx={{ width: 96 }}>
+                  {t("testcase.folderList.column.id", "ID")}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    width: compact ? "auto" : showFolderColumn ? "28%" : "34%",
+                  }}
+                >
                   {t("testcase.folderList.column.name", "이름")}
                 </TableCell>
-                <TableCell sx={{ width: showFolderColumn ? "22%" : "28%" }}>
-                  {t("testcase.folderList.column.description", "설명")}
-                </TableCell>
-                <TableCell sx={{ width: showFolderColumn ? "22%" : "28%" }}>
-                  {t("testcase.folderList.column.expectedResult", "기대결과")}
-                </TableCell>
-                <TableCell sx={{ width: 110 }}>
+                {showDetailColumns && (
+                  <TableCell sx={{ width: showFolderColumn ? "22%" : "28%" }}>
+                    {t("testcase.folderList.column.description", "설명")}
+                  </TableCell>
+                )}
+                {showDetailColumns && (
+                  <TableCell sx={{ width: showFolderColumn ? "22%" : "28%" }}>
+                    {t("testcase.folderList.column.expectedResult", "기대결과")}
+                  </TableCell>
+                )}
+                <TableCell sx={{ width: compact ? 88 : 110 }}>
                   {t("testcase.folderList.column.priority", "우선순위")}
+                </TableCell>
+                <TableCell sx={{ width: compact ? 88 : 120 }}>
+                  {t("testcase.folderList.column.owner", "소유자")}
+                </TableCell>
+                <TableCell sx={{ width: compact ? 64 : 80 }}>
+                  {t("testcase.folderList.column.latestResult", "최근 결과")}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -253,6 +325,11 @@ const FolderCaseList = ({
                   <TableRow
                     key={item.id}
                     hover
+                    // 3단 분할(ICT-491)에서 오른쪽 상세에 열린 케이스를 표시한다
+                    selected={
+                      selectedId != null &&
+                      String(item.id) === String(selectedId)
+                    }
                     onClick={() => onSelectItem && onSelectItem(item)}
                     sx={{ cursor: "pointer" }}
                     data-testid={`folder-case-row-${item.id}`}
@@ -351,6 +428,18 @@ const FolderCaseList = ({
                         })()}
                       </TableCell>
                     )}
+                    <TableCell data-testid={`folder-case-id-${item.id}`}>
+                      {!isChildFolder && item.displayId && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          noWrap
+                          sx={{ fontFamily: "monospace" }}
+                        >
+                          {item.displayId}
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {!isChildFolder && item.isAutomated === true ? (
                         <Box
@@ -384,20 +473,24 @@ const FolderCaseList = ({
                         <TruncatedText text={item.name} />
                       )}
                     </TableCell>
-                    <TableCell>
-                      <TruncatedText
-                        text={item.description}
-                        color="text.secondary"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {!isChildFolder && (
+                    {showDetailColumns && (
+                      <TableCell>
                         <TruncatedText
-                          text={getExpectedResults(item)}
+                          text={item.description}
                           color="text.secondary"
                         />
-                      )}
-                    </TableCell>
+                      </TableCell>
+                    )}
+                    {showDetailColumns && (
+                      <TableCell>
+                        {!isChildFolder && (
+                          <TruncatedText
+                            text={getExpectedResults(item)}
+                            color="text.secondary"
+                          />
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell>
                       {!isChildFolder && item.priority && (
                         <Chip
@@ -405,6 +498,27 @@ const FolderCaseList = ({
                           size="small"
                           color={PRIORITY_COLOR[item.priority] || "default"}
                           variant="outlined"
+                        />
+                      )}
+                    </TableCell>
+                    {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정) */}
+                    <TableCell data-testid={`folder-case-owner-${item.id}`}>
+                      {!isChildFolder && item.createdBy && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          noWrap
+                          title={item.createdBy}
+                        >
+                          {item.createdBy}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {!isChildFolder && (
+                        <LatestResultBar
+                          latest={latestResults?.[item.id]}
+                          testId={`folder-case-result-${item.id}`}
                         />
                       )}
                     </TableCell>
@@ -427,6 +541,9 @@ FolderCaseList.propTypes = {
   onEditFolder: PropTypes.func,
   favoriteIds: PropTypes.instanceOf(Set),
   onToggleFavorite: PropTypes.func,
+  selectedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  compact: PropTypes.bool,
+  latestResults: PropTypes.object,
 };
 
 export default FolderCaseList;

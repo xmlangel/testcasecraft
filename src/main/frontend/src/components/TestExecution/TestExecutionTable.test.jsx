@@ -269,3 +269,23 @@ describe("TestExecutionTable 폴더 접기/펼치기", () => {
     });
   });
 });
+
+describe("TestExecutionTable 3단 분할 열린 케이스 표시 (ICT-491)", () => {
+  it("오른쪽 결과 칸에 열린 케이스 행만 활성으로 표시한다", () => {
+    renderTable({
+      visibleData: [
+        folder("f1", "로그인"),
+        testcase("tc1", "로그인 성공", "f1"),
+        testcase("tc2", "로그인 실패", "f1"),
+      ],
+      activeTestCaseId: "tc2",
+    });
+    expect(screen.getByTestId("execution-row-tc2")).toHaveAttribute(
+      "data-active",
+      "true",
+    );
+    expect(screen.getByTestId("execution-row-tc1")).not.toHaveAttribute(
+      "data-active",
+    );
+  });
+});

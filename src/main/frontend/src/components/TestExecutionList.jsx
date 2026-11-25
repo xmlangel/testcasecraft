@@ -9,7 +9,6 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemText,
   ListItemSecondaryAction,
   IconButton,
   Divider,
@@ -19,7 +18,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  LinearProgress,
   Chip,
   CircularProgress,
   Alert,
@@ -46,6 +44,7 @@ import { ExecutionStatus } from "../models/testExecution.jsx";
 import { useProjectRole } from "../hooks/useProjectRole.js";
 import { canEditProjectContent } from "./TestCaseTree/utils/permissionUtils.js";
 import { IN_PROGRESS_CHIP_WITH_ICON_SX } from "./common/inProgressPulse.js";
+import ExecutionProgressBar from "./TestExecution/ExecutionProgressBar.jsx";
 
 const EXECUTIONS_PER_PAGE = 5;
 // 리스트를 보고 있는 동안 진행률/상태를 자동 갱신하는 폴링 주기(ms)
@@ -491,91 +490,80 @@ const TestExecutionList = ({ onNewExecution, onEditExecution }) => {
                       )
                     }
                   >
+                    {/* ICT-491 ex-4: 한 줄 행. ID · 이름 · 상태 · 플랜 · 태그 · 진행률 막대 */}
                     <ListItemButton
                       onClick={() => onEditExecution(execution.id)}
-                      alignItems="flex-start"
+                      dense
+                      sx={{ py: 0.5, pr: canEditExecutions ? 6 : 2 }}
                     >
-                      <ListItemText
-                        primary={
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              flexWrap: "wrap",
-                              gap: 0.5,
-                            }}
-                          >
-                            {execution.displayId && (
-                              <Chip
-                                label={execution.displayId}
-                                variant="outlined"
-                                size="small"
-                                sx={{
-                                  fontSize: "0.75rem",
-                                  height: "20px",
-                                  mr: 0.5,
-                                }}
-                              />
-                            )}
-                            <Typography
-                              variant="body1"
-                              component="span"
-                              sx={{ mr: 1 }}
-                            >
-                              {execution.name}
-                            </Typography>
-                            {renderStatusChip(execution.status)}
-                            {execution.tags && execution.tags.length > 0 && (
-                              <Box sx={{ display: "flex", gap: 0.5, ml: 1 }}>
-                                {execution.tags.map((tag, tagIndex) => (
-                                  <Chip
-                                    key={tagIndex}
-                                    label={tag}
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{ fontSize: "0.75rem", height: "20px" }}
-                                  />
-                                ))}
-                              </Box>
-                            )}
-                          </Box>
-                        }
-                        secondary={
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              mt: 1,
-                            }}
-                          >
-                            <Typography
-                              variant="body2"
-                              component="span"
-                              color="text.primary"
-                              sx={{ mr: 2 }}
-                            >
-                              {testPlan ? testPlan.name : ""}
-                            </Typography>
-                            <LinearProgress
-                              variant="determinate"
-                              value={progress}
-                              sx={{
-                                flexGrow: 1,
-                                mr: 1,
-                                height: 8,
-                                borderRadius: 4,
-                              }}
-                            />
-                            <Typography variant="body2" component="span">
-                              {progress}%
-                            </Typography>
-                          </Box>
-                        }
-                        slotProps={{
-                          primary: { component: "span" },
-                          secondary: { component: "span" },
+                      <Box
+                        data-testid={`execution-row-line-${execution.id}`}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          width: "100%",
+                          minWidth: 0,
                         }}
-                      />
+                      >
+                        {execution.displayId && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ fontFamily: "monospace", flexShrink: 0 }}
+                          >
+                            {execution.displayId}
+                          </Typography>
+                        )}
+                        <Typography
+                          variant="body2"
+                          noWrap
+                          title={execution.name}
+                          sx={{ fontWeight: 600, minWidth: 0, flexShrink: 1 }}
+                        >
+                          {execution.name}
+                        </Typography>
+                        <Box sx={{ flexShrink: 0 }}>
+                          {renderStatusChip(execution.status)}
+                        </Box>
+                        {testPlan && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            noWrap
+                            title={testPlan.name}
+                            sx={{ minWidth: 0, flexShrink: 2 }}
+                          >
+                            {testPlan.name}
+                          </Typography>
+                        )}
+                        {execution.tags && execution.tags.length > 0 && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 0.5,
+                              minWidth: 0,
+                              overflow: "hidden",
+                              flexShrink: 3,
+                            }}
+                          >
+                            {execution.tags.map((tag, tagIndex) => (
+                              <Chip
+                                key={tagIndex}
+                                label={tag}
+                                size="small"
+                                variant="outlined"
+                                sx={{ fontSize: "0.7rem", height: "18px" }}
+                              />
+                            ))}
+                          </Box>
+                        )}
+                        <Box sx={{ ml: "auto", pl: 1, flexShrink: 0 }}>
+                          <ExecutionProgressBar
+                            execution={{ ...execution, progress }}
+                          />
+                        </Box>
+                      </Box>
                     </ListItemButton>
                   </ListItem>
                 </React.Fragment>

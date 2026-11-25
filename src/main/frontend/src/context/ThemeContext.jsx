@@ -559,6 +559,71 @@ export const createAppTheme = (mode) => {
   });
 };
 
+export const DENSITY_COMFORTABLE = "comfortable";
+export const DENSITY_COMPACT = "compact";
+
+/** 저장된 값이 깨졌거나 모르는 값이면 기본값(촘촘)으로 되돌린다. */
+export const normalizeDensity = (value) =>
+  value === DENSITY_COMFORTABLE ? DENSITY_COMFORTABLE : DENSITY_COMPACT;
+
+/**
+ * 화면 밀도(ICT-491).
+ *
+ * 「기본」은 디자인 시스템 테마를 그대로 쓴다. 「촘촘」은 그 위에 크기만 덮어써
+ * 한 화면에 더 많은 내용이 들어오게 한다. 색·모서리 같은 디자인 요소는 건드리지 않는다.
+ *  - 입력칸: size small, 테두리 1px (포커스 때도 1px)
+ *  - 버튼: 대문자 변환 없음, 마우스를 올려도 위로 뜨지 않음
+ *  - 탭: 높이 36px
+ */
+export const applyDensity = (baseTheme, density) => {
+  if (normalizeDensity(density) !== DENSITY_COMPACT) return baseTheme;
+
+  const thinBorder = {
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderWidth: 1 },
+      "&.Mui-focused fieldset": { borderWidth: 1 },
+    },
+  };
+
+  return createTheme(baseTheme, {
+    density: DENSITY_COMPACT,
+    typography: {
+      button: { textTransform: "none", letterSpacing: "0.01em" },
+    },
+    components: {
+      MuiTextField: {
+        defaultProps: { size: "small" },
+        styleOverrides: { root: thinBorder },
+      },
+      MuiFormControl: { defaultProps: { size: "small" } },
+      MuiOutlinedInput: {
+        defaultProps: { size: "small" },
+        styleOverrides: {
+          notchedOutline: { borderWidth: 1 },
+        },
+      },
+      MuiAutocomplete: { defaultProps: { size: "small" } },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: "none",
+            letterSpacing: "0.01em",
+            "&:hover": { transform: "none" },
+          },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: { root: { minHeight: 36 } },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: { minHeight: 36, paddingTop: 6, paddingBottom: 6 },
+        },
+      },
+    },
+  });
+};
+
 export function ThemeProvider({ children }) {
   const [mode, setMode] = useState(() => {
     const savedMode = localStorage.getItem("themeMode");
@@ -575,6 +640,18 @@ export function ThemeProvider({ children }) {
     document.documentElement.setAttribute("data-theme", mode);
   }, [mode]);
 
+  // 화면 밀도 — 기본값은 촘촘(ICT-491). 「기본」을 고른 사용자는 저장된 값이 유지된다.
+  const [density, setDensityState] = useState(() =>
+    normalizeDensity(localStorage.getItem("uiDensity")),
+  );
+
+  useEffect(() => {
+    localStorage.setItem("uiDensity", density);
+    document.documentElement.setAttribute("data-density", density);
+  }, [density]);
+
+  const setDensity = (next) => setDensityState(normalizeDensity(next));
+
   useEffect(() => {
     localStorage.setItem("designSystem", designSystem);
     document.documentElement.setAttribute("data-design-system", designSystem);
@@ -585,11 +662,12 @@ export function ThemeProvider({ children }) {
   };
 
   const theme = useMemo(() => {
-    if (designSystem === "material3") {
-      return createMaterial3Theme(mode);
-    }
-    return createAppTheme(mode);
-  }, [mode, designSystem]);
+    const base =
+      designSystem === "material3"
+        ? createMaterial3Theme(mode)
+        : createAppTheme(mode);
+    return applyDensity(base, density);
+  }, [mode, designSystem, density]);
 
   const value = {
     mode,
@@ -597,6 +675,8 @@ export function ThemeProvider({ children }) {
     toggleTheme,
     designSystem,
     setDesignSystem,
+    density,
+    setDensity,
   };
 
   return (

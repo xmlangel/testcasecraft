@@ -25,6 +25,7 @@ import {
   OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import MarkdownFieldEditor from "./MarkdownFieldEditor.jsx";
+import { normalizeExecutionType } from "../../utils/executionType.js";
 
 /**
  * Priority 값을 정규화 (Medium → MEDIUM, High → HIGH, Low → LOW)
@@ -259,93 +260,105 @@ const TestCaseBasicInfo = ({
           />
         )}
 
-        {isVisible("isAutomated") && (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={Boolean(testCase.isAutomated)}
-                onChange={(event) => {
-                  if (isViewer) return;
-                  const { checked } = event.target;
-                  onTestCaseChange("isAutomated", checked, true);
-                }}
-                color="primary"
-                disabled={isViewer}
-              />
-            }
-            sx={{ mt: 2 }}
-            label={t("testcase.form.isAutomated", "자동화 여부")}
-          />
-        )}
-
-        {isVisible("executionType") && (
-          <FormControl fullWidth margin="normal" disabled={isViewer}>
-            <InputLabel id="execution-type-select-label">
-              {t("testcase.form.executionType", "Manual/Automation")}
-            </InputLabel>
-            <Select
-              labelId="execution-type-select-label"
-              value={
-                testCase.executionType ||
-                (testCase.isAutomated ? "Automation" : "Manual")
+        {/* ICT-491 C1: 짧은 필드는 칸 폭이 허락하는 만큼 2열 이상으로 묶는다.
+            칸이 좁으면(3단 분할의 상세 칸) 한 열로 돌아간다. */}
+        <Box
+          data-testid="testcase-short-fields"
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+            columnGap: 2,
+            alignItems: "start",
+          }}
+        >
+          {isVisible("isAutomated") && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={Boolean(testCase.isAutomated)}
+                  onChange={(event) => {
+                    if (isViewer) return;
+                    const { checked } = event.target;
+                    onTestCaseChange("isAutomated", checked, true);
+                  }}
+                  color="primary"
+                  disabled={isViewer}
+                />
               }
-              label={t("testcase.form.executionType", "Manual/Automation")}
-              onChange={(event) => {
-                onTestCaseChange("executionType", event.target.value, false);
-              }}
-            >
-              <MenuItem value="Manual">
-                {t("testcase.executionType.manual", "Manual")}
-              </MenuItem>
-              <MenuItem value="Automation">
-                {t("testcase.executionType.automation", "Automation")}
-              </MenuItem>
-              <MenuItem value="Hybrid">
-                {t("testcase.executionType.hybrid", "Hybrid")}
-              </MenuItem>
-            </Select>
-          </FormControl>
-        )}
+              sx={{ mt: 2 }}
+              label={t("testcase.form.isAutomated", "자동화 여부")}
+            />
+          )}
 
-        {isVisible("testTechnique") && (
-          <TextField
-            label={t("testcase.form.testTechnique", "테스트 기법")}
-            value={testCase.testTechnique || ""}
-            onChange={onChange("testTechnique")}
-            fullWidth
-            margin="normal"
-            variant="outlined"
-            disabled={isViewer}
-            placeholder={t(
-              "testcase.form.testTechniquePlaceholder",
-              "예: 경계값 분석, 의사결정 테이블 등",
-            )}
-          />
-        )}
+          {isVisible("executionType") && (
+            <FormControl fullWidth margin="normal" disabled={isViewer}>
+              <InputLabel id="execution-type-select-label">
+                {t("testcase.form.executionType", "Manual/Automation")}
+              </InputLabel>
+              <Select
+                labelId="execution-type-select-label"
+                value={normalizeExecutionType(
+                  testCase.executionType,
+                  testCase.isAutomated,
+                )}
+                label={t("testcase.form.executionType", "Manual/Automation")}
+                onChange={(event) => {
+                  onTestCaseChange("executionType", event.target.value, false);
+                }}
+              >
+                <MenuItem value="Manual">
+                  {t("testcase.executionType.manual", "Manual")}
+                </MenuItem>
+                <MenuItem value="Automation">
+                  {t("testcase.executionType.automation", "Automation")}
+                </MenuItem>
+                <MenuItem value="Hybrid">
+                  {t("testcase.executionType.hybrid", "Hybrid")}
+                </MenuItem>
+              </Select>
+            </FormControl>
+          )}
 
-        {isVisible("priority") && (
-          <FormControl fullWidth margin="normal" disabled={isViewer}>
-            <InputLabel id="priority-select-label">
-              {t("testcase.form.priority", "우선순위")}
-            </InputLabel>
-            <Select
-              labelId="priority-select-label"
-              value={normalizePriority(testCase.priority)}
-              label={t("testcase.form.priority", "우선순위")}
-              onChange={onChange("priority")}
-            >
-              <MenuItem value="HIGH">
-                {t("testcase.priority.high", "높음")}
-              </MenuItem>
-              <MenuItem value="MEDIUM">
-                {t("testcase.priority.medium", "보통")}
-              </MenuItem>
-              <MenuItem value="LOW">
-                {t("testcase.priority.low", "낮음")}
-              </MenuItem>
-            </Select>
-          </FormControl>
-        )}
+          {isVisible("testTechnique") && (
+            <TextField
+              label={t("testcase.form.testTechnique", "테스트 기법")}
+              value={testCase.testTechnique || ""}
+              onChange={onChange("testTechnique")}
+              fullWidth
+              margin="normal"
+              variant="outlined"
+              disabled={isViewer}
+              placeholder={t(
+                "testcase.form.testTechniquePlaceholder",
+                "예: 경계값 분석, 의사결정 테이블 등",
+              )}
+            />
+          )}
+
+          {isVisible("priority") && (
+            <FormControl fullWidth margin="normal" disabled={isViewer}>
+              <InputLabel id="priority-select-label">
+                {t("testcase.form.priority", "우선순위")}
+              </InputLabel>
+              <Select
+                labelId="priority-select-label"
+                value={normalizePriority(testCase.priority)}
+                label={t("testcase.form.priority", "우선순위")}
+                onChange={onChange("priority")}
+              >
+                <MenuItem value="HIGH">
+                  {t("testcase.priority.high", "높음")}
+                </MenuItem>
+                <MenuItem value="MEDIUM">
+                  {t("testcase.priority.medium", "보통")}
+                </MenuItem>
+                <MenuItem value="LOW">
+                  {t("testcase.priority.low", "낮음")}
+                </MenuItem>
+              </Select>
+            </FormControl>
+          )}
+        </Box>
 
         {isVisible("tags") && (
           <Autocomplete

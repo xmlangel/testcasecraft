@@ -1,0 +1,72 @@
+// src/components/TestCase/splitPane.js
+// ICT-491 케이스 화면 3단 분할(트리 | 케이스 목록 | 상세)에서 쓰는 순수 함수들.
+
+import {
+  getAncestorIds,
+  isUnfiledTestCase,
+  VIRTUAL_ALL_CASES_ID,
+  VIRTUAL_UNFILED_ID,
+} from "../../utils/treeUtils.jsx";
+
+export const DETAIL_PANE_DEFAULT_WIDTH = 640;
+export const DETAIL_PANE_MIN_WIDTH = 380;
+export const DETAIL_PANE_MAX_WIDTH = 1200;
+
+export const clampDetailWidth = (width) =>
+  Math.min(DETAIL_PANE_MAX_WIDTH, Math.max(DETAIL_PANE_MIN_WIDTH, width));
+
+// 가운데 케이스 목록이 이 폭 아래로 줄면 고정 폭 열(체크·즐겨찾기·ID·우선순위·소유자·최근 결과)이
+// 이름 열 자리를 다 차지해 이름이 한 글자씩 세로로 접힌다(1600px 캡처, gg-3).
+export const LIST_PANE_MIN_WIDTH = 600;
+// 폭 조절 막대(6px)와 상세 칸 왼쪽 여백(12px)
+export const SPLIT_GUTTER_WIDTH = 18;
+
+/**
+ * 3단 분할에서 오른쪽(상세) 칸에 실제로 줄 폭을 정한다.
+ * 가운데 칸이 listMinWidth 아래로 내려가지 않게, 먼저 상세 칸을 detailMinWidth 까지 줄이고
+ * 그래도 모자라면 상세 칸을 접는다(collapsed: true).
+ * containerWidth 가 0 이면(아직 재지 못함) 원하는 폭을 그대로 쓴다.
+ */
+export const fitDetailWidth = ({
+  containerWidth,
+  desiredWidth,
+  listMinWidth,
+  detailMinWidth,
+  gutterWidth = SPLIT_GUTTER_WIDTH,
+}) => {
+  if (!containerWidth) return { width: desiredWidth, collapsed: false };
+  const room = containerWidth - listMinWidth - gutterWidth;
+  if (room >= desiredWidth) return { width: desiredWidth, collapsed: false };
+  if (room >= detailMinWidth)
+    return { width: Math.floor(room), collapsed: false };
+  return { width: 0, collapsed: true };
+};
+
+// 케이스가 지금 열려 있는 목록(폴더·가상 노드)에 들어 있는지
+export const isCaseInList = (listId, testCase, items) => {
+  if (!listId || !testCase) return false;
+  if (listId === VIRTUAL_ALL_CASES_ID) return true;
+  if (listId === VIRTUAL_UNFILED_ID) return isUnfiledTestCase(testCase);
+  return getAncestorIds(items, testCase.id).some(
+    (id) => String(id) === String(listId),
+  );
+};
+
+/**
+ * 선택이 바뀐 뒤 가운데 칸에 남길 목록 ID 를 정한다.
+ * - 폴더·가상 노드를 고르면 그 목록을 연다.
+ * - 케이스를 고르면 보던 목록에 그 케이스가 있을 때 목록을 그대로 둔다.
+ *   없으면(트리에서 다른 폴더의 케이스를 누른 경우) 케이스가 든 폴더로 바꾼다.
+ */
+export const resolveListContextId = (prevListId, selectedId, items) => {
+  if (!selectedId) return null;
+  if (selectedId === VIRTUAL_ALL_CASES_ID || selectedId === VIRTUAL_UNFILED_ID)
+    return selectedId;
+  const selected = (items || []).find(
+    (item) => String(item.id) === String(selectedId),
+  );
+  if (!selected) return prevListId;
+  if (selected.type === "folder") return selected.id;
+  if (isCaseInList(prevListId, selected, items)) return prevListId;
+  return isUnfiledTestCase(selected) ? VIRTUAL_UNFILED_ID : selected.parentId;
+};
