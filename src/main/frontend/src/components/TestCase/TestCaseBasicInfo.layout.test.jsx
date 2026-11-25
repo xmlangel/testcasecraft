@@ -149,3 +149,13 @@ describe("TestCaseBasicInfo 이름 줄 높이 (ICT-496)", () => {
     expect(field).not.toHaveClass("MuiFormControl-marginNormal");
   });
 });
+
+describe("TestCaseBasicInfo 입력칸 글자 크기 (ICT-501)", () => {
+  it("이름·테스트 기법 입력칸 글자가 다른 항목과 같은 14px 이다", () => {
+    renderInfo();
+    const name = screen.getByTestId("testcase-name-input");
+    expect(getComputedStyle(name).fontSize).toBe("0.875rem");
+    const technique = screen.getByLabelText("테스트 기법");
+    expect(getComputedStyle(technique).fontSize).toBe("0.875rem");
+  });
+});
