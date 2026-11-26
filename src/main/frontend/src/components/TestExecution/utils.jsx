@@ -55,6 +55,24 @@ export function getResultIcon(result) {
   }
 }
 
+// ICT-513: 결과 열에 아이콘만 있으면 무엇인지 알 수 없다. 아이콘 옆에 붙일 글자의
+// 번역 키와 기본값. 폴더 집계(FOLDER_RESULT_KEYS)와 같은 키를 쓴다.
+const RESULT_LABELS = {
+  PASS: { key: "testResult.status.pass", fallback: "성공" },
+  FAIL: { key: "testResult.status.fail", fallback: "실패" },
+  BLOCKED: { key: "testResult.status.blocked", fallback: "차단됨" },
+  SKIPPED: { key: "testResult.status.skipped", fallback: "건너뜀" },
+};
+const NOT_RUN_LABEL = { key: "testResult.status.notRun", fallback: "미실행" };
+
+/**
+ * 결과 값에 맞는 라벨 번역 키와 기본값. 알 수 없는 값·빈 값은 미실행으로 본다
+ * (getResultIcon 이 모래시계를 그리는 경우와 같다).
+ */
+export function getResultLabel(result) {
+  return RESULT_LABELS[result] || NOT_RUN_LABEL;
+}
+
 export function getDisplayValue(value, type) {
   if (typeof value === "string" && value.trim() !== "") return value;
   return <span style={{ color: "text.disabled" }}>-</span>;
@@ -416,23 +434,33 @@ export const HEADER_HEIGHT = 40;
 // ICT-498: 행마다 grid 가 따로라 케이스명 열은 내용 폭(max-content)을 쓸 수 없다. 화면에 올라온 케이스 중
 // 가장 긴 이름이 한 줄에 들어가는 폭을 재서 모든 행에 같은 최소 폭으로 준다. 넘치면 목록이 가로 스크롤된다.
 export const CASE_NAME_COLUMN_MIN_WIDTH = 200;
-const FOLDER_COLUMN_MIN_WIDTH = 260;
+// ICT-513: 아주 긴 이름 하나 때문에 열이 끝없이 넓어지지 않게 최소 폭에 상한을 둔다.
+// 상한을 넘는 이름은 두 줄까지 보이고 나머지는 말줄임 + 툴팁으로 보인다.
+export const CASE_NAME_COLUMN_MAX_WIDTH = 560;
+// ICT-513: 폴더 경로는 그룹 행이 이미 보여 주므로 폴더 열은 좁게 두고 남는 폭을 케이스명 열로 몰아준다.
+// 폴더 행은 폴더 열과 케이스명 열을 합친 칸에 이름과 집계를 그린다.
+export const FOLDER_COLUMN_MIN_WIDTH = 140;
 // 케이스명 열 안에서 이름 말고 차지하는 폭: 왼쪽 여백 8 + 문서 아이콘 20 + 간격 8 + 간격 8 + 우선순위 칩 약 80 + 여유 16
 export const CASE_NAME_COLUMN_EXTRA_WIDTH = 140;
-// 케이스명 열과 폴더 열을 뺀 나머지 열의 최소 폭 합(체크 40 · ID 110 · 결과 80 · 실행일시 110 · 실행자 90 ·
+// 케이스명 열과 폴더 열을 뺀 나머지 열의 최소 폭 합(체크 40 · ID 110 · 결과 100 · 실행일시 110 · 실행자 90 ·
 // 비고 150 · 태그 100 · JIRA 90 · 입력 90 · 이전 결과 50 · 첨부 50)
-const OTHER_COLUMNS_MIN_WIDTH = 960;
+// 결과 열은 아이콘 옆에 라벨 글자가 붙어 80 → 100 으로 넓혔다(ICT-513).
+const OTHER_COLUMNS_MIN_WIDTH = 980;
+
+// 케이스명 열 최소 폭: 잰 폭을 하한·상한 사이로 맞춘다
+const clampCaseNameWidth = (caseNameWidth) =>
+  Math.min(
+    CASE_NAME_COLUMN_MAX_WIDTH,
+    Math.max(CASE_NAME_COLUMN_MIN_WIDTH, Math.ceil(caseNameWidth || 0)),
+  );
 
 export const buildGridTemplateColumns = ({
   peek = false,
   caseNameWidth = CASE_NAME_COLUMN_MIN_WIDTH,
 } = {}) => {
-  const nameMin = Math.max(
-    CASE_NAME_COLUMN_MIN_WIDTH,
-    Math.ceil(caseNameWidth || 0),
-  );
-  const folder = peek ? "0px" : `minmax(${FOLDER_COLUMN_MIN_WIDTH}px, 2fr)`;
-  return `40px 110px ${folder} minmax(${nameMin}px, 3fr) 80px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px`;
+  const nameMin = clampCaseNameWidth(caseNameWidth);
+  const folder = peek ? "0px" : `minmax(${FOLDER_COLUMN_MIN_WIDTH}px, 1fr)`;
+  return `40px 110px ${folder} minmax(${nameMin}px, 4fr) 100px minmax(110px, auto) minmax(90px, auto) minmax(150px, 2fr) 100px 90px 90px 50px 50px`;
 };
 
 // 위 템플릿의 최소 폭 합. 행과 머리 줄에 min-width 로 줘서 칸이 좁으면 가로 스크롤로 넘긴다.
@@ -442,7 +470,7 @@ export const gridMinWidth = ({
 } = {}) =>
   OTHER_COLUMNS_MIN_WIDTH +
   (peek ? 0 : FOLDER_COLUMN_MIN_WIDTH) +
-  Math.max(CASE_NAME_COLUMN_MIN_WIDTH, Math.ceil(caseNameWidth || 0));
+  clampCaseNameWidth(caseNameWidth);
 
 export const gridTemplateColumns = buildGridTemplateColumns();
 

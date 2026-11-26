@@ -839,6 +839,9 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testPlan.form.title.create", languageCode, "Create New Test Plan", createdBy);
     createTranslationIfNotExists(
         "testPlan.form.title.edit", languageCode, "Edit Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.form.title.view", languageCode, "Test Plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.executionActions", languageCode, "Execution actions", createdBy);
     createTranslationIfNotExists("testPlan.form.planName", languageCode, "Plan Name", createdBy);
     createTranslationIfNotExists(
         "testPlan.form.description", languageCode, "Description", createdBy);
