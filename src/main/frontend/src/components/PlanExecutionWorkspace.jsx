@@ -45,6 +45,7 @@ import {
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import { getExecutionStatusLabel } from "../utils/statusLabels";
 import apiService from "../services/apiService.js";
 import TestPlanForm from "./TestPlanForm.jsx";
 import ExecutionProgressBar from "./TestExecution/ExecutionProgressBar.jsx";
@@ -567,7 +568,7 @@ function PlanExecutionWorkspace({
                   {exec.status && (
                     <Chip
                       size="small"
-                      label={exec.status}
+                      label={getExecutionStatusLabel(exec.status, t)}
                       color={statusColor(exec.status)}
                       variant={
                         isInProgressStatus(exec.status) ||
@@ -702,6 +703,11 @@ function PlanExecutionWorkspace({
           <IconButton
             size="small"
             onClick={() => setListCollapsed((prev) => !prev)}
+            aria-label={
+              listCollapsed
+                ? t("testPlan.workspace.expandList", "목록 펼치기")
+                : t("testPlan.workspace.collapseList", "목록 접기")
+            }
             data-testid="workspace-list-collapse-toggle"
           >
             {listCollapsed ? (
@@ -739,7 +745,14 @@ function PlanExecutionWorkspace({
                 ),
                 endAdornment: filterText ? (
                   <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setFilterText("")}>
+                    <IconButton
+                      size="small"
+                      onClick={() => setFilterText("")}
+                      aria-label={t(
+                        "testcase.tree.filter.clear",
+                        "필터 지우기",
+                      )}
+                    >
                       <ClearIcon fontSize="small" />
                     </IconButton>
                   </InputAdornment>
@@ -791,6 +804,18 @@ function PlanExecutionWorkspace({
                           togglePlanBranch(plan.id);
                         }}
                         data-testid={`workspace-plan-toggle-${plan.id}`}
+                        aria-expanded={expanded}
+                        aria-label={
+                          expanded
+                            ? t(
+                                "testPlan.workspace.collapseRuns",
+                                "실행 목록 접기",
+                              )
+                            : t(
+                                "testPlan.workspace.expandRuns",
+                                "실행 목록 펼치기",
+                              )
+                        }
                         title={
                           expanded
                             ? t(
@@ -879,7 +904,10 @@ function PlanExecutionWorkspace({
                               {exec.status && (
                                 <Chip
                                   size="small"
-                                  label={exec.status}
+                                  label={getExecutionStatusLabel(
+                                    exec.status,
+                                    t,
+                                  )}
                                   color={statusColor(exec.status)}
                                   variant={
                                     isInProgressStatus(exec.status) ||
@@ -938,6 +966,7 @@ function PlanExecutionWorkspace({
         <IconButton
           size="small"
           onClick={() => loadPlanExecutions(selectedPlanId)}
+          aria-label={t("common.refresh", "새로고침")}
           data-testid="workspace-executions-refresh"
         >
           <RefreshIcon fontSize="small" />

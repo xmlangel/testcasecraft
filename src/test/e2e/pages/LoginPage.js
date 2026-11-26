@@ -32,7 +32,7 @@ class LoginPage extends BasePage {
     );
 
     // Header/User selectors
-    this.userMenuButton = page.locator('button[aria-label="user menu"]');
+    this.userMenuButton = page.locator('button[data-testid="user-menu-button"]');
     this.logoutMenuItem = page.locator('[data-testid="logout-menu-item"]');
     this.profileMenuItem = page.locator('[data-testid="profile-menu-item"]');
   }

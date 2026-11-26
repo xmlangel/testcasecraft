@@ -14,6 +14,7 @@ import { useTranslation } from "../../context/I18nContext.jsx";
 import StatusInfoItem from "../StatusInfoItem.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
 import { RESULT_COLORS } from "../../constants/statusColors";
+import { getExecutionStatusLabel } from "../../utils/statusLabels";
 
 /**
  * 테스트 실행 상태 컴포넌트
@@ -110,7 +111,7 @@ const TestExecutionStatus = ({
       >
         <StatusInfoItem
           label={t("testExecution.form.status")}
-          value={execution?.status || "-"}
+          value={getExecutionStatusLabel(execution?.status, t) || "-"}
           compact
         />
         <StatusInfoItem

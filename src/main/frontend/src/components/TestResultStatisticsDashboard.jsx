@@ -40,6 +40,7 @@ import testResultService, {
 import junitResultService from "../services/junitResultService";
 import { useAppContext } from "../context/AppContext";
 import { useI18n } from "../context/I18nContext";
+import { useDateFormatter } from "../hooks/useDateFormatter";
 
 /**
  * ICT-187: 테스트 결과 통계 대시보드 메인 컴포넌트
@@ -54,6 +55,7 @@ function TestResultStatisticsDashboard() {
   } = useAppContext();
 
   const { t } = useI18n();
+  const { formatDate: formatDisplayDate } = useDateFormatter();
   const ROOT_LABEL = t("testResult.folder.root", "루트");
 
   const theme = useTheme();
@@ -594,10 +596,10 @@ function TestResultStatisticsDashboard() {
               ).toFixed(2)
             : 0,
       lastUpdated: statistics.calculatedAt
-        ? new Date(statistics.calculatedAt).toLocaleString("ko-KR")
+        ? formatDisplayDate(statistics.calculatedAt)
         : t("testResultDashboard.summary.unknown", "알 수 없음"),
     };
-  }, [statistics, t]);
+  }, [statistics, t, formatDisplayDate]);
 
   return (
     <Box sx={{ p: 0 }}>

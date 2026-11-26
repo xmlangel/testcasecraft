@@ -13,6 +13,27 @@ import {
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
 import { InlineLanguageToggle } from "./common/LanguageSelector.jsx";
+import useDocumentTitle from "../hooks/useDocumentTitle";
+
+// ICT-511: 테마의 버튼 대문자 변환 때문에 "LOGIN"·"SIGN UP" 으로 보였다.
+// 번역 문구 그대로 보이도록 이 화면에서만 변환을 끈다(테마는 건드리지 않는다).
+const NO_UPPERCASE_SX = { textTransform: "none" };
+
+const MANUAL_LINK_EN = "User Manual";
+
+/**
+ * 로그인 화면 하단 매뉴얼 링크 문구.
+ *
+ * 한국어 화면에서는 영어 사용자도 찾을 수 있게 "사용자 매뉴얼 · User Manual" 로
+ * 두 언어를 함께 적는다. 영어 화면에서는 번역 자체가 "User Manual" 이라 같은 말이
+ * 두 번("USER MANUAL · USER MANUAL") 찍혔다. 번역이 영어 문구와 같으면 한 번만 적는다.
+ */
+export const buildManualLinkLabel = (localized) => {
+  const label = String(localized || "").trim() || MANUAL_LINK_EN;
+  return label.toLowerCase() === MANUAL_LINK_EN.toLowerCase()
+    ? label
+    : `${label} · ${MANUAL_LINK_EN}`;
+};
 
 const Login = ({ onLoginSuccess }) => {
   const { login, register } = useAppContext();
@@ -28,6 +49,12 @@ const Login = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+
+  useDocumentTitle(
+    mode === "login"
+      ? t("login.title", "로그인")
+      : t("register.title", "회원가입"),
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -227,6 +254,7 @@ const Login = ({ onLoginSuccess }) => {
                   type="submit"
                   disabled={loading}
                   data-testid="login-submit-button"
+                  sx={NO_UPPERCASE_SX}
                 >
                   {t("login.button", "로그인")}
                 </Button>
@@ -240,6 +268,7 @@ const Login = ({ onLoginSuccess }) => {
                   }}
                   disabled={loading}
                   data-testid="login-switch-to-register-button"
+                  sx={NO_UPPERCASE_SX}
                 >
                   {t("register.switch", "회원가입")}
                 </Button>
@@ -253,6 +282,7 @@ const Login = ({ onLoginSuccess }) => {
                   type="submit"
                   disabled={loading}
                   data-testid="register-submit-button"
+                  sx={NO_UPPERCASE_SX}
                 >
                   {t("register.button", "회원가입")}
                 </Button>
@@ -266,6 +296,7 @@ const Login = ({ onLoginSuccess }) => {
                   }}
                   disabled={loading}
                   data-testid="register-switch-to-login-button"
+                  sx={NO_UPPERCASE_SX}
                 >
                   {t("login.back", "로그인으로 돌아가기")}
                 </Button>
@@ -277,11 +308,11 @@ const Login = ({ onLoginSuccess }) => {
             <Button
               size="small"
               color="inherit"
-              sx={{ color: "text.secondary" }}
+              sx={{ color: "text.secondary", ...NO_UPPERCASE_SX }}
               onClick={() => window.open("/manual", "_blank")}
               data-testid="login-manual-link"
             >
-              {t("login.manualLink", "사용자 매뉴얼")} · User Manual
+              {buildManualLinkLabel(t("login.manualLink", "사용자 매뉴얼"))}
             </Button>
           </Box>
         </Box>

@@ -1034,6 +1034,45 @@ public class KoreanI18nGapTranslations {
         languageCode,
         "이전 폴더의 태그 [{tags}]를 삭제하시겠습니까?\n'예'를 선택하면 해당 태그가 삭제되고, '아니오'를 선택하면 유지됩니다.",
         createdBy);
+    // ICT-511: 상태값 현지화, 아이콘 버튼의 접근 가능한 이름, 헤더 버튼 문구
+    createTranslationIfNotExists(
+        "testExecution.status.cancelled", languageCode, "취소됨", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.status.aborted", languageCode, "중단됨", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.charter.status.active", languageCode, "활성", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.charter.status.archived", languageCode, "보관됨", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.button.importExport", languageCode, "가져오기/내보내기", createdBy);
+    createTranslationIfNotExists(
+        "header.aria.userMenu", languageCode, "사용자 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "header.theme.switchToLight", languageCode, "밝은 테마로 전환", createdBy);
+    createTranslationIfNotExists(
+        "header.theme.switchToDark", languageCode, "어두운 테마로 전환", createdBy);
+    createTranslationIfNotExists(
+        "project.card.moreActions", languageCode, "프로젝트 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "project.card.moreActionsFor", languageCode, "{name} 프로젝트 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.button.add", languageCode, "추가", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moreActions", languageCode, "작업 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moreActionsFor", languageCode, "{name} 작업 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.expand", languageCode, "{name} 펼치기", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.collapse", languageCode, "{name} 접기", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moveUp", languageCode, "위로 이동", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moveDown", languageCode, "아래로 이동", createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.button.title", languageCode, "선택 항목을 다른 프로젝트로 이동/복사", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.button.export", languageCode, "내보내기", createdBy);
 
     log.info("i18n gap ko 번역 초기화 완료");
   }

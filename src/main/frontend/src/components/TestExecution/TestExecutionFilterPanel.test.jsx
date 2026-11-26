@@ -86,3 +86,22 @@ describe("TestExecutionFilterPanel", () => {
     expect(screen.getByText("필터")).toBeInTheDocument();
   });
 });
+
+describe("TestExecutionFilterPanel 펼치기 버튼 (ICT-511)", () => {
+  it("아이콘만 있는 펼치기 버튼에 이름과 펼침 상태가 있다", () => {
+    render(
+      <TestExecutionFilterPanel
+        filters={EMPTY}
+        onFilterChange={vi.fn()}
+        onApply={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+    const toggle = screen.getByTestId("execution-filter-toggle");
+    const initiallyExpanded = toggle.getAttribute("aria-expanded") === "true";
+    expect(toggle).toHaveAccessibleName(initiallyExpanded ? "접기" : "펼치기");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", String(!initiallyExpanded));
+    expect(toggle).toHaveAccessibleName(initiallyExpanded ? "펼치기" : "접기");
+  });
+});

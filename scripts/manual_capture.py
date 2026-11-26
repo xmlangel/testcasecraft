@@ -112,7 +112,7 @@ def open_user_menu(page: Page) -> None:
     """헤더 우측 아바타 클릭 → 사용자 메뉴 열기."""
     # 헤더에 aria-label="user manual" 버튼이 추가되어 부분 매칭(*='user')은
     # 매뉴얼 버튼을 먼저 잡는다 — 정확 매칭만 사용
-    page.locator("header [aria-label='user menu']").first.click()
+    page.locator("header [data-testid='user-menu-button']").first.click()
     page.wait_for_selector('[data-testid="profile-menu-item"]', timeout=5_000)
 
 

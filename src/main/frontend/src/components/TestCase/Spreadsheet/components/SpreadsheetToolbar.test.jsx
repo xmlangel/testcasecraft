@@ -85,9 +85,9 @@ describe("SpreadsheetToolbar", () => {
     // 기본(off, 전체화면 보기): 내보내기만
     expect(screen.getAllByTestId("spreadsheet-io-menu-button")).toHaveLength(1);
     expect(screen.getByTestId("spreadsheet-io-menu-button")).toHaveTextContent(
-      "Export",
+      "내보내기",
     );
-    expect(screen.queryByText("Import/Export")).toBeNull();
+    expect(screen.queryByText("가져오기/내보내기")).toBeNull();
 
     rerender(
       <SpreadsheetToolbar
@@ -105,7 +105,7 @@ describe("SpreadsheetToolbar", () => {
     // 일반 보기: 예전의 Import/Export·Export 두 버튼 대신 하나
     const buttons = screen.getAllByTestId("spreadsheet-io-menu-button");
     expect(buttons).toHaveLength(1);
-    expect(buttons[0]).toHaveTextContent("가져오기 / Export");
+    expect(buttons[0]).toHaveTextContent("가져오기/내보내기");
     expect(buttons[0]).toHaveAttribute("aria-haspopup", "menu");
     fireEvent.click(buttons[0]);
     expect(onExportMenu).toHaveBeenCalledTimes(1);

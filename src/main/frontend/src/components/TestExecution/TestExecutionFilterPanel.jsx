@@ -13,6 +13,7 @@ import {
   Collapse,
   Checkbox,
   ListItemText,
+  Tooltip,
 } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -287,6 +288,11 @@ const TestExecutionFilterPanel = ({
 
   if (embedded) return fields;
 
+  // ICT-511: 아이콘만 있는 펼치기 버튼에 이름을 붙인다.
+  const toggleLabel = expanded
+    ? t("common.collapse", "접기")
+    : t("common.expand", "펼치기");
+
   return (
     <Paper elevation={1} sx={{ mb: 1 }}>
       <Box
@@ -308,9 +314,17 @@ const TestExecutionFilterPanel = ({
             </Typography>
           )}
         </Box>
-        <IconButton onClick={() => setExpanded(!expanded)} size="small">
-          {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </IconButton>
+        <Tooltip title={toggleLabel}>
+          <IconButton
+            onClick={() => setExpanded(!expanded)}
+            size="small"
+            aria-label={toggleLabel}
+            aria-expanded={expanded}
+            data-testid="execution-filter-toggle"
+          >
+            {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
+        </Tooltip>
       </Box>
       <Collapse in={expanded}>{fields}</Collapse>
     </Paper>

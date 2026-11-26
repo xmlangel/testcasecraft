@@ -142,6 +142,7 @@ const MemoizedTreeItem = React.memo(
             onClick={handleConfirmAdd}
             color="primary"
             data-add-confirm="true"
+            aria-label={t("testcase.tree.button.add", "추가")}
           >
             <AddIcon fontSize="small" />
           </IconButton>
@@ -150,6 +151,7 @@ const MemoizedTreeItem = React.memo(
             onClick={handleCancelAdd}
             color="error"
             data-add-cancel="true"
+            aria-label={t("common.buttons.cancel", "취소")}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -296,6 +298,7 @@ const MemoizedTreeItem = React.memo(
                   e.stopPropagation();
                   onMoveOrder(node.id, "up");
                 }}
+                aria-label={t("testcase.tree.node.moveUp", "위로 이동")}
                 sx={{ p: 0.25 }}
               >
                 <ArrowUpwardIcon fontSize="inherit" />
@@ -307,6 +310,7 @@ const MemoizedTreeItem = React.memo(
                   e.stopPropagation();
                   onMoveOrder(node.id, "down");
                 }}
+                aria-label={t("testcase.tree.node.moveDown", "아래로 이동")}
                 sx={{ p: 0.25 }}
               >
                 <ArrowDownwardIcon fontSize="inherit" />
@@ -346,6 +350,10 @@ const MemoizedTreeItem = React.memo(
                     e.stopPropagation();
                     onOpenVersionHistory(node.id);
                   }}
+                  aria-label={t(
+                    "testcase.tree.action.versionHistory",
+                    "버전 히스토리",
+                  )}
                   title={t(
                     "testcase.tree.action.versionHistory",
                     "버전 히스토리",
@@ -355,16 +363,24 @@ const MemoizedTreeItem = React.memo(
                   <HistoryIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onContextMenu(e, node.id);
-                }}
-                sx={{ p: 0.25, ml: 0.5 }}
-              >
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
+              <Tooltip title={t("testcase.tree.node.moreActions", "작업 메뉴")}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onContextMenu(e, node.id);
+                  }}
+                  aria-haspopup="menu"
+                  aria-label={t(
+                    "testcase.tree.node.moreActionsFor",
+                    "{name} 작업 메뉴",
+                    { name: node.name },
+                  )}
+                  sx={{ p: 0.25, ml: 0.5 }}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
           )}
         </Box>
@@ -475,7 +491,21 @@ const MemoizedTreeItem = React.memo(
             }}
           >
             {isFolder(node) && (
-              <IconButton size="small" onClick={onToggle} sx={{ p: 0.5 }}>
+              <IconButton
+                size="small"
+                onClick={onToggle}
+                aria-expanded={isExpanded}
+                aria-label={
+                  isExpanded
+                    ? t("testcase.tree.node.collapse", "{name} 접기", {
+                        name: node.name,
+                      })
+                    : t("testcase.tree.node.expand", "{name} 펼치기", {
+                        name: node.name,
+                      })
+                }
+                sx={{ p: 0.5 }}
+              >
                 {isExpanded ? (
                   <ExpandMoreIcon fontSize="small" />
                 ) : (

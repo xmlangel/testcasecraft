@@ -317,3 +317,77 @@ export function formatDateOnlySafe(date, locale = "ko-KR") {
     day: "2-digit",
   });
 }
+
+/**
+ * 브라우저(OS) 시간대. 읽을 수 없으면 UTC.
+ * @returns {string} IANA 시간대 이름 (예: "Asia/Seoul")
+ */
+export function getBrowserTimeZone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+/**
+ * 화면에 날짜를 보일 시간대.
+ *
+ * 사용자 프로필 시간대는 서버 기본값이 "UTC" 라서, 따로 고르지 않은 사용자도 모두
+ * "UTC" 로 들어온다. 그 값을 그대로 쓰면 한국 사용자에게 "18:13 (UTC)" 처럼 9시간
+ * 어긋난 시각이 보였다(ICT-511). 프로필에 UTC 가 아닌 시간대를 골랐을 때만 그 값을
+ * 쓰고, 나머지는 브라우저 시간대를 쓴다.
+ *
+ * @param {string|null|undefined} userTimeZone 사용자 프로필 시간대
+ * @returns {string}
+ */
+export function resolveDisplayTimeZone(userTimeZone) {
+  if (userTimeZone && userTimeZone !== "UTC") return userTimeZone;
+  return getBrowserTimeZone();
+}
+
+const pickPart = (parts, type) =>
+  parts.find((part) => part.type === type)?.value ?? "";
+
+const formatParts = (dateObj, withTime, timeZone) => {
+  const options = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    ...(withTime
+      ? { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }
+      : {}),
+    ...(timeZone ? { timeZone } : {}),
+  };
+  return new Intl.DateTimeFormat("en-US", options).formatToParts(dateObj);
+};
+
+/**
+ * 화면 공통 날짜 표기 — 언어와 관계없이 `YYYY-MM-DD`, 시각이 있으면 `YYYY-MM-DD HH:mm`.
+ *
+ * 화면마다 toLocaleString 을 써서 "11/25/2026"(미국식), "2026. 05. 21. 18:13 (UTC)"
+ * 처럼 제각각이었다. 백엔드가 주는 문자열·LocalDateTime 배열·Date 를 모두 받는다.
+ *
+ * @param {any} date 변환할 날짜
+ * @param {{withTime?: boolean, timeZone?: string}} [opts]
+ * @returns {string} 포맷된 문자열, 날짜가 아니면 "-"
+ */
+export function formatYmd(date, { withTime = false, timeZone } = {}) {
+  const dateObj = safeParseDate(date);
+  if (!dateObj) return "-";
+
+  let parts;
+  try {
+    parts = formatParts(dateObj, withTime, timeZone);
+  } catch {
+    // 알 수 없는 시간대 이름이면 브라우저 시간대로 대신 보인다.
+    parts = formatParts(dateObj, withTime, undefined);
+  }
+
+  const ymd = `${pickPart(parts, "year")}-${pickPart(parts, "month")}-${pickPart(parts, "day")}`;
+  if (!withTime) return ymd;
+  // 일부 엔진은 자정을 "24" 로 낸다.
+  const hour =
+    pickPart(parts, "hour") === "24" ? "00" : pickPart(parts, "hour");
+  return `${ymd} ${hour}:${pickPart(parts, "minute")}`;
+}
