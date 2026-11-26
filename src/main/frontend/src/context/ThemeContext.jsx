@@ -203,8 +203,18 @@ export const createAppTheme = (mode) => {
       // 라이트 모드 보조 색도 글자로 쓸 때 4.5:1 을 넘기게 진한 톤으로 (ICT-509).
       // #0EA5E9 글자는 흰 배경 2.8:1, 칩 글자 #0284C7 은 3.9:1 이었다.
       secondary: isLight
-        ? { main: "#0369A1", light: "#0EA5E9", dark: "#075985", contrastText: "#FFFFFF" }
-        : { main: "#38BDF8", light: "#7DD3FC", dark: "#0EA5E9", contrastText: "#0F172A" },
+        ? {
+            main: "#0369A1",
+            light: "#0EA5E9",
+            dark: "#075985",
+            contrastText: "#FFFFFF",
+          }
+        : {
+            main: "#38BDF8",
+            light: "#7DD3FC",
+            dark: "#0EA5E9",
+            contrastText: "#0F172A",
+          },
       background: {
         default: isLight ? "#F8FAFC" : "#0F172A",
         paper: isLight ? "rgba(255, 255, 255, 0.7)" : "rgba(15, 23, 42, 0.7)",
@@ -297,7 +307,7 @@ export const createAppTheme = (mode) => {
         letterSpacing: "0.01em",
       },
       caption: {
-        fontFamily: FONT_BODY,  // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
+        fontFamily: FONT_BODY, // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
         fontSize: "0.75rem",
         fontWeight: 400,
         lineHeight: 1.5,
@@ -312,7 +322,7 @@ export const createAppTheme = (mode) => {
         textTransform: "uppercase",
       },
       overline: {
-        fontFamily: FONT_BODY,  // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
+        fontFamily: FONT_BODY, // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
         fontSize: "0.75rem",
         fontWeight: 500,
         lineHeight: 2,
@@ -502,7 +512,7 @@ export const createAppTheme = (mode) => {
           root: {
             borderRadius: 12,
             fontWeight: 500,
-            fontFamily: FONT_BODY,  // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
+            fontFamily: FONT_BODY, // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
             backdropFilter: "blur(10px)",
           },
           // 채움형 칩은 색을 지정하지 않은 것만 시안으로 물들인다.

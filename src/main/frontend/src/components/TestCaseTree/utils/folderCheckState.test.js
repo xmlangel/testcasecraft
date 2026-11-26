@@ -15,7 +15,12 @@ const items = [
 
 describe("computeFolderCheckStates", () => {
   it("하위 케이스가 모두 선택되면 폴더 ID 가 없어도 all 이다", () => {
-    const states = computeFolderCheckStates(items, ["tc1", "tc2", "tc3", "tc4"]);
+    const states = computeFolderCheckStates(items, [
+      "tc1",
+      "tc2",
+      "tc3",
+      "tc4",
+    ]);
     expect(states.get("root")).toBe("all");
     expect(states.get("sub")).toBe("all");
     expect(states.get("sys")).toBe("all");
@@ -40,7 +45,9 @@ describe("computeFolderCheckStates", () => {
   });
 
   it("Set 도 받고, 빈 입력은 빈 결과를 돌려준다", () => {
-    expect(computeFolderCheckStates(items, new Set(["tc4"])).get("sys")).toBe("all");
+    expect(computeFolderCheckStates(items, new Set(["tc4"])).get("sys")).toBe(
+      "all",
+    );
     expect(computeFolderCheckStates([], ["tc1"]).size).toBe(0);
     expect(computeFolderCheckStates(undefined, []).size).toBe(0);
   });

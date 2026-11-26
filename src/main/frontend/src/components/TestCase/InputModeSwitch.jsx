@@ -82,7 +82,10 @@ function InputModeSwitch({ value, mode, onChange, t: tProp, compact = false }) {
         {...TOOLTIP_PROPS}
         title={tooltipFor(
           "spreadsheet",
-          t("testcase.inputMode.spreadsheet.tooltip", "스프레드시트로 일괄 입력"),
+          t(
+            "testcase.inputMode.spreadsheet.tooltip",
+            "스프레드시트로 일괄 입력",
+          ),
         )}
       >
         <ToggleButton

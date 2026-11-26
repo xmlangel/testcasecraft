@@ -1125,7 +1125,10 @@ const TestCaseSpreadsheet = ({
           data-testid="spreadsheet-cells-expand-toggle"
         >
           {cellsExpanded
-            ? t("testcase.spreadsheet.button.collapseCells", "긴 셀 3줄로 줄이기")
+            ? t(
+                "testcase.spreadsheet.button.collapseCells",
+                "긴 셀 3줄로 줄이기",
+              )
             : t("testcase.spreadsheet.button.expandCells", "긴 셀 모두 펼치기")}
         </Button>
       </Box>

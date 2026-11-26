@@ -70,9 +70,7 @@ describe("TestCaseSpreadsheet 도구 모음 (ICT-514)", () => {
 
     // 가져오기 항목은 기존 Import/Export 대화상자를 연다
     fireEvent.click(within(menu).getByTestId("spreadsheet-io-menu-import"));
-    expect(
-      screen.getByTestId("stub-import-export-dialog"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("stub-import-export-dialog")).toBeInTheDocument();
   });
 
   it("도구 모음은 표 위에 붙는 정적 줄이다 (sticky·그림자 없음)", () => {

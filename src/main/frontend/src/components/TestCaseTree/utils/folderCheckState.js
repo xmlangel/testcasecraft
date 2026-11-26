@@ -10,13 +10,15 @@
  * @returns {Map<string, "all"|"some"|"none">} 하위 케이스가 하나 이상인 폴더별 상태
  */
 const FOLDER_TYPES = new Set(["folder", "systemFolder"]);
-export const isFolderItem = (item) => Boolean(item) && FOLDER_TYPES.has(item.type);
+export const isFolderItem = (item) =>
+  Boolean(item) && FOLDER_TYPES.has(item.type);
 
 export function computeFolderCheckStates(items, checkedIds) {
   const states = new Map();
   if (!Array.isArray(items) || items.length === 0) return states;
 
-  const checked = checkedIds instanceof Set ? checkedIds : new Set(checkedIds || []);
+  const checked =
+    checkedIds instanceof Set ? checkedIds : new Set(checkedIds || []);
   const children = new Map();
   items.forEach((item) => {
     const key = item.parentId ?? null;
@@ -53,7 +55,10 @@ export function computeFolderCheckStates(items, checkedIds) {
     if (!isFolderItem(item)) return;
     const [total, selected] = tally(item.id);
     if (total === 0) return;
-    states.set(item.id, selected === 0 ? "none" : selected === total ? "all" : "some");
+    states.set(
+      item.id,
+      selected === 0 ? "none" : selected === total ? "all" : "some",
+    );
   });
   return states;
 }
