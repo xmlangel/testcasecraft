@@ -38,4 +38,27 @@ describe("ChatHeader 모델 선택 상자 대비", () => {
     expect(bg).toBe("rgb(248, 250, 252)"); // background.default #F8FAFC
     expect(screen.getByText("OPENWEBUI / gemma4")).toBeInTheDocument();
   });
+
+  it("아이콘 버튼마다 접근 가능한 이름이 있다 (ICT-511)", () => {
+    const theme = createAppTheme("light");
+    render(
+      <ThemeProvider theme={theme}>
+        <ChatHeader
+          isAdmin={false}
+          activeLlmConfigs={[]}
+          onLlmConfigChange={vi.fn()}
+          isFullScreen={false}
+          onToggleFullScreen={vi.fn()}
+          onRetry={vi.fn()}
+          onClearChat={vi.fn()}
+          messages={[]}
+          isLoading={false}
+          persistConversation={false}
+        />
+      </ThemeProvider>,
+    );
+    expect(screen.getByRole("button", { name: "전체화면 보기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "재시도" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "대화 초기화" })).toBeInTheDocument();
+  });
 });

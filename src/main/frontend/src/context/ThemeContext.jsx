@@ -200,12 +200,11 @@ export const createAppTheme = (mode) => {
     palette: {
       mode,
       primary: isLight ? PRIMARY_LIGHT_MODE : PRIMARY_DARK_MODE,
-      secondary: {
-        main: "#0EA5E9", // Sky
-        light: "#38BDF8",
-        dark: "#0284C7",
-        contrastText: "#FFFFFF",
-      },
+      // 라이트 모드 보조 색도 글자로 쓸 때 4.5:1 을 넘기게 진한 톤으로 (ICT-509).
+      // #0EA5E9 글자는 흰 배경 2.8:1, 칩 글자 #0284C7 은 3.9:1 이었다.
+      secondary: isLight
+        ? { main: "#0369A1", light: "#0EA5E9", dark: "#075985", contrastText: "#FFFFFF" }
+        : { main: "#38BDF8", light: "#7DD3FC", dark: "#0EA5E9", contrastText: "#0F172A" },
       background: {
         default: isLight ? "#F8FAFC" : "#0F172A",
         paper: isLight ? "rgba(255, 255, 255, 0.7)" : "rgba(15, 23, 42, 0.7)",
@@ -382,6 +381,15 @@ export const createAppTheme = (mode) => {
         styleOverrides: {
           root: {
             "&.Mui-focusVisible": focusRing(isLight),
+          },
+        },
+      },
+      // 머리 띠 사용자 아바타. 기본 회색 바탕(#BDBDBD)에 흰 글자는 1.8:1 이었다 (ICT-509)
+      MuiAvatar: {
+        styleOverrides: {
+          colorDefault: {
+            backgroundColor: isLight ? "#475569" : "#CBD5E1",
+            color: isLight ? "#FFFFFF" : "#0F172A",
           },
         },
       },

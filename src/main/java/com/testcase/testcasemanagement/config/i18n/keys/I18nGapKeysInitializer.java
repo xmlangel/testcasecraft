@@ -595,6 +595,8 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "rag.chat.stopStreaming", "rag", "i18n gap 보강 (2026-06-06)", "전송 중지");
     createTranslationKeyIfNotExists(
+        "rag.chat.send", "rag", "RAG 채팅 보내기 버튼 이름 (ICT-511)", "보내기");
+    createTranslationKeyIfNotExists(
         "rag.chat.testCaseDocumentLabel", "rag", "i18n gap 보강 (2026-06-06)", "테스트케이스: {name}");
     createTranslationKeyIfNotExists(
         "rag.chat.testCaseDocumentTooltip",

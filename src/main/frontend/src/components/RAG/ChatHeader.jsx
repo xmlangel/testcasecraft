@@ -166,7 +166,16 @@ function ChatHeader({
               : t("rag.chat.enterFullScreen", "전체화면 보기")
           }
         >
-          <IconButton color="inherit" size="small" onClick={onToggleFullScreen}>
+          <IconButton
+            color="inherit"
+            size="small"
+            onClick={onToggleFullScreen}
+            aria-label={
+              isFullScreen
+                ? t("rag.chat.exitFullScreen", "전체화면 종료")
+                : t("rag.chat.enterFullScreen", "전체화면 보기")
+            }
+          >
             {isFullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
           </IconButton>
         </Tooltip>
@@ -177,6 +186,7 @@ function ChatHeader({
               size="small"
               onClick={onRetry}
               disabled={messages.length < 2 || isLoading}
+              aria-label={t("rag.chat.retry", "재시도")}
             >
               <RefreshIcon />
             </IconButton>
@@ -188,6 +198,7 @@ function ChatHeader({
               color="inherit"
               size="small"
               onClick={onClearChat}
+              aria-label={t("rag.chat.clear", "대화 초기화")}
               disabled={
                 messages.length === 0 ||
                 isLoading ||

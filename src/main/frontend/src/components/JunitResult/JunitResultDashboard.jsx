@@ -623,6 +623,8 @@ export default function JunitResultDashboard() {
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
+            {/* 큰 숫자는 본문 색으로 쓰고 상태 색은 옆 아이콘·카드 바탕에만 남긴다 (ICT-509).
+                성공 색 숫자는 흰 바탕에서 2.1:1 이었다. */}
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card
@@ -643,7 +645,7 @@ export default function JunitResultDashboard() {
                       <Box>
                         <Typography
                           variant="h4"
-                          sx={{ color: RESULT_COLORS.PASS, fontWeight: "bold" }}
+                          sx={{ color: "text.primary", fontWeight: "bold" }}
                         >
                           {statistics.totalPassed || 0}
                         </Typography>
@@ -678,7 +680,7 @@ export default function JunitResultDashboard() {
                       <Box>
                         <Typography
                           variant="h4"
-                          sx={{ color: RESULT_COLORS.FAIL, fontWeight: "bold" }}
+                          sx={{ color: "text.primary", fontWeight: "bold" }}
                         >
                           {statistics.totalFailed || 0}
                         </Typography>
@@ -711,7 +713,7 @@ export default function JunitResultDashboard() {
                       <Box>
                         <Typography
                           variant="h4"
-                          sx={{ color: COLORS.ERROR, fontWeight: "bold" }}
+                          sx={{ color: "text.primary", fontWeight: "bold" }}
                         >
                           {statistics.totalErrors || 0}
                         </Typography>

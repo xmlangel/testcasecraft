@@ -147,3 +147,23 @@ describe("한글 글꼴 (ICT-509)", () => {
     expect(getComputedStyle(chip).fontFamily).toMatch(/Pretendard/);
   });
 });
+
+describe("보조 색·아바타 대비 (ICT-509 재측정 후속)", () => {
+  it("라이트 모드 secondary.main·dark 는 흰 배경에서 4.5:1 이상이다", () => {
+    const theme = createAppTheme("light");
+    expect(contrast(theme.palette.secondary.main, WHITE)).toBeGreaterThanOrEqual(AA);
+    expect(contrast(theme.palette.secondary.dark, WHITE)).toBeGreaterThanOrEqual(AA);
+  });
+
+  it("다크 모드 secondary.main 은 어두운 배경에서 4.5:1 이상이다", () => {
+    const theme = createAppTheme("dark");
+    expect(contrast(theme.palette.secondary.main, DARK_BG)).toBeGreaterThanOrEqual(AA);
+  });
+
+  it.each(["light", "dark"])("%s 모드 기본 아바타 글자는 바탕 대비 4.5:1 이상이다", (mode) => {
+    const theme = createAppTheme(mode);
+    const { backgroundColor, color } =
+      theme.components.MuiAvatar.styleOverrides.colorDefault;
+    expect(contrast(color, backgroundColor)).toBeGreaterThanOrEqual(AA);
+  });
+});

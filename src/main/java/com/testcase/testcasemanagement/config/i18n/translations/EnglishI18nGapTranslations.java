@@ -534,6 +534,7 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists("rag.chat.showJson", languageCode, "Show Raw JSON", createdBy);
     createTranslationIfNotExists(
         "rag.chat.stopStreaming", languageCode, "Stop Streaming", createdBy);
+    createTranslationIfNotExists("rag.chat.send", languageCode, "Send", createdBy);
     createTranslationIfNotExists(
         "rag.chat.testCaseDocumentLabel", languageCode, "Test case: {name}", createdBy);
     createTranslationIfNotExists(

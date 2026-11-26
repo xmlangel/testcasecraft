@@ -402,6 +402,7 @@ public class KoreanI18nGapTranslations {
         "rag.chat.jsonHidden", languageCode, "테스트케이스 데이터가 감지되었습니다.", createdBy, true);
     createTranslationIfNotExists("rag.chat.showJson", languageCode, "JSON 원본 보기", createdBy);
     createTranslationIfNotExists("rag.chat.stopStreaming", languageCode, "전송 중지", createdBy);
+    createTranslationIfNotExists("rag.chat.send", languageCode, "보내기", createdBy);
     createTranslationIfNotExists(
         "rag.chat.testCaseDocumentLabel", languageCode, "테스트케이스: {name}", createdBy);
     createTranslationIfNotExists(

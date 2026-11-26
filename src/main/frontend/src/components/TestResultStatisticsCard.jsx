@@ -164,7 +164,7 @@ function TestResultStatisticsCard({
             >
               <Typography
                 variant="body2"
-                color="success.main"
+                color="success.dark"
                 fontWeight="bold"
               >
                 {isLatestMode
