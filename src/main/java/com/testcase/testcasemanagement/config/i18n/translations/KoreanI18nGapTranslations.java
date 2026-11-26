@@ -589,6 +589,9 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("projectNav.sidebar.aria", languageCode, "프로젝트 영역", createdBy);
     createTranslationIfNotExists("projectNav.sidebar.collapse", languageCode, "사이드바 접기", createdBy);
     createTranslationIfNotExists("projectNav.sidebar.expand", languageCode, "사이드바 펼치기", createdBy);
+    // ICT-510 좁은 화면: 영역 메뉴 서랍·상단 햄버거 메뉴
+    createTranslationIfNotExists("projectNav.sidebar.open", languageCode, "영역 메뉴 열기", createdBy);
+    createTranslationIfNotExists("header.nav.menu", languageCode, "메뉴", createdBy);
     // ICT-491 화면 밀도
     createTranslationIfNotExists("profile.density.title", languageCode, "화면 밀도", createdBy);
     createTranslationIfNotExists(

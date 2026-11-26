@@ -841,6 +841,10 @@ public class I18nGapKeysInitializer {
         "projectNav.sidebar.collapse", "projectNav", "레이아웃 선택", "사이드바 접기");
     createTranslationKeyIfNotExists(
         "projectNav.sidebar.expand", "projectNav", "레이아웃 선택", "사이드바 펼치기");
+    // ICT-510 좁은 화면: 영역 메뉴 서랍·상단 햄버거 메뉴
+    createTranslationKeyIfNotExists(
+        "projectNav.sidebar.open", "projectNav", "ICT-510 좁은 화면 서랍", "영역 메뉴 열기");
+    createTranslationKeyIfNotExists("header.nav.menu", "header", "ICT-510 좁은 화면 햄버거 메뉴", "메뉴");
     // ICT-491 화면 밀도
     createTranslationKeyIfNotExists("profile.density.title", "profile", "화면 밀도", "화면 밀도");
     createTranslationKeyIfNotExists(
