@@ -27,10 +27,12 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
+  Rule as RuleIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
 import RequirementLinkPanel from "./RequirementLinkPanel.jsx";
 import MarkdownViewer from "../common/MarkdownViewer.jsx";
+import EmptyState from "../common/EmptyState.jsx";
 import { getAllChildIds } from "../../utils/treeUtils.jsx";
 import {
   COVERAGE_META,
@@ -255,10 +257,38 @@ function RequirementListView({
               })}
               {visible.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={canEdit ? 6 : 5}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t("requirement.empty", "요구사항이 없습니다.")}
-                    </Typography>
+                  <TableCell colSpan={canEdit ? 6 : 5} sx={{ border: 0 }}>
+                    {/* 다른 화면과 같은 빈 상태 모양 (ICT-514). 문서가 없으면 문서부터,
+                        있으면 요구사항을 추가하는 기존 동작을 그대로 잇는다. */}
+                    <EmptyState
+                      dense
+                      icon={RuleIcon}
+                      data-testid="requirement-empty-state"
+                      title={t("requirement.empty", "요구사항이 없습니다.")}
+                      description={
+                        specs.length === 0
+                          ? t(
+                              "requirement.spec.empty",
+                              "요구사항 문서를 먼저 추가하세요.",
+                            )
+                          : undefined
+                      }
+                      actionIcon={<AddIcon />}
+                      actionLabel={
+                        canEdit
+                          ? specs.length === 0
+                            ? t("requirement.spec.add", "요구사항 문서 추가")
+                            : t("requirement.add", "요구사항 추가")
+                          : undefined
+                      }
+                      onAction={
+                        canEdit
+                          ? specs.length === 0
+                            ? () => onAddSpec(null)
+                            : () => onAddRequirement(selectedSpecId)
+                          : undefined
+                      }
+                    />
                   </TableCell>
                 </TableRow>
               )}

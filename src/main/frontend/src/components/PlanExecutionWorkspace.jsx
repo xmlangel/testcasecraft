@@ -36,6 +36,8 @@ import {
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
   Delete as DeleteIcon,
+  AssignmentOutlined as AssignmentOutlinedIcon,
+  PlayCircleOutline as PlayCircleOutlineIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
@@ -43,6 +45,7 @@ import apiService from "../services/apiService.js";
 import TestPlanForm from "./TestPlanForm.jsx";
 import ExecutionProgressBar from "./TestExecution/ExecutionProgressBar.jsx";
 import TestExecutionForm from "./TestExecutionForm.jsx";
+import EmptyState from "./common/EmptyState.jsx";
 import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 import { useAuth } from "../context/AuthContext.jsx";
 import useProjectRole from "../hooks/useProjectRole.js";
@@ -927,20 +930,47 @@ function PlanExecutionWorkspace({
     </Box>
   );
 
+  // 아무것도 고르지 않았을 때의 상세 영역 — 다른 화면과 같은 EmptyState 모양 (ICT-514).
+  // 목록이 비어 있으면 "없음"을 제목으로, 있으면 고르라는 안내를 제목으로 둔다.
+  // 쓰기 권한이 있으면 목록 머리의 만들기 버튼과 같은 동작을 가운데에도 둔다.
+  const listIsEmpty = isExecutionsMode
+    ? projectExecutions.length === 0
+    : plansOfProject.length === 0;
+  const detailHintText = isExecutionsMode
+    ? t(
+        "testPlan.workspace.detailHintExecution",
+        "실행을 고르면 상세가 여기에 열립니다.",
+      )
+    : t(
+        "testPlan.workspace.detailHint",
+        "플랜을 고르면 내용이 여기에 열립니다. 실행을 고르면 실행 상세로 바뀝니다.",
+      );
+  const emptyListText = isExecutionsMode
+    ? t("testPlan.workspace.emptyExecutions", "실행이 없습니다.")
+    : t("testPlan.list.empty.message", "등록된 테스트 플랜이 없습니다.");
   let detail = (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="body2" color="text.secondary">
-        {mode === "plans"
-          ? t(
-              "testPlan.workspace.detailHint",
-              "플랜을 고르면 내용이 여기에 열립니다. 실행을 고르면 실행 상세로 바뀝니다.",
-            )
-          : t(
-              "testPlan.workspace.detailHintExecution",
-              "실행을 고르면 상세가 여기에 열립니다.",
-            )}
-      </Typography>
-    </Box>
+    <EmptyState
+      fill
+      icon={isExecutionsMode ? PlayCircleOutlineIcon : AssignmentOutlinedIcon}
+      data-testid="workspace-detail-empty"
+      title={listIsEmpty ? emptyListText : detailHintText}
+      description={listIsEmpty ? detailHintText : undefined}
+      actionIcon={<AddIcon />}
+      actionLabel={
+        canEdit
+          ? isExecutionsMode
+            ? t("testPlan.workspace.newExecution", "실행 만들기")
+            : t("testPlan.workspace.newPlan", "플랜 만들기")
+          : undefined
+      }
+      onAction={
+        canEdit
+          ? isExecutionsMode
+            ? handleStartCreateExecution
+            : handleStartCreatePlan
+          : undefined
+      }
+    />
   );
 
   if (mode === "plans" && creatingPlan && canEdit) {
