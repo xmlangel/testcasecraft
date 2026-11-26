@@ -30,6 +30,7 @@ import {
 } from "@mui/icons-material";
 import MarkdownFieldEditor from "../TestCase/MarkdownFieldEditor";
 import MarkdownViewer from "../common/MarkdownViewer";
+import { getCharterStatusLabel } from "../../utils/statusLabels";
 
 function ExploratoryCharterTab({
   t,
@@ -76,8 +77,12 @@ function ExploratoryCharterTab({
             onChange={(e) => setCharterFilter(e.target.value)}
           >
             <MenuItem value="ALL">{t("common.all", "전체")}</MenuItem>
-            <MenuItem value="ACTIVE">ACTIVE</MenuItem>
-            <MenuItem value="ARCHIVED">ARCHIVED</MenuItem>
+            <MenuItem value="ACTIVE">
+              {getCharterStatusLabel("ACTIVE", t)}
+            </MenuItem>
+            <MenuItem value="ARCHIVED">
+              {getCharterStatusLabel("ARCHIVED", t)}
+            </MenuItem>
           </Select>
         </FormControl>
         {/* 차터는 세션의 전제라 세션을 진행할 수 있는 사람만 만든다. */}
@@ -148,7 +153,7 @@ function ExploratoryCharterTab({
                       {item.title}
                     </Typography>
                     <Chip
-                      label={item.status}
+                      label={getCharterStatusLabel(item.status, t)}
                       size="small"
                       color={statusColor[item.status] || "default"}
                       icon={
@@ -330,8 +335,12 @@ function ExploratoryCharterTab({
                   }))
                 }
               >
-                <MenuItem value="ACTIVE">ACTIVE</MenuItem>
-                <MenuItem value="ARCHIVED">ARCHIVED</MenuItem>
+                <MenuItem value="ACTIVE">
+                  {getCharterStatusLabel("ACTIVE", t)}
+                </MenuItem>
+                <MenuItem value="ARCHIVED">
+                  {getCharterStatusLabel("ARCHIVED", t)}
+                </MenuItem>
               </Select>
             </FormControl>
           </Stack>

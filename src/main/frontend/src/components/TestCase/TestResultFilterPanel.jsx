@@ -24,6 +24,7 @@ import {
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import testResultService from "../../services/testResultService.js";
+import { getExecutionStatusLabel } from "../../utils/statusLabels";
 
 /**
  * ICT-263: 테스트결과 상세테이블 필터링 패널 컴포넌트
@@ -239,7 +240,7 @@ const TestResultFilterPanel = ({
                   <Typography variant="body2">{execution.name}</Typography>
                   <Box sx={{ display: "flex", gap: 1, mt: 0.5 }}>
                     <Chip
-                      label={execution.status}
+                      label={getExecutionStatusLabel(execution.status, t)}
                       size="small"
                       color={
                         execution.status === "COMPLETED"

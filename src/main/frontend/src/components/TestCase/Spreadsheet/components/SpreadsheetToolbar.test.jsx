@@ -80,8 +80,8 @@ describe("SpreadsheetToolbar", () => {
         onSave={vi.fn()}
       />,
     );
-    // 기본(off): Import/Export 없음
-    expect(screen.queryByText("Import/Export")).toBeNull();
+    // 기본(off): 가져오기/내보내기 버튼 없음
+    expect(screen.queryByText("가져오기/내보내기")).toBeNull();
 
     rerender(
       <SpreadsheetToolbar
@@ -95,6 +95,6 @@ describe("SpreadsheetToolbar", () => {
         onToggleFullscreen={vi.fn()}
       />,
     );
-    expect(screen.getByText("Import/Export")).toBeInTheDocument();
+    expect(screen.getByText("가져오기/내보내기")).toBeInTheDocument();
   });
 });

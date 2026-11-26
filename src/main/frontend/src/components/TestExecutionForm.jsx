@@ -35,6 +35,7 @@ import {
 import { alpha } from "@mui/material/styles";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
+import { getExecutionStatusLabel } from "../utils/statusLabels";
 import { useAuth } from "../context/AuthContext.jsx";
 import useProjectRole from "../hooks/useProjectRole.js";
 import {
@@ -1719,7 +1720,7 @@ const TestExecutionForm = ({
                   sx={{ display: "flex", gap: 2, ml: 2, alignItems: "center" }}
                 >
                   <Chip
-                    label={execution.status}
+                    label={getExecutionStatusLabel(execution.status, t)}
                     size="small"
                     icon={
                       isInProgressStatus(execution.status) ? (

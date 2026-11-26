@@ -17,6 +17,10 @@ import {
   Save as SaveIcon,
 } from "@mui/icons-material";
 
+// ICT-511: 테마의 버튼 대문자 변환 때문에 "IMPORT/EXPORT"·"EXPORT" 로 보였다.
+// 번역 문구를 그대로 보이도록 이 화면에서만 변환을 끈다(테마는 건드리지 않는다).
+const NO_UPPERCASE_SX = { textTransform: "none" };
+
 /**
  * 스프레드시트 액션 툴바. 일반 뷰와 전체화면 다이얼로그가 공유한다.
  * (이전에는 두 곳에 동일한 버튼 묶음이 중복돼 있었음)
@@ -164,8 +168,9 @@ const SpreadsheetToolbar = ({
           disabled={isLoading}
           color="secondary"
           variant="outlined"
+          sx={NO_UPPERCASE_SX}
         >
-          Import/Export
+          {t("testcase.spreadsheet.button.importExport", "가져오기/내보내기")}
         </Button>
       )}
 
@@ -176,8 +181,9 @@ const SpreadsheetToolbar = ({
         disabled={isLoading}
         color="info"
         variant="outlined"
+        sx={NO_UPPERCASE_SX}
       >
-        {t("testcase.spreadsheet.button.export", "Export")}
+        {t("testcase.spreadsheet.button.export", "내보내기")}
       </Button>
 
       <IconButton
