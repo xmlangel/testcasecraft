@@ -33,6 +33,7 @@ import {
   useJiraStatusStatistics,
 } from "../../hooks/useJiraStatus";
 import JiraStatusSummaryCard from "./JiraStatusSummaryCard";
+import { formatPercent } from "../../utils/percentFormat.js";
 
 /**
  * ICT-189: JIRA 상태 대시보드
@@ -315,7 +316,7 @@ const JiraStatusDashboard = () => {
                     평균 성공률
                   </Typography>
                   <Typography variant="h5" color="primary">
-                    {statisticsData.averageSuccessRate || 0}%
+                    {formatPercent(statisticsData.averageSuccessRate)}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>

@@ -171,7 +171,9 @@ public class OrganizationController {
         projects.stream()
             .map(
                 project -> {
-                  long testCaseCount = testCaseRepository.countByProjectId(project.getId());
+                  // 폴더를 빼고 케이스만 센다 (ICT-512)
+                  long testCaseCount =
+                      testCaseRepository.countTestCasesOnlyByProjectId(project.getId());
                   return new ProjectWithTestCaseCountDto(project, testCaseCount);
                 })
             .collect(Collectors.toList());

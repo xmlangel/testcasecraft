@@ -48,6 +48,7 @@ function ChatInput({
             <IconButton
               color="error"
               onClick={onStopStreaming}
+              aria-label={t("rag.chat.stopStreaming", "전송 중지")}
               sx={{
                 bgcolor: "error.main",
                 color: "white",
@@ -63,6 +64,7 @@ function ChatInput({
           <IconButton
             color="primary"
             onClick={onSend}
+            aria-label={t("rag.chat.send", "보내기")}
             disabled={!inputText.trim() || isLoading}
             sx={{
               bgcolor: "primary.main",

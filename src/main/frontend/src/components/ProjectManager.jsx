@@ -558,13 +558,21 @@ const ProjectManager = ({ onSelectProject }) => {
                 data-testid="project-code"
               />
             </Box>
-            <IconButton
-              size="small"
-              onClick={(e) => handleMenuOpen(e, project)}
-              data-testid="project-more-menu-button"
-            >
-              <MoreVertIcon />
-            </IconButton>
+            <Tooltip title={t("project.card.moreActions", "프로젝트 메뉴")}>
+              <IconButton
+                size="small"
+                onClick={(e) => handleMenuOpen(e, project)}
+                data-testid="project-more-menu-button"
+                aria-haspopup="menu"
+                aria-label={t(
+                  "project.card.moreActionsFor",
+                  "{name} 프로젝트 메뉴",
+                  { name: project.name },
+                )}
+              >
+                <MoreVertIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
 
           {project.organization ? (

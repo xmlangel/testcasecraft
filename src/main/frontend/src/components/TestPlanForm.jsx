@@ -24,7 +24,25 @@ import { canEditProjectContent } from "./TestCaseTree/utils/permissionUtils.js";
 import TestCaseTree from "./TestCaseTree.jsx";
 import { countRealTestCases } from "../utils/treeUtils";
 
-const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
+// 읽기 화면에서는 케이스 선택 상자를 눌러도 아무것도 바뀌지 않는다.
+const NOOP = () => {};
+
+/**
+ * 테스트 플랜 생성·수정 폼.
+ *
+ * ICT-513: `startInViewMode` 를 주면 기존 플랜을 읽기 화면으로 연다. 목록에서 플랜을
+ * 눌렀는데 곧바로 수정 폼이 열리면, 보려고 들어왔다가 체크박스를 잘못 눌러 저장할 수
+ * 있었다. 읽기 화면에서는 입력란과 케이스 선택이 잠기고, 「수정」 버튼을 눌러야
+ * 편집 화면이 된다. 편집에서 취소하면 고친 값을 버리고 읽기 화면으로 돌아오며,
+ * 저장하면 저장 결과를 알린 뒤 읽기 화면으로 돌아온다.
+ */
+const TestPlanForm = ({
+  testPlanId,
+  onCancel,
+  onSave,
+  inline = false,
+  startInViewMode = false,
+}) => {
   const {
     activeProject,
     testPlans = [],
@@ -48,28 +66,55 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // 기존 플랜만 읽기 화면으로 연다. 새 플랜은 처음부터 편집 화면이다.
+  const [viewMode, setViewMode] = useState(
+    Boolean(startInViewMode && testPlanId),
+  );
+
+  // 저장된 플랜 값 — 처음 채울 때와 편집을 취소할 때 함께 쓴다
+  const findSourcePlan = () => {
+    if (activeTestPlan && activeTestPlan.id === testPlanId) {
+      return activeTestPlan;
+    }
+    if (testPlanId) {
+      return testPlans.find((p) => p.id === testPlanId) || null;
+    }
+    return null;
+  };
+
+  const resetFromSource = (plan) => {
+    if (!plan) return;
+    setFormData({
+      name: plan.name,
+      description: plan.description,
+      testCaseIds: plan.testCaseIds,
+      projectId: plan.projectId,
+    });
+  };
 
   // 기존 플랜 데이터 초기화
   useEffect(() => {
-    if (activeTestPlan && activeTestPlan.id === testPlanId) {
-      setFormData({
-        name: activeTestPlan.name,
-        description: activeTestPlan.description,
-        testCaseIds: activeTestPlan.testCaseIds,
-        projectId: activeTestPlan.projectId,
-      });
-    } else if (testPlanId) {
-      const existingPlan = testPlans.find((p) => p.id === testPlanId);
-      if (existingPlan) {
-        setFormData({
-          name: existingPlan.name,
-          description: existingPlan.description,
-          testCaseIds: existingPlan.testCaseIds,
-          projectId: existingPlan.projectId,
-        });
-      }
-    }
+    resetFromSource(findSourcePlan());
+    // findSourcePlan·resetFromSource 는 아래 세 값으로만 결과가 정해진다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testPlanId, testPlans, activeTestPlan]);
+
+  const handleStartEdit = () => {
+    setError(null);
+    setViewMode(false);
+  };
+
+  // 읽기 화면에서 들어온 편집이면 취소는 고친 값을 버리고 읽기 화면으로 돌아간다.
+  // 처음부터 편집 화면으로 연 경우는 예전처럼 호출한 쪽에 닫기를 맡긴다.
+  const handleCancel = () => {
+    if (startInViewMode && testPlanId) {
+      resetFromSource(findSourcePlan());
+      setError(null);
+      setViewMode(true);
+      return;
+    }
+    onCancel?.();
+  };
 
   // 입력 핸들러
   const handleChange = (field) => (e) => {
@@ -136,6 +181,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
       }
 
       onSave?.(savedId ?? null);
+      if (startInViewMode && testPlanId) setViewMode(true);
     } catch (err) {
       setError(
         t("testPlan.error.saveFailed", "저장 처리 중 오류가 발생했습니다: ") +
@@ -170,9 +216,11 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
             }
           : {})}
       >
-        {testPlanId
-          ? t("testPlan.form.title.edit", "테스트 플랜 수정")
-          : t("testPlan.form.title.create", "새 테스트 플랜 생성")}
+        {viewMode
+          ? t("testPlan.form.title.view", "테스트 플랜")
+          : testPlanId
+            ? t("testPlan.form.title.edit", "테스트 플랜 수정")
+            : t("testPlan.form.title.create", "새 테스트 플랜 생성")}
       </Title>
 
       <Content {...(inline ? {} : { dividers: true })}>
@@ -191,9 +239,10 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
               onChange={handleChange("name")}
               fullWidth
               margin="normal"
-              required
+              required={!viewMode}
               disabled={loading}
               slotProps={{
+                input: { readOnly: viewMode },
                 htmlInput: { "data-testid": "testplan-name-input" },
               }}
             />
@@ -208,6 +257,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
               rows={4}
               disabled={loading}
               slotProps={{
+                input: { readOnly: viewMode },
                 htmlInput: { "data-testid": "testplan-description-input" },
               }}
             />
@@ -215,7 +265,19 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
 
           {/* 테스트케이스 선택 섹션 */}
           <Grid size={{ xs: 12, md: 8 }}>
-            <Paper variant="outlined" sx={{ p: 2, height: "400px" }}>
+            <Paper
+              variant="outlined"
+              data-testid="testplan-case-selection"
+              data-readonly={viewMode ? "true" : undefined}
+              sx={{
+                p: 2,
+                height: "400px",
+                // 읽기 화면: 폴더는 펼쳐 볼 수 있지만 선택 상자는 눌리지 않는다
+                ...(viewMode
+                  ? { "& .MuiCheckbox-root": { pointerEvents: "none" } }
+                  : null),
+              }}
+            >
               <Typography variant="subtitle1" gutterBottom>
                 {t("testPlan.form.testcaseSelection", "테스트케이스 선택")} (
                 {t("testPlan.form.selectedCount", "{count}개 선택됨", {
@@ -229,7 +291,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
                   projectId={activeProject.id}
                   selectable={true}
                   selectedIds={formData.testCaseIds}
-                  onSelectionChange={handleTestCaseSelect}
+                  onSelectionChange={viewMode ? NOOP : handleTestCaseSelect}
                   showMinimalToolbar={true}
                 />
               ) : (
@@ -257,17 +319,40 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
             }
           : {})}
       >
-        <Button
-          onClick={onCancel}
-          color="secondary"
-          disabled={loading}
-          data-testid="testplan-cancel-button"
-        >
-          {t("testPlan.form.button.cancel", "취소")}
-        </Button>
+        {viewMode ? (
+          <>
+            <Button
+              onClick={onCancel}
+              color="secondary"
+              data-testid="testplan-close-button"
+            >
+              {t("common.close", "닫기")}
+            </Button>
+            {/* 조회 전용 역할에는 수정 입구를 내보내지 않는다 */}
+            {canEdit && (
+              <Button
+                onClick={handleStartEdit}
+                variant="contained"
+                color="primary"
+                data-testid="testplan-edit-button"
+              >
+                {t("common.edit", "수정")}
+              </Button>
+            )}
+          </>
+        ) : (
+          <Button
+            onClick={handleCancel}
+            color="secondary"
+            disabled={loading}
+            data-testid="testplan-cancel-button"
+          >
+            {t("testPlan.form.button.cancel", "취소")}
+          </Button>
+        )}
         {/* 조회 전용 역할에는 저장 버튼을 내보내지 않는다. 비활성 버튼만 남기면
             왜 눌리지 않는지 알 수 없다. */}
-        {canEdit && (
+        {canEdit && !viewMode && (
           <Button
             onClick={handleSave}
             variant="contained"
@@ -288,6 +373,7 @@ const TestPlanForm = ({ testPlanId, onCancel, onSave, inline = false }) => {
 
 TestPlanForm.propTypes = {
   inline: PropTypes.bool,
+  startInViewMode: PropTypes.bool,
   testPlanId: PropTypes.string,
   onCancel: PropTypes.func.isRequired,
   onSave: PropTypes.func,

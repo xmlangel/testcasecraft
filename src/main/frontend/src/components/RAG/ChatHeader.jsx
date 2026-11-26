@@ -66,7 +66,12 @@ function ChatHeader({
               value={selectedLlmConfigId || ""}
               onChange={(e) => onLlmConfigChange(e.target.value)}
               displayEmpty
+              data-testid="rag-llm-config-select"
               sx={{
+                // 주 색 머리 띠 위에 칩을 그대로 얹으면 청록 위 청록 글자가 되어 읽히지 않았다 (ICT-509).
+                // 선택 상자를 밝은 바탕으로 깔아 칩 글자 대비를 확보한다.
+                bgcolor: "background.default",
+                color: "text.primary",
                 "& .MuiSelect-select": {
                   py: 0.5,
                   display: "flex",
@@ -119,7 +124,12 @@ function ChatHeader({
               value={selectedModel || ""}
               onChange={(e) => onModelChange(e.target.value)}
               displayEmpty
+              data-testid="rag-llm-config-select"
               sx={{
+                // 주 색 머리 띠 위에 칩을 그대로 얹으면 청록 위 청록 글자가 되어 읽히지 않았다 (ICT-509).
+                // 선택 상자를 밝은 바탕으로 깔아 칩 글자 대비를 확보한다.
+                bgcolor: "background.default",
+                color: "text.primary",
                 "& .MuiSelect-select": {
                   py: 0.5,
                   display: "flex",
@@ -156,7 +166,16 @@ function ChatHeader({
               : t("rag.chat.enterFullScreen", "전체화면 보기")
           }
         >
-          <IconButton color="inherit" size="small" onClick={onToggleFullScreen}>
+          <IconButton
+            color="inherit"
+            size="small"
+            onClick={onToggleFullScreen}
+            aria-label={
+              isFullScreen
+                ? t("rag.chat.exitFullScreen", "전체화면 종료")
+                : t("rag.chat.enterFullScreen", "전체화면 보기")
+            }
+          >
             {isFullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
           </IconButton>
         </Tooltip>
@@ -167,6 +186,7 @@ function ChatHeader({
               size="small"
               onClick={onRetry}
               disabled={messages.length < 2 || isLoading}
+              aria-label={t("rag.chat.retry", "재시도")}
             >
               <RefreshIcon />
             </IconButton>
@@ -178,6 +198,7 @@ function ChatHeader({
               color="inherit"
               size="small"
               onClick={onClearChat}
+              aria-label={t("rag.chat.clear", "대화 초기화")}
               disabled={
                 messages.length === 0 ||
                 isLoading ||

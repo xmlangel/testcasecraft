@@ -70,7 +70,8 @@ describe("SpreadsheetToolbar", () => {
     expect(screen.getByText("일괄 저장").closest("button")).toBeDisabled();
   });
 
-  it("showImportExport / showFullscreenToggle 로 해당 버튼 노출을 제어한다", () => {
+  it("가져오기·내보내기는 버튼 하나다 (ICT-514) — showImportExport 는 라벨만 바꾼다", () => {
+    const onExportMenu = vi.fn();
     const { rerender } = render(
       <SpreadsheetToolbar
         t={t}
@@ -78,10 +79,15 @@ describe("SpreadsheetToolbar", () => {
         canSave
         onAddRows={vi.fn()}
         onSave={vi.fn()}
+        onExportMenu={onExportMenu}
       />,
     );
-    // 기본(off): Import/Export 없음
-    expect(screen.queryByText("Import/Export")).toBeNull();
+    // 기본(off, 전체화면 보기): 내보내기만
+    expect(screen.getAllByTestId("spreadsheet-io-menu-button")).toHaveLength(1);
+    expect(screen.getByTestId("spreadsheet-io-menu-button")).toHaveTextContent(
+      "내보내기",
+    );
+    expect(screen.queryByText("가져오기/내보내기")).toBeNull();
 
     rerender(
       <SpreadsheetToolbar
@@ -92,9 +98,16 @@ describe("SpreadsheetToolbar", () => {
         showFullscreenToggle
         onAddRows={vi.fn()}
         onSave={vi.fn()}
+        onExportMenu={onExportMenu}
         onToggleFullscreen={vi.fn()}
       />,
     );
-    expect(screen.getByText("Import/Export")).toBeInTheDocument();
+    // 일반 보기: 예전의 Import/Export·Export 두 버튼 대신 하나
+    const buttons = screen.getAllByTestId("spreadsheet-io-menu-button");
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]).toHaveTextContent("가져오기/내보내기");
+    expect(buttons[0]).toHaveAttribute("aria-haspopup", "menu");
+    fireEvent.click(buttons[0]);
+    expect(onExportMenu).toHaveBeenCalledTimes(1);
   });
 });

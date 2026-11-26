@@ -41,6 +41,7 @@ import {
 import CountUp from "react-countup";
 import { useAppContext } from "../context/AppContext";
 import { useI18n } from "../context/I18nContext";
+import { useDateFormatter } from "../hooks/useDateFormatter";
 import TestPlanSelector from "./TestPlanSelector";
 import RecentTestResults from "./RecentTestResults";
 // ICT-135: 실제 대시보드 API 서비스 import
@@ -50,6 +51,8 @@ import dashboardService, {
 import { RESULT_COLORS } from "../constants/statusColors";
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX, GRID_SETTINGS } from "../styles/layoutConstants";
+import { RATE_TEXT_COLOR } from "../utils/percentFormat.js";
+import { legendTextFormatter } from "./common/chartLegend.jsx";
 
 // RESULT_LABELS는 이제 t() 함수로 번역됨
 
@@ -61,6 +64,7 @@ import { PAGE_CONTAINER_SX, GRID_SETTINGS } from "../styles/layoutConstants";
  */
 function Dashboard({ embedded = false }) {
   const { t } = useI18n();
+  const { formatDateOnly } = useDateFormatter();
   const theme = useTheme();
 
   // AppContext에서 필요한 데이터와 함수들
@@ -316,14 +320,16 @@ function Dashboard({ embedded = false }) {
   }));
 
   // 최근 업데이트 시간 - API 데이터 또는 현재 시간 사용
-  const lastUpdated =
+  // ICT-511: 미국식(11/25/2026) 대신 공통 표기 YYYY-MM-DD 로 보인다.
+  const lastUpdatedRaw =
     dashboardData?.summary?.lastUpdated ||
     dashboardData?.trend?.endDate ||
-    new Date().toLocaleDateString("ko-KR", {
-      month: "numeric",
-      day: "numeric",
-      year: "numeric",
-    });
+    new Date();
+  const lastUpdatedFormatted = formatDateOnly(lastUpdatedRaw);
+  const lastUpdated =
+    lastUpdatedFormatted === "-"
+      ? String(lastUpdatedRaw)
+      : lastUpdatedFormatted;
 
   // ICT-135: 에러 재시도 핸들러
   const handleRetry = () => {
@@ -571,7 +577,7 @@ function Dashboard({ embedded = false }) {
                       <Typography
                         variant="h4"
                         fontWeight="bold"
-                        color="success.main"
+                        color={RATE_TEXT_COLOR}
                       >
                         <CountUp end={completeRate} duration={1} />%
                       </Typography>
@@ -653,7 +659,7 @@ function Dashboard({ embedded = false }) {
                       <XAxis dataKey="date" />
                       <YAxis />
                       <ReTooltip />
-                      <Legend />
+                      <Legend formatter={legendTextFormatter} />
                       <Line
                         type="monotone"
                         dataKey="PASS"
@@ -730,7 +736,7 @@ function Dashboard({ embedded = false }) {
                       <XAxis type="number" allowDecimals={false} />
                       <YAxis type="category" dataKey="assignee" />
                       <ReTooltip />
-                      <Legend />
+                      <Legend formatter={legendTextFormatter} />
                       <Bar
                         dataKey="PASS"
                         stackId="a"
@@ -815,7 +821,7 @@ function Dashboard({ embedded = false }) {
                       <XAxis type="number" allowDecimals={false} />
                       <YAxis type="category" dataKey="assignee" />
                       <ReTooltip />
-                      <Legend />
+                      <Legend formatter={legendTextFormatter} />
                       <Bar
                         dataKey="PASS"
                         stackId="a"

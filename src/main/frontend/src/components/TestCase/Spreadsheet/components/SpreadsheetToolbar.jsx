@@ -9,20 +9,25 @@ import {
   CreateNewFolder as CreateNewFolderIcon,
   Delete as DeleteIcon,
   Warning as WarningIcon,
-  Upload as UploadIcon,
-  GetApp as GetAppIcon,
+  ImportExport as ImportExportIcon,
+  ArrowDropDown as ArrowDropDownIcon,
   Settings as SettingsIcon,
   Fullscreen as FullscreenIcon,
   FullscreenExit as FullscreenExitIcon,
   Save as SaveIcon,
 } from "@mui/icons-material";
 
+// ICT-511: 테마의 버튼 대문자 변환 때문에 "IMPORT/EXPORT"·"EXPORT" 로 보였다.
+// 번역 문구를 그대로 보이도록 이 화면에서만 변환을 끈다(테마는 건드리지 않는다).
+const NO_UPPERCASE_SX = { textTransform: "none" };
+
 /**
  * 스프레드시트 액션 툴바. 일반 뷰와 전체화면 다이얼로그가 공유한다.
  * (이전에는 두 곳에 동일한 버튼 묶음이 중복돼 있었음)
  *
  * 두 사용처의 차이는 props 로 흡수:
- *  - showImportExport: Import/Export 버튼 노출 여부 (일반 뷰만)
+ *  - showImportExport: 가져오기·내보내기 메뉴에 가져오기 항목이 있는지 (일반 뷰만).
+ *    버튼은 하나이고, 메뉴 내용은 ExportMenu 가 정한다.
  *  - showFullscreenToggle: 전체화면 토글 노출 여부 (일반 뷰만)
  */
 const SpreadsheetToolbar = ({
@@ -41,7 +46,6 @@ const SpreadsheetToolbar = ({
   onAddFolder,
   onDeleteRows,
   onValidate,
-  onImportExport,
   onExportMenu,
   onStepMenu,
   onToggleFullscreen,
@@ -156,28 +160,23 @@ const SpreadsheetToolbar = ({
         {t("testcase.spreadsheet.button.validate", "검증")}
       </Button>
 
-      {showImportExport && (
-        <Button
-          size="small"
-          startIcon={<UploadIcon />}
-          onClick={onImportExport}
-          disabled={isLoading}
-          color="secondary"
-          variant="outlined"
-        >
-          Import/Export
-        </Button>
-      )}
-
+      {/* ICT-514: 가져오기·내보내기를 버튼 하나로 합쳤다. 누르면 메뉴가 열리고,
+          메뉴 안에 가져오기(Import/Export 대화상자)와 CSV·Excel·PDF 내보내기가 함께 있다. */}
       <Button
         size="small"
-        startIcon={<GetAppIcon />}
+        startIcon={<ImportExportIcon />}
+        endIcon={<ArrowDropDownIcon />}
         onClick={onExportMenu}
         disabled={isLoading}
         color="info"
         variant="outlined"
+        aria-haspopup="menu"
+        data-testid="spreadsheet-io-menu-button"
+        sx={NO_UPPERCASE_SX}
       >
-        {t("testcase.spreadsheet.button.export", "Export")}
+        {showImportExport
+          ? t("testcase.spreadsheet.button.importExport", "가져오기/내보내기")
+          : t("testcase.spreadsheet.button.export", "내보내기")}
       </Button>
 
       <IconButton
@@ -239,7 +238,6 @@ SpreadsheetToolbar.propTypes = {
   onAddFolder: PropTypes.func,
   onDeleteRows: PropTypes.func,
   onValidate: PropTypes.func,
-  onImportExport: PropTypes.func,
   onExportMenu: PropTypes.func,
   onStepMenu: PropTypes.func,
   onToggleFullscreen: PropTypes.func,

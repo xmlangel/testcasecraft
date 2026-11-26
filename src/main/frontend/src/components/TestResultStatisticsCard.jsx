@@ -17,6 +17,7 @@ import {
 import CountUp from "react-countup";
 import { CheckCircle, Cancel, Block, PauseCircle } from "@mui/icons-material";
 import { RESULT_COLORS } from "../constants/statusColors";
+import { RATE_TEXT_COLOR } from "../utils/percentFormat.js";
 
 /**
  * ICT-185: 테스트 결과 통계 카드 컴포넌트
@@ -163,14 +164,18 @@ function TestResultStatisticsCard({
             >
               <Typography
                 variant="body2"
-                color="success.main"
+                color="success.dark"
                 fontWeight="bold"
               >
                 {isLatestMode
                   ? t("testResult.statistics.latestSuccessRate", "최종 성공률")
                   : t("testResult.statistics.successRate")}
               </Typography>
-              <Typography variant="h5" color="success.main" fontWeight="bold">
+              <Typography
+                variant="h5"
+                color={RATE_TEXT_COLOR}
+                fontWeight="bold"
+              >
                 <CountUp
                   end={
                     isLatestMode

@@ -24,6 +24,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Menu,
+  MenuItem,
+  ListItemIcon,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -36,13 +39,18 @@ import {
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
   Delete as DeleteIcon,
+  MoreVert as MoreVertIcon,
+  AssignmentOutlined as AssignmentOutlinedIcon,
+  PlayCircleOutline as PlayCircleOutlineIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
+import { getExecutionStatusLabel } from "../utils/statusLabels";
 import apiService from "../services/apiService.js";
 import TestPlanForm from "./TestPlanForm.jsx";
 import ExecutionProgressBar from "./TestExecution/ExecutionProgressBar.jsx";
 import TestExecutionForm from "./TestExecutionForm.jsx";
+import EmptyState from "./common/EmptyState.jsx";
 import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 import { useAuth } from "../context/AuthContext.jsx";
 import useProjectRole from "../hooks/useProjectRole.js";
@@ -140,6 +148,8 @@ function PlanExecutionWorkspace({
   const [executionToDelete, setExecutionToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+  // ICT-513: 실행 항목의 ⋮ 메뉴 — 열린 동안 기준 버튼과 대상 실행을 기억한다
+  const [executionMenu, setExecutionMenu] = useState(null);
 
   const plansOfProject = useMemo(
     () =>
@@ -409,9 +419,17 @@ function PlanExecutionWorkspace({
     setCreatingExecution(true);
   };
 
-  const handleRequestDeleteExecution = (event, exec) => {
+  const handleOpenExecutionMenu = (event, exec) => {
     // 행을 누른 것으로 처리되면 상세가 열리므로 막는다
     event.stopPropagation();
+    setExecutionMenu({ anchorEl: event.currentTarget, exec });
+  };
+
+  const handleCloseExecutionMenu = () => setExecutionMenu(null);
+
+  // 메뉴의 「삭제」는 곧바로 지우지 않고 기존 확인 창을 연다
+  const handleRequestDeleteExecution = (exec) => {
+    setExecutionMenu(null);
     setDeleteError(null);
     setExecutionToDelete(exec);
   };
@@ -453,20 +471,27 @@ function PlanExecutionWorkspace({
     }
   };
 
-  const renderDeleteExecutionButton = (exec) =>
-    canEdit && (
-      <Tooltip title={t("testExecution.list.delete.title", "테스트 실행 삭제")}>
+  // ICT-513: 빨간 휴지통을 항목마다 늘 보이던 것을 ⋮ 메뉴 안의 「삭제」로 옮겼다.
+  // 메뉴는 목록 밖에 하나만 둔다 — 항목 안에 두면 메뉴 클릭이 포털을 건너 행까지
+  // 올라가 실행 상세가 열린다.
+  const renderExecutionMenuButton = (exec) => {
+    if (!canEdit) return null;
+    const label = t("testPlan.workspace.executionActions", "실행 메뉴");
+    return (
+      <Tooltip title={label}>
         <IconButton
           size="small"
-          aria-label="delete"
-          onClick={(event) => handleRequestDeleteExecution(event, exec)}
-          data-testid={`workspace-execution-delete-${exec.id}`}
-          sx={{ ml: 0.5, alignSelf: "center", color: "error.main" }}
+          aria-label={`${label} ${exec.name || ""}`.trim()}
+          aria-haspopup="menu"
+          onClick={(event) => handleOpenExecutionMenu(event, exec)}
+          data-testid={`workspace-execution-menu-${exec.id}`}
+          sx={{ ml: 0.5, alignSelf: "center", color: "action.active" }}
         >
-          <DeleteIcon fontSize="small" />
+          <MoreVertIcon fontSize="small" />
         </IconButton>
       </Tooltip>
     );
+  };
 
   const handleAfterExecutionSaved = () => {
     setCreatingExecution(false);
@@ -489,6 +514,9 @@ function PlanExecutionWorkspace({
   const listTitle = isExecutionsMode
     ? t("projectHeader.tabs.testExecution", "테스트실행")
     : t("testPlan.tab.label", "테스트플랜");
+  const createLabel = isExecutionsMode
+    ? t("testPlan.workspace.newExecution", "실행 만들기")
+    : t("testPlan.workspace.newPlan", "플랜 만들기");
   const listCount = isExecutionsMode
     ? projectExecutions.length
     : visiblePlans.length;
@@ -540,7 +568,7 @@ function PlanExecutionWorkspace({
                   {exec.status && (
                     <Chip
                       size="small"
-                      label={exec.status}
+                      label={getExecutionStatusLabel(exec.status, t)}
                       color={statusColor(exec.status)}
                       variant={
                         isInProgressStatus(exec.status) ||
@@ -575,7 +603,7 @@ function PlanExecutionWorkspace({
                 </Box>
               }
             />
-            {renderDeleteExecutionButton(exec)}
+            {renderExecutionMenuButton(exec)}
           </ListItemButton>
         );
       })}
@@ -625,32 +653,43 @@ function PlanExecutionWorkspace({
       >
         {!listCollapsed && (
           <>
-            <Typography sx={CHROME_TYPOGRAPHY.paneTitle} noWrap>
+            {/* ICT-510: 제목은 줄어들지 않는다. 260px 줄에 제목·건수·글자 버튼이 함께 들어가
+                "테스트 플..." 처럼 잘렸으므로 만들기 버튼을 아이콘으로 바꿨다(이름은 툴팁·aria). */}
+            <Typography
+              sx={{ ...CHROME_TYPOGRAPHY.paneTitle, flexShrink: 0 }}
+              noWrap
+              data-testid="workspace-list-title"
+            >
               {listTitle}
             </Typography>
-            <Chip size="small" label={listCount} />
+            <Chip size="small" label={listCount} sx={{ flexShrink: 0 }} />
             <Box sx={{ flexGrow: 1 }} />
             {canEdit && (
-              <Button
-                size="small"
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={
-                  isExecutionsMode
-                    ? handleStartCreateExecution
-                    : handleStartCreatePlan
-                }
-                data-testid={
-                  isExecutionsMode
-                    ? "workspace-new-execution-top"
-                    : "workspace-new-plan"
-                }
-                sx={{ whiteSpace: "nowrap" }}
-              >
-                {isExecutionsMode
-                  ? t("testPlan.workspace.newExecution", "실행 만들기")
-                  : t("testPlan.workspace.newPlan", "플랜 만들기")}
-              </Button>
+              <Tooltip title={createLabel}>
+                <IconButton
+                  size="small"
+                  color="primary"
+                  aria-label={createLabel}
+                  onClick={
+                    isExecutionsMode
+                      ? handleStartCreateExecution
+                      : handleStartCreatePlan
+                  }
+                  data-testid={
+                    isExecutionsMode
+                      ? "workspace-new-execution-top"
+                      : "workspace-new-plan"
+                  }
+                  sx={{
+                    flexShrink: 0,
+                    bgcolor: "primary.main",
+                    color: "primary.contrastText",
+                    "&:hover": { bgcolor: "primary.dark" },
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             )}
           </>
         )}
@@ -664,6 +703,11 @@ function PlanExecutionWorkspace({
           <IconButton
             size="small"
             onClick={() => setListCollapsed((prev) => !prev)}
+            aria-label={
+              listCollapsed
+                ? t("testPlan.workspace.expandList", "목록 펼치기")
+                : t("testPlan.workspace.collapseList", "목록 접기")
+            }
             data-testid="workspace-list-collapse-toggle"
           >
             {listCollapsed ? (
@@ -701,7 +745,14 @@ function PlanExecutionWorkspace({
                 ),
                 endAdornment: filterText ? (
                   <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setFilterText("")}>
+                    <IconButton
+                      size="small"
+                      onClick={() => setFilterText("")}
+                      aria-label={t(
+                        "testcase.tree.filter.clear",
+                        "필터 지우기",
+                      )}
+                    >
                       <ClearIcon fontSize="small" />
                     </IconButton>
                   </InputAdornment>
@@ -753,6 +804,18 @@ function PlanExecutionWorkspace({
                           togglePlanBranch(plan.id);
                         }}
                         data-testid={`workspace-plan-toggle-${plan.id}`}
+                        aria-expanded={expanded}
+                        aria-label={
+                          expanded
+                            ? t(
+                                "testPlan.workspace.collapseRuns",
+                                "실행 목록 접기",
+                              )
+                            : t(
+                                "testPlan.workspace.expandRuns",
+                                "실행 목록 펼치기",
+                              )
+                        }
                         title={
                           expanded
                             ? t(
@@ -841,7 +904,10 @@ function PlanExecutionWorkspace({
                               {exec.status && (
                                 <Chip
                                   size="small"
-                                  label={exec.status}
+                                  label={getExecutionStatusLabel(
+                                    exec.status,
+                                    t,
+                                  )}
                                   color={statusColor(exec.status)}
                                   variant={
                                     isInProgressStatus(exec.status) ||
@@ -858,7 +924,7 @@ function PlanExecutionWorkspace({
                                   }}
                                 />
                               )}
-                              {renderDeleteExecutionButton(exec)}
+                              {renderExecutionMenuButton(exec)}
                             </ListItemButton>
                           );
                         })
@@ -900,6 +966,7 @@ function PlanExecutionWorkspace({
         <IconButton
           size="small"
           onClick={() => loadPlanExecutions(selectedPlanId)}
+          aria-label={t("common.refresh", "새로고침")}
           data-testid="workspace-executions-refresh"
         >
           <RefreshIcon fontSize="small" />
@@ -927,20 +994,47 @@ function PlanExecutionWorkspace({
     </Box>
   );
 
+  // 아무것도 고르지 않았을 때의 상세 영역 — 다른 화면과 같은 EmptyState 모양 (ICT-514).
+  // 목록이 비어 있으면 "없음"을 제목으로, 있으면 고르라는 안내를 제목으로 둔다.
+  // 쓰기 권한이 있으면 목록 머리의 만들기 버튼과 같은 동작을 가운데에도 둔다.
+  const listIsEmpty = isExecutionsMode
+    ? projectExecutions.length === 0
+    : plansOfProject.length === 0;
+  const detailHintText = isExecutionsMode
+    ? t(
+        "testPlan.workspace.detailHintExecution",
+        "실행을 고르면 상세가 여기에 열립니다.",
+      )
+    : t(
+        "testPlan.workspace.detailHint",
+        "플랜을 고르면 내용이 여기에 열립니다. 실행을 고르면 실행 상세로 바뀝니다.",
+      );
+  const emptyListText = isExecutionsMode
+    ? t("testPlan.workspace.emptyExecutions", "실행이 없습니다.")
+    : t("testPlan.list.empty.message", "등록된 테스트 플랜이 없습니다.");
   let detail = (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="body2" color="text.secondary">
-        {mode === "plans"
-          ? t(
-              "testPlan.workspace.detailHint",
-              "플랜을 고르면 내용이 여기에 열립니다. 실행을 고르면 실행 상세로 바뀝니다.",
-            )
-          : t(
-              "testPlan.workspace.detailHintExecution",
-              "실행을 고르면 상세가 여기에 열립니다.",
-            )}
-      </Typography>
-    </Box>
+    <EmptyState
+      fill
+      icon={isExecutionsMode ? PlayCircleOutlineIcon : AssignmentOutlinedIcon}
+      data-testid="workspace-detail-empty"
+      title={listIsEmpty ? emptyListText : detailHintText}
+      description={listIsEmpty ? detailHintText : undefined}
+      actionIcon={<AddIcon />}
+      actionLabel={
+        canEdit
+          ? isExecutionsMode
+            ? t("testPlan.workspace.newExecution", "실행 만들기")
+            : t("testPlan.workspace.newPlan", "플랜 만들기")
+          : undefined
+      }
+      onAction={
+        canEdit
+          ? isExecutionsMode
+            ? handleStartCreateExecution
+            : handleStartCreatePlan
+          : undefined
+      }
+    />
   );
 
   if (mode === "plans" && creatingPlan && canEdit) {
@@ -997,6 +1091,7 @@ function PlanExecutionWorkspace({
           key={selectedPlanId}
           testPlanId={selectedPlanId}
           inline
+          startInViewMode
           onCancel={() => setSelectedPlanId(null)}
           onSave={() => loadPlanExecutions(selectedPlanId)}
         />
@@ -1030,6 +1125,28 @@ function PlanExecutionWorkspace({
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>{detail}</Box>
         </Paper>
       </Box>
+      <Menu
+        anchorEl={executionMenu?.anchorEl || null}
+        open={Boolean(executionMenu)}
+        onClose={handleCloseExecutionMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem
+          onClick={() => handleRequestDeleteExecution(executionMenu?.exec)}
+          data-testid={
+            executionMenu?.exec
+              ? `workspace-execution-delete-${executionMenu.exec.id}`
+              : undefined
+          }
+          sx={{ color: "error.main" }}
+        >
+          <ListItemIcon sx={{ color: "inherit" }}>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          {t("testExecution.list.delete.delete", "삭제")}
+        </MenuItem>
+      </Menu>
       <Dialog
         open={Boolean(executionToDelete)}
         onClose={handleCloseDeleteDialog}

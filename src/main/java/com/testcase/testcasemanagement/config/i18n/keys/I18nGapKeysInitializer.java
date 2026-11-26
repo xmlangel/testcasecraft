@@ -595,6 +595,8 @@ public class I18nGapKeysInitializer {
     createTranslationKeyIfNotExists(
         "rag.chat.stopStreaming", "rag", "i18n gap 보강 (2026-06-06)", "전송 중지");
     createTranslationKeyIfNotExists(
+        "rag.chat.send", "rag", "RAG 채팅 보내기 버튼 이름 (ICT-511)", "보내기");
+    createTranslationKeyIfNotExists(
         "rag.chat.testCaseDocumentLabel", "rag", "i18n gap 보강 (2026-06-06)", "테스트케이스: {name}");
     createTranslationKeyIfNotExists(
         "rag.chat.testCaseDocumentTooltip",
@@ -841,6 +843,10 @@ public class I18nGapKeysInitializer {
         "projectNav.sidebar.collapse", "projectNav", "레이아웃 선택", "사이드바 접기");
     createTranslationKeyIfNotExists(
         "projectNav.sidebar.expand", "projectNav", "레이아웃 선택", "사이드바 펼치기");
+    // ICT-510 좁은 화면: 영역 메뉴 서랍·상단 햄버거 메뉴
+    createTranslationKeyIfNotExists(
+        "projectNav.sidebar.open", "projectNav", "ICT-510 좁은 화면 서랍", "영역 메뉴 열기");
+    createTranslationKeyIfNotExists("header.nav.menu", "header", "ICT-510 좁은 화면 햄버거 메뉴", "메뉴");
     // ICT-491 화면 밀도
     createTranslationKeyIfNotExists("profile.density.title", "profile", "화면 밀도", "화면 밀도");
     createTranslationKeyIfNotExists(
@@ -1517,6 +1523,43 @@ public class I18nGapKeysInitializer {
         "mailSend",
         "ICT-439 인증 메일 비동기 발송 (2026-10-21)",
         "인증 이메일 발송에 실패했습니다. 잠시 뒤 다시 시도하세요.");
+    // ICT-511: 상태값 현지화, 아이콘 버튼의 접근 가능한 이름, 헤더 버튼 문구
+    createTranslationKeyIfNotExists(
+        "testExecution.status.cancelled", "testExecution", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "취소됨");
+    createTranslationKeyIfNotExists(
+        "testExecution.status.aborted", "testExecution", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "중단됨");
+    createTranslationKeyIfNotExists(
+        "exploratory.charter.status.active", "exploratory", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "활성");
+    createTranslationKeyIfNotExists(
+        "exploratory.charter.status.archived", "exploratory", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "보관됨");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.button.importExport", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "가져오기/내보내기");
+    createTranslationKeyIfNotExists(
+        "header.aria.userMenu", "header", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "사용자 메뉴");
+    createTranslationKeyIfNotExists(
+        "header.theme.switchToLight", "header", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "밝은 테마로 전환");
+    createTranslationKeyIfNotExists(
+        "header.theme.switchToDark", "header", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "어두운 테마로 전환");
+    createTranslationKeyIfNotExists(
+        "project.card.moreActions", "project", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "프로젝트 메뉴");
+    createTranslationKeyIfNotExists(
+        "project.card.moreActionsFor", "project", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "{name} 프로젝트 메뉴");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.button.add", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "추가");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.node.moreActions", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "작업 메뉴");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.node.moreActionsFor", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "{name} 작업 메뉴");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.node.expand", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "{name} 펼치기");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.node.collapse", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "{name} 접기");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.node.moveUp", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "위로 이동");
+    createTranslationKeyIfNotExists(
+        "testcase.tree.node.moveDown", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "아래로 이동");
+    createTranslationKeyIfNotExists(
+        "testcase.crossProject.button.title", "testcase", "ICT-511 상태값 현지화·아이콘 버튼 이름 (2026-11-26)", "선택 항목을 다른 프로젝트로 이동/복사");
 
     log.info("i18n gap 번역 키 초기화 완료");
   }

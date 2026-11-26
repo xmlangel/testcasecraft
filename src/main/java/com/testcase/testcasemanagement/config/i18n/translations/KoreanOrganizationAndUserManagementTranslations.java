@@ -213,7 +213,7 @@ public class KoreanOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists(
         "user.role.manager.description", languageCode, "프로젝트 관리 및 팀 리더십", createdBy);
     createTranslationIfNotExists(
-        "user.role.tester.description", languageCode, "테스트 케이스 작성 및 실행", createdBy);
+        "user.role.tester.description", languageCode, "테스트케이스 작성 및 실행", createdBy);
     createTranslationIfNotExists(
         "user.role.user.description", languageCode, "기본적인 시스템 사용", createdBy);
     createTranslationIfNotExists("mail.manager.title", languageCode, "메일 설정 관리", createdBy);
@@ -348,7 +348,7 @@ public class KoreanOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists(
         "project.dialog.forceDeleteWarningMessage",
         languageCode,
-        "연결된 모든 테스트 플랜, 테스트 케이스, 실행 이력이 함께 삭제됩니다! 이 작업은 되돌릴 수 없습니다.",
+        "연결된 모든 테스트 플랜, 테스트케이스, 실행 이력이 함께 삭제됩니다! 이 작업은 되돌릴 수 없습니다.",
         createdBy);
     createTranslationIfNotExists(
         "project.dialog.deleteConfirm",
@@ -405,7 +405,7 @@ public class KoreanOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists(
         "junit.editor.userDescriptionPlaceholder",
         languageCode,
-        "이 테스트 케이스에 대한 상세한 설명을 입력하세요...",
+        "이 테스트케이스에 대한 상세한 설명을 입력하세요...",
         createdBy);
     createTranslationIfNotExists(
         "testcase.advancedFilter.searchPlaceholder",
@@ -413,7 +413,7 @@ public class KoreanOrganizationAndUserManagementTranslations {
         "테스트케이스 이름, 설명, 단계 내용 검색...",
         createdBy);
     createTranslationIfNotExists(
-        "preset.name.placeholder", languageCode, "예: 내 테스트 케이스", createdBy);
+        "preset.name.placeholder", languageCode, "예: 내 테스트케이스", createdBy);
     createTranslationIfNotExists("common.unauthorized.title", languageCode, "권한 없음", createdBy);
     createTranslationIfNotExists(
         "common.unauthorized.message", languageCode, "이 페이지에 접근할 권한이 없습니다", createdBy);
@@ -441,7 +441,7 @@ public class KoreanOrganizationAndUserManagementTranslations {
     createTranslationIfNotExists(
         "junit.upload.dialog.title", languageCode, "JUnit 결과 업로드", createdBy);
     createTranslationIfNotExists(
-        "testCaseResult.page.title", languageCode, "테스트 케이스 결과", createdBy);
+        "testCaseResult.page.title", languageCode, "테스트케이스 결과", createdBy);
     createTranslationIfNotExists("dashboard.title", languageCode, "대시보드", createdBy);
     createTranslationIfNotExists(
         "dashboard.noData.message", languageCode, "표시할 데이터가 없습니다", createdBy);

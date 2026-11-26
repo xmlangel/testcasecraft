@@ -40,6 +40,8 @@ import testResultService, {
 import junitResultService from "../services/junitResultService";
 import { useAppContext } from "../context/AppContext";
 import { useI18n } from "../context/I18nContext";
+import { useDateFormatter } from "../hooks/useDateFormatter";
+import { formatPercent, RATE_TEXT_COLOR } from "../utils/percentFormat.js";
 
 /**
  * ICT-187: 테스트 결과 통계 대시보드 메인 컴포넌트
@@ -54,6 +56,7 @@ function TestResultStatisticsDashboard() {
   } = useAppContext();
 
   const { t } = useI18n();
+  const { formatDate: formatDisplayDate } = useDateFormatter();
   const ROOT_LABEL = t("testResult.folder.root", "루트");
 
   const theme = useTheme();
@@ -594,10 +597,10 @@ function TestResultStatisticsDashboard() {
               ).toFixed(2)
             : 0,
       lastUpdated: statistics.calculatedAt
-        ? new Date(statistics.calculatedAt).toLocaleString("ko-KR")
+        ? formatDisplayDate(statistics.calculatedAt)
         : t("testResultDashboard.summary.unknown", "알 수 없음"),
     };
-  }, [statistics, t]);
+  }, [statistics, t, formatDisplayDate]);
 
   return (
     <Box sx={{ p: 0 }}>
@@ -763,7 +766,7 @@ function TestResultStatisticsDashboard() {
                       fontWeight: { xs: 700, md: 600 },
                     }}
                   >
-                    {statisticsSummary.executionRate}%
+                    {formatPercent(statisticsSummary.executionRate)}
                   </Typography>
                 </Grid>
 
@@ -777,13 +780,13 @@ function TestResultStatisticsDashboard() {
                   </Typography>
                   <Typography
                     variant={isMobile ? "h6" : "h6"}
-                    color="success.main"
+                    color={RATE_TEXT_COLOR}
                     sx={{
                       fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
                       fontWeight: { xs: 700, md: 600 },
                     }}
                   >
-                    {statisticsSummary.successRate}%
+                    {formatPercent(statisticsSummary.successRate)}
                   </Typography>
                 </Grid>
 
@@ -800,7 +803,7 @@ function TestResultStatisticsDashboard() {
                   </Typography>
                   <Typography
                     variant={isMobile ? "h6" : "h6"}
-                    color="info.main"
+                    color="info.dark"
                     onClick={handleJiraLinkClick}
                     sx={{
                       fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
@@ -812,10 +815,10 @@ function TestResultStatisticsDashboard() {
                       "&:hover": { textDecoration: "underline", opacity: 0.8 },
                     }}
                   >
-                    {statisticsSummary.jiraLinkRate}%
+                    {formatPercent(statisticsSummary.jiraLinkRate)}
                     <Typography
                       component="span"
-                      sx={{ fontSize: "0.65rem", color: "info.main" }}
+                      sx={{ fontSize: "0.65rem", color: "info.dark" }}
                     >
                       ▼
                     </Typography>

@@ -19,10 +19,10 @@ describe("JunitStatsCard", () => {
     // 통과 6, 실패 1, 에러 1, 스킵 2
     expect(screen.getByText("6")).toBeInTheDocument();
     // 성공률 = (10-1-1)/10*100 = 80.0%
-    expect(screen.getByText("80.0%")).toBeInTheDocument();
+    expect(screen.getByText("80%")).toBeInTheDocument();
   });
 
-  it("totalTests 0 이면 성공률 0.0%", () => {
+  it("totalTests 0 이면 성공률 0%", () => {
     render(
       <JunitStatsCard
         testResult={{ totalTests: 0, failures: 0, errors: 0, skipped: 0 }}
@@ -31,7 +31,7 @@ describe("JunitStatsCard", () => {
         t={t}
       />,
     );
-    expect(screen.getByText("0.0%")).toBeInTheDocument();
+    expect(screen.getByText("0%")).toBeInTheDocument();
   });
 
   it("onAccordionChange 핸들러를 받아 렌더에 사용한다 (throw 없이 렌더)", () => {

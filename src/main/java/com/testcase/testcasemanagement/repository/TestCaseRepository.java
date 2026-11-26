@@ -75,10 +75,12 @@ public interface TestCaseRepository extends JpaRepository<TestCase, String> {
           + " AND (t.type IS NULL OR t.type <> 'testcase')")
   long countFoldersByProjectId(@Param("projectId") String projectId);
 
+  // 프로젝트 목록 카드의 「테스트케이스 수」. 폴더를 빼고 센다(ICT-512).
+  // 예전에는 폴더 행까지 세어 카드에 834(케이스 775 + 폴더 59)가 나오고 사이드바 775 와 달랐다.
   @Query(
-      "SELECT t.project.id, COUNT(t) FROM TestCase t WHERE t.project.id IN :projectIds GROUP BY"
-          + " t.project.id")
-  List<Object[]> countByProjectIds(@Param("projectIds") List<String> projectIds);
+      "SELECT t.project.id, COUNT(t) FROM TestCase t WHERE t.project.id IN :projectIds"
+          + " AND t.type = 'testcase' GROUP BY t.project.id")
+  List<Object[]> countTestCasesOnlyByProjectIds(@Param("projectIds") List<String> projectIds);
 
   // 특정 프로젝트의 모든 테스트케이스 조회 (태그 목록 조회용)
   @Query("SELECT t FROM TestCase t WHERE t.project.id = :projectId")

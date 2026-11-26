@@ -13,6 +13,7 @@ import {
   Collapse,
   Checkbox,
   ListItemText,
+  Tooltip,
 } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -23,12 +24,20 @@ import {
 import { useI18n } from "../../context/I18nContext";
 import TagsAutocomplete from "../common/TagsAutocomplete.jsx";
 
+/**
+ * 실행 상세의 필터 입력.
+ *
+ * ICT-513: `embedded` 를 주면 자체 머리(「필터」 제목과 접기 단추)와 접힘 상자 없이
+ * 입력란만 그린다. 실행 상세는 이 패널을 이미 「필터」 아코디언 안에 넣고 있어서,
+ * 「필터」 안에 또 「필터」 가 접혀 있는 두 겹 구조였다. 접기는 바깥 아코디언이 맡는다.
+ */
 const TestExecutionFilterPanel = ({
   filters,
   onFilterChange,
   onApply,
   onClear,
   availableTags = [],
+  embedded = false,
 }) => {
   const { t } = useI18n();
 
@@ -67,6 +76,223 @@ const TestExecutionFilterPanel = ({
   // 복원된(또는 적용 중인) 필터가 있으면 펼친 상태로 시작 — 보존된 값이 보이도록
   const [expanded, setExpanded] = React.useState(hasActiveFilters);
 
+  const fields = (
+    <Box
+      sx={embedded ? undefined : { px: 2, pb: 2 }}
+      data-testid="execution-filter-fields"
+    >
+      <Grid container spacing={1.5}>
+        {/* ICT-435: 케이스 아이디 */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            id="filter-testcase-id"
+            label={t("testExecution.filter.testCaseId", "케이스 아이디")}
+            value={filters.caseId || ""}
+            onChange={(e) => onFilterChange("caseId", e.target.value)}
+            fullWidth
+            size="small"
+            placeholder={t(
+              "testExecution.filter.testCaseId.placeholder",
+              "TC-0001, TC-0002 (콤마로 여러 개)",
+            )}
+          />
+        </Grid>
+
+        {/* 테스트 케이스명 */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            id="filter-testcase-name"
+            label={t("testExecution.filter.testCaseName", "테스트 케이스명")}
+            value={filters.name || ""}
+            onChange={(e) => onFilterChange("name", e.target.value)}
+            fullWidth
+            size="small"
+            placeholder={t(
+              "testExecution.filter.testCaseName.placeholder",
+              "케이스명 (콤마로 여러 개)",
+            )}
+          />
+        </Grid>
+
+        {/* 우선순위 (다중 선택) */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            id="filter-priority"
+            select
+            label={t("testExecution.filter.priority", "우선순위")}
+            value={Array.isArray(filters.priority) ? filters.priority : []}
+            onChange={(e) => onFilterChange("priority", e.target.value)}
+            fullWidth
+            size="small"
+            slotProps={{
+              select: {
+                multiple: true,
+                displayEmpty: true,
+                renderValue: renderSelected(priorityOptions),
+              },
+              inputLabel: { shrink: true },
+            }}
+          >
+            {priorityOptions.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                <Checkbox
+                  size="small"
+                  checked={
+                    Array.isArray(filters.priority) &&
+                    filters.priority.includes(opt.value)
+                  }
+                />
+                <ListItemText primary={opt.label} />
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+
+        {/* 결과 (다중 선택) */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            id="filter-result"
+            select
+            label={t("testExecution.filter.result", "결과")}
+            value={Array.isArray(filters.result) ? filters.result : []}
+            onChange={(e) => onFilterChange("result", e.target.value)}
+            fullWidth
+            size="small"
+            slotProps={{
+              select: {
+                multiple: true,
+                displayEmpty: true,
+                renderValue: renderSelected(resultOptions),
+              },
+              inputLabel: { shrink: true },
+            }}
+          >
+            {resultOptions.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                <Checkbox
+                  size="small"
+                  checked={
+                    Array.isArray(filters.result) &&
+                    filters.result.includes(opt.value)
+                  }
+                />
+                <ListItemText primary={opt.label} />
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+
+        {/* 실행자 */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            id="filter-executed-by"
+            label={t("testExecution.filter.executedBy", "실행자")}
+            value={filters.executedBy || ""}
+            onChange={(e) => onFilterChange("executedBy", e.target.value)}
+            fullWidth
+            size="small"
+            placeholder={t(
+              "testExecution.filter.executedBy.placeholder",
+              "username (콤마로 여러 명)",
+            )}
+          />
+        </Grid>
+
+        {/* 실행일자 */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            id="filter-execution-date"
+            type="date"
+            label={t("testExecution.filter.executionDate", "실행일자")}
+            value={filters.executionDate || ""}
+            onChange={(e) => onFilterChange("executionDate", e.target.value)}
+            fullWidth
+            size="small"
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+          />
+        </Grid>
+
+        {/* JIRA 아이디 */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            id="filter-jira-issue-key"
+            label={t("testExecution.filter.jiraIssueKey", "JIRA 아이디")}
+            value={filters.jiraIssueKey || ""}
+            onChange={(e) => onFilterChange("jiraIssueKey", e.target.value)}
+            fullWidth
+            size="small"
+            placeholder="PRJ-123, PRJ-456"
+          />
+        </Grid>
+
+        {/* 노트 */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            id="filter-notes"
+            label={t("testExecution.filter.notes", "노트")}
+            value={filters.notes || ""}
+            onChange={(e) => onFilterChange("notes", e.target.value)}
+            fullWidth
+            size="small"
+            placeholder={t(
+              "testExecution.filter.notes.placeholder",
+              "노트 검색 (콤마로 여러 개)",
+            )}
+          />
+        </Grid>
+
+        {/* ICT-427: 결과 태그 (다중 선택 + 직접 입력) */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TagsAutocomplete
+            id="filter-tags"
+            size="small"
+            value={filters.tags}
+            onChange={(newValue) => onFilterChange("tags", newValue)}
+            options={availableTags}
+            label={t("testExecution.filter.tags", "태그")}
+            placeholder={t(
+              "testExecution.filter.tags.placeholder",
+              "태그 선택 또는 입력",
+            )}
+            inputTestId="filter-tags-input"
+          />
+        </Grid>
+
+        {/* 버튼들 */}
+        <Grid size={{ xs: 12 }}>
+          <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+            <Button
+              variant="outlined"
+              startIcon={<ClearIcon />}
+              onClick={onClear}
+              size="small"
+              disabled={!hasActiveFilters}
+            >
+              {t("testExecution.filter.clear", "초기화")}
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<FilterListIcon />}
+              onClick={onApply}
+              size="small"
+            >
+              {t("testExecution.filter.apply", "적용")}
+            </Button>
+          </Box>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+
+  if (embedded) return fields;
+
+  // ICT-511: 아이콘만 있는 펼치기 버튼에 이름을 붙인다.
+  const toggleLabel = expanded
+    ? t("common.collapse", "접기")
+    : t("common.expand", "펼치기");
+
   return (
     <Paper elevation={1} sx={{ mb: 1 }}>
       <Box
@@ -88,221 +314,19 @@ const TestExecutionFilterPanel = ({
             </Typography>
           )}
         </Box>
-        <IconButton onClick={() => setExpanded(!expanded)} size="small">
-          {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </IconButton>
+        <Tooltip title={toggleLabel}>
+          <IconButton
+            onClick={() => setExpanded(!expanded)}
+            size="small"
+            aria-label={toggleLabel}
+            aria-expanded={expanded}
+            data-testid="execution-filter-toggle"
+          >
+            {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
+        </Tooltip>
       </Box>
-      <Collapse in={expanded}>
-        <Box sx={{ px: 2, pb: 2 }}>
-          <Grid container spacing={1.5}>
-            {/* ICT-435: 케이스 아이디 */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                id="filter-testcase-id"
-                label={t("testExecution.filter.testCaseId", "케이스 아이디")}
-                value={filters.caseId || ""}
-                onChange={(e) => onFilterChange("caseId", e.target.value)}
-                fullWidth
-                size="small"
-                placeholder={t(
-                  "testExecution.filter.testCaseId.placeholder",
-                  "TC-0001, TC-0002 (콤마로 여러 개)",
-                )}
-              />
-            </Grid>
-
-            {/* 테스트 케이스명 */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                id="filter-testcase-name"
-                label={t(
-                  "testExecution.filter.testCaseName",
-                  "테스트 케이스명",
-                )}
-                value={filters.name || ""}
-                onChange={(e) => onFilterChange("name", e.target.value)}
-                fullWidth
-                size="small"
-                placeholder={t(
-                  "testExecution.filter.testCaseName.placeholder",
-                  "케이스명 (콤마로 여러 개)",
-                )}
-              />
-            </Grid>
-
-            {/* 우선순위 (다중 선택) */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                id="filter-priority"
-                select
-                label={t("testExecution.filter.priority", "우선순위")}
-                value={Array.isArray(filters.priority) ? filters.priority : []}
-                onChange={(e) => onFilterChange("priority", e.target.value)}
-                fullWidth
-                size="small"
-                slotProps={{
-                  select: {
-                    multiple: true,
-                    displayEmpty: true,
-                    renderValue: renderSelected(priorityOptions),
-                  },
-                  inputLabel: { shrink: true },
-                }}
-              >
-                {priorityOptions.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    <Checkbox
-                      size="small"
-                      checked={
-                        Array.isArray(filters.priority) &&
-                        filters.priority.includes(opt.value)
-                      }
-                    />
-                    <ListItemText primary={opt.label} />
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            {/* 결과 (다중 선택) */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                id="filter-result"
-                select
-                label={t("testExecution.filter.result", "결과")}
-                value={Array.isArray(filters.result) ? filters.result : []}
-                onChange={(e) => onFilterChange("result", e.target.value)}
-                fullWidth
-                size="small"
-                slotProps={{
-                  select: {
-                    multiple: true,
-                    displayEmpty: true,
-                    renderValue: renderSelected(resultOptions),
-                  },
-                  inputLabel: { shrink: true },
-                }}
-              >
-                {resultOptions.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    <Checkbox
-                      size="small"
-                      checked={
-                        Array.isArray(filters.result) &&
-                        filters.result.includes(opt.value)
-                      }
-                    />
-                    <ListItemText primary={opt.label} />
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            {/* 실행자 */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                id="filter-executed-by"
-                label={t("testExecution.filter.executedBy", "실행자")}
-                value={filters.executedBy || ""}
-                onChange={(e) => onFilterChange("executedBy", e.target.value)}
-                fullWidth
-                size="small"
-                placeholder={t(
-                  "testExecution.filter.executedBy.placeholder",
-                  "username (콤마로 여러 명)",
-                )}
-              />
-            </Grid>
-
-            {/* 실행일자 */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                id="filter-execution-date"
-                type="date"
-                label={t("testExecution.filter.executionDate", "실행일자")}
-                value={filters.executionDate || ""}
-                onChange={(e) =>
-                  onFilterChange("executionDate", e.target.value)
-                }
-                fullWidth
-                size="small"
-                slotProps={{
-                  inputLabel: { shrink: true },
-                }}
-              />
-            </Grid>
-
-            {/* JIRA 아이디 */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                id="filter-jira-issue-key"
-                label={t("testExecution.filter.jiraIssueKey", "JIRA 아이디")}
-                value={filters.jiraIssueKey || ""}
-                onChange={(e) => onFilterChange("jiraIssueKey", e.target.value)}
-                fullWidth
-                size="small"
-                placeholder="PRJ-123, PRJ-456"
-              />
-            </Grid>
-
-            {/* 노트 */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField
-                id="filter-notes"
-                label={t("testExecution.filter.notes", "노트")}
-                value={filters.notes || ""}
-                onChange={(e) => onFilterChange("notes", e.target.value)}
-                fullWidth
-                size="small"
-                placeholder={t(
-                  "testExecution.filter.notes.placeholder",
-                  "노트 검색 (콤마로 여러 개)",
-                )}
-              />
-            </Grid>
-
-            {/* ICT-427: 결과 태그 (다중 선택 + 직접 입력) */}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TagsAutocomplete
-                id="filter-tags"
-                size="small"
-                value={filters.tags}
-                onChange={(newValue) => onFilterChange("tags", newValue)}
-                options={availableTags}
-                label={t("testExecution.filter.tags", "태그")}
-                placeholder={t(
-                  "testExecution.filter.tags.placeholder",
-                  "태그 선택 또는 입력",
-                )}
-                inputTestId="filter-tags-input"
-              />
-            </Grid>
-
-            {/* 버튼들 */}
-            <Grid size={{ xs: 12 }}>
-              <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<ClearIcon />}
-                  onClick={onClear}
-                  size="small"
-                  disabled={!hasActiveFilters}
-                >
-                  {t("testExecution.filter.clear", "초기화")}
-                </Button>
-                <Button
-                  variant="contained"
-                  startIcon={<FilterListIcon />}
-                  onClick={onApply}
-                  size="small"
-                >
-                  {t("testExecution.filter.apply", "적용")}
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-      </Collapse>
+      <Collapse in={expanded}>{fields}</Collapse>
     </Paper>
   );
 };

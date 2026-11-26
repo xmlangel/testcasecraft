@@ -84,6 +84,7 @@ import agentConnectionService from "../../services/agentConnectionService.js";
 import { canRecordTestResult } from "../TestCaseTree/utils/permissionUtils.js";
 import JunitProcessingProgress from "../JUnit/JunitProcessingProgress";
 import PageTitle from "../common/PageTitle";
+import EmptyState from "../common/EmptyState.jsx";
 import apiService from "../../services/apiService.js";
 
 // 색상 팔레트 (Allure 스타일)
@@ -93,6 +94,8 @@ import {
   CHART_COLORS,
 } from "../../constants/statusColors";
 import { PAGE_CONTAINER_SX } from "../../styles/layoutConstants";
+import { formatPercent } from "../../utils/percentFormat.js";
+import { legendTextFormatter } from "../common/chartLegend.jsx";
 
 // 안전한 날짜 포맷팅 함수
 const formatSafeDate = (dateValue, t) => {
@@ -620,6 +623,8 @@ export default function JunitResultDashboard() {
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
+            {/* 큰 숫자는 본문 색으로 쓰고 상태 색은 옆 아이콘·카드 바탕에만 남긴다 (ICT-509).
+                성공 색 숫자는 흰 바탕에서 2.1:1 이었다. */}
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card
@@ -640,7 +645,7 @@ export default function JunitResultDashboard() {
                       <Box>
                         <Typography
                           variant="h4"
-                          sx={{ color: RESULT_COLORS.PASS, fontWeight: "bold" }}
+                          sx={{ color: "text.primary", fontWeight: "bold" }}
                         >
                           {statistics.totalPassed || 0}
                         </Typography>
@@ -675,7 +680,7 @@ export default function JunitResultDashboard() {
                       <Box>
                         <Typography
                           variant="h4"
-                          sx={{ color: RESULT_COLORS.FAIL, fontWeight: "bold" }}
+                          sx={{ color: "text.primary", fontWeight: "bold" }}
                         >
                           {statistics.totalFailed || 0}
                         </Typography>
@@ -708,7 +713,7 @@ export default function JunitResultDashboard() {
                       <Box>
                         <Typography
                           variant="h4"
-                          sx={{ color: COLORS.ERROR, fontWeight: "bold" }}
+                          sx={{ color: "text.primary", fontWeight: "bold" }}
                         >
                           {statistics.totalErrors || 0}
                         </Typography>
@@ -736,7 +741,7 @@ export default function JunitResultDashboard() {
                     >
                       <Box>
                         <Typography variant="h4" color="text.secondary">
-                          {statistics.averageSuccessRate?.toFixed(1) || 0}%
+                          {formatPercent(statistics.averageSuccessRate)}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {t("junit.stats.averageSuccessRate")}
@@ -813,11 +818,16 @@ export default function JunitResultDashboard() {
                         </RechartsPieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <Box sx={{ textAlign: "center", py: 4 }}>
-                        <Typography color="text.secondary">
-                          {t("junit.empty.noResults", "테스트 결과가 없습니다")}
-                        </Typography>
-                      </Box>
+                      <EmptyState
+                        dense
+                        icon={PieChart}
+                        data-testid="junit-chart-status-empty"
+                        title={t("junit.empty.noResults", "테스트 결과가 없습니다")}
+                        description={t(
+                          "junit.empty.uploadPrompt",
+                          "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
+                        )}
+                      />
                     )}
                   </CardContent>
                 </Card>
@@ -858,7 +868,7 @@ export default function JunitResultDashboard() {
                             }}
                             itemStyle={{ color: theme.palette.text.primary }}
                           />
-                          <Legend wrapperStyle={{ fontSize: "0.8125rem" }} />
+                          <Legend formatter={legendTextFormatter} wrapperStyle={{ fontSize: "0.8125rem" }} />
                           <Bar
                             dataKey={t("junit.stats.passed")}
                             fill={RESULT_COLORS.PASS}
@@ -878,11 +888,16 @@ export default function JunitResultDashboard() {
                         </RechartsBarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <Box sx={{ textAlign: "center", py: 4 }}>
-                        <Typography color="text.secondary">
-                          {t("junit.empty.noResults", "테스트 결과가 없습니다")}
-                        </Typography>
-                      </Box>
+                      <EmptyState
+                        dense
+                        icon={BarChart}
+                        data-testid="junit-chart-recent-empty"
+                        title={t("junit.empty.noResults", "테스트 결과가 없습니다")}
+                        description={t(
+                          "junit.empty.uploadPrompt",
+                          "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
+                        )}
+                      />
                     )}
                   </CardContent>
                 </Card>
@@ -1436,38 +1451,21 @@ export default function JunitResultDashboard() {
                     </Table>
                   </TableContainer>
                 ) : (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
-                    <CloudUpload
-                      sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
-                    />
-                    <Typography
-                      variant="h6"
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      {t("junit.empty.noResults", "테스트 결과가 없습니다")}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      {t(
-                        "junit.empty.uploadPrompt",
-                        "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
-                      )}
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      startIcon={<CloudUpload />}
-                      onClick={() => setUploadDialogOpen(true)}
-                    >
-                      {t(
-                        "junit.empty.firstUpload",
-                        "첫 번째 테스트 결과 업로드",
-                      )}
-                    </Button>
-                  </Box>
+                  <EmptyState
+                    icon={CloudUpload}
+                    data-testid="junit-list-empty"
+                    title={t("junit.empty.noResults", "테스트 결과가 없습니다")}
+                    description={t(
+                      "junit.empty.uploadPrompt",
+                      "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
+                    )}
+                    actionIcon={<CloudUpload />}
+                    actionLabel={t(
+                      "junit.empty.firstUpload",
+                      "첫 번째 테스트 결과 업로드",
+                    )}
+                    onAction={() => setUploadDialogOpen(true)}
+                  />
                 )}
               </CardContent>
             </Card>

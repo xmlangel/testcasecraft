@@ -61,14 +61,14 @@ test.describe("로그아웃 플로우 테스트", () => {
     });
 
     // 사용자 아바타가 나타날 때까지 대기 (로그인 완료 확인)
-    await page.waitForSelector('button[aria-label="user menu"]', {
+    await page.waitForSelector('button[data-testid="user-menu-button"]', {
       timeout: 5000,
     });
   });
 
   test("정상 로그아웃 플로우", async ({ page }, testInfo) => {
     // 사용자 아바타 클릭하여 메뉴 열기
-    await page.click('button[aria-label="user menu"]');
+    await page.click('button[data-testid="user-menu-button"]');
 
     // 메뉴가 열릴 때까지 대기
     await page.waitForSelector('li:has-text("로그아웃")', { timeout: 3000 });
@@ -90,7 +90,7 @@ test.describe("로그아웃 플로우 테스트", () => {
 
   test("로그아웃 후 대시보드 직접 접근 방지", async ({ page }, testInfo) => {
     // 먼저 로그아웃
-    await page.click('button[aria-label="user menu"]');
+    await page.click('button[data-testid="user-menu-button"]');
     await page.waitForSelector('li:has-text("로그아웃")', { timeout: 3000 });
     await page.click('li:has-text("로그아웃")');
     await page.waitForURL("**/", { timeout: 5000 });
@@ -114,7 +114,7 @@ test.describe("로그아웃 플로우 테스트", () => {
 
   test("로그아웃 후 브라우저 뒤로가기 방지", async ({ page }, testInfo) => {
     // 로그아웃 수행
-    await page.click('button[aria-label="user menu"]');
+    await page.click('button[data-testid="user-menu-button"]');
     await page.waitForSelector('li:has-text("로그아웃")', { timeout: 3000 });
     await page.click('li:has-text("로그아웃")');
     await page.waitForURL("**/", { timeout: 5000 });
@@ -138,7 +138,7 @@ test.describe("로그아웃 플로우 테스트", () => {
       // 로그인 폼이 안 보이면 다른 방식으로 확인
       // 프로젝트 선택 페이지에 있을 수도 있으므로 사용자 아바타가 없는지 확인
       const userMenu = await page
-        .locator('button[aria-label="user menu"]')
+        .locator('button[data-testid="user-menu-button"]')
         .isVisible();
       expect(userMenu).toBe(false);
     }
@@ -156,7 +156,7 @@ test.describe("로그아웃 플로우 테스트", () => {
 
   test("로그아웃 버튼 중복 클릭 방지", async ({ page }, testInfo) => {
     // 사용자 메뉴 열기
-    await page.click('button[aria-label="user menu"]');
+    await page.click('button[data-testid="user-menu-button"]');
     await page.waitForSelector('li:has-text("로그아웃")', { timeout: 3000 });
 
     // 로그아웃 메뉴 아이템을 빠르게 여러 번 클릭
@@ -192,7 +192,7 @@ test.describe("로그아웃 플로우 테스트", () => {
     expect(tokenBefore).toBeTruthy();
 
     // 로그아웃 수행
-    await page.click('button[aria-label="user menu"]');
+    await page.click('button[data-testid="user-menu-button"]');
     await page.waitForSelector('li:has-text("로그아웃")', { timeout: 3000 });
     await page.click('li:has-text("로그아웃")');
     await page.waitForURL("**/", { timeout: 5000 });
@@ -214,7 +214,7 @@ test.describe("로그아웃 플로우 테스트", () => {
 
   test("로그아웃 후 재로그인 정상 동작", async ({ page }, testInfo) => {
     // 로그아웃 수행
-    await page.click('button[aria-label="user menu"]');
+    await page.click('button[data-testid="user-menu-button"]');
     await page.waitForSelector('li:has-text("로그아웃")', { timeout: 3000 });
     await page.click('li:has-text("로그아웃")');
     await page.waitForURL("**/", { timeout: 5000 });
@@ -226,7 +226,7 @@ test.describe("로그아웃 플로우 테스트", () => {
 
     // 로그인 성공 여부를 다양한 방법으로 확인
     // 1. 사용자 아바타 표시 확인 (가장 확실한 로그인 성공 지표)
-    await page.waitForSelector('button[aria-label="user menu"]', {
+    await page.waitForSelector('button[data-testid="user-menu-button"]', {
       timeout: 10000,
     });
 
@@ -234,7 +234,7 @@ test.describe("로그아웃 플로우 테스트", () => {
     await expect(page.locator('input[name="username"]')).not.toBeVisible();
 
     // 3. 상단 네비게이션이 표시되는지 확인
-    await expect(page.locator('button[aria-label="user menu"]')).toBeVisible();
+    await expect(page.locator('button[data-testid="user-menu-button"]')).toBeVisible();
 
     // 성공 스크린샷 촬영
     await takeSuccessScreenshot(page, testInfo, "logout-relogin-flow");
@@ -263,7 +263,7 @@ test.describe("로그아웃 플로우 테스트", () => {
     await page.route("**/api/auth/logout", (route) => route.abort());
 
     // 로그아웃 시도
-    await page.click('button[aria-label="user menu"]');
+    await page.click('button[data-testid="user-menu-button"]');
     await page.waitForSelector('li:has-text("로그아웃")', { timeout: 3000 });
     await page.click('li:has-text("로그아웃")');
 

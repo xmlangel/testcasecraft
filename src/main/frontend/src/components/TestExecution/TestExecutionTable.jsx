@@ -28,10 +28,12 @@ import {
   UnfoldLess as UnfoldLessIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { getPriorityLabel } from "../../utils/statusLabels";
 import { TestResult } from "../../models/testExecution.jsx";
 import JiraIssueLink from "./JiraIssueLink.jsx";
 import {
   getResultIcon,
+  getResultLabel,
   getDisplayValue,
   priorityColor,
   responsiveColumnSx,
@@ -142,9 +144,9 @@ const ExecutionRow = memo(
             />
           )}
         </Box>
-        {/* 1: ID */}
+        {/* 1: ID — ICT-513: 폴더 행에는 ID 칩을 달지 않는다. 케이스와 구분되지 않았다. */}
         <Box sx={{ ...responsiveColumnSx[1] }}>
-          {node.displayId && (
+          {!isFolder && node.displayId && (
             <Chip
               label={node.displayId}
               variant="outlined"
@@ -153,10 +155,15 @@ const ExecutionRow = memo(
             />
           )}
         </Box>
-        {/* 2: 폴더 */}
+        {/* 2: 폴더 — ICT-513: 폴더 행은 폴더 열과 케이스명 열을 합친 칸에 그린다.
+            폴더 열을 좁혀도 폴더 이름과 집계가 잘리지 않는다. */}
         <Box
+          data-testid={
+            isFolder ? `execution-table-folder-cell-${node.id}` : undefined
+          }
           sx={{
             ...responsiveColumnSx[2],
+            ...(isFolder ? { gridColumn: "span 2" } : null),
             pl: `${node.level * 20}px`,
             // 좁은 보기(peek): 케이스 행의 폴더 경로는 감추고, 폴더 행 이름은 케이스명 자리로 넘겨 보인다
             // 폴더 열 폭이 0 이므로 폴더 행은 내용 폭(max-content)으로 펼쳐 넘치게 하고,
@@ -285,26 +292,35 @@ const ExecutionRow = memo(
               )}
             </>
           ) : (
-            <Typography
-              variant="body2"
-              sx={{ color: theme.palette.text.secondary, lineHeight: 1.25 }}
-            >
-              {node.parentName ? `${node.parentName}>` : "-"}
-            </Typography>
+            // ICT-513: 그룹 행이 경로를 이미 보여 주므로 한 줄 말줄임으로 두고 전체는 툴팁으로 본다
+            <Tooltip title={node.parentName || ""}>
+              <Typography
+                variant="body2"
+                noWrap
+                sx={{
+                  color: theme.palette.text.secondary,
+                  lineHeight: 1.25,
+                  minWidth: 0,
+                }}
+                data-testid={`execution-table-folder-path-${node.id}`}
+              >
+                {node.parentName ? `${node.parentName}>` : "-"}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
-        {/* 3: 테스트케이스 */}
-        <Box
-          sx={{
-            ...responsiveColumnSx[3],
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            pl: 1,
-            overflow: "hidden",
-          }}
-        >
-          {!isFolder ? (
+        {/* 3: 테스트케이스 (폴더 행은 위 폴더 칸이 이 열까지 차지한다) */}
+        {!isFolder && (
+          <Box
+            sx={{
+              ...responsiveColumnSx[3],
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              pl: 1,
+              overflow: "hidden",
+            }}
+          >
             <>
               <DescriptionIcon
                 sx={{
@@ -314,47 +330,73 @@ const ExecutionRow = memo(
                   flexShrink: 0,
                 }}
               />
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: "bold",
-                  lineHeight: 1.25,
-                  color: theme.palette.primary.main,
-                  // ICT-498: 이름을 줄바꿈하지 않고 한 줄로 다 보인다. 열 폭이 가장 긴 이름에 맞춰져 있다.
-                  whiteSpace: "nowrap",
-                  cursor: "pointer",
-                  flex: 1,
-                  "&:hover": {
-                    textDecoration: "underline",
-                    color: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => handleOpenResultForm(node.id)}
-                data-testid={`execution-table-case-name-${node.id}`}
-              >
-                {node.name}
-              </Typography>
+              {/* ICT-498: 열 폭을 가장 긴 이름에 맞춰 대부분 한 줄로 보인다.
+                  ICT-513: 그 폭에 상한을 두었으므로 넘치는 이름은 두 줄까지 보이고
+                  나머지는 말줄임한다. 전체 이름은 툴팁으로 본다. */}
+              <Tooltip title={node.name || ""} placement="top-start">
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: "bold",
+                    lineHeight: 1.25,
+                    color: theme.palette.primary.main,
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 2,
+                    overflow: "hidden",
+                    wordBreak: "break-word",
+                    cursor: "pointer",
+                    flex: 1,
+                    minWidth: 0,
+                    "&:hover": {
+                      textDecoration: "underline",
+                      color: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => handleOpenResultForm(node.id)}
+                  data-testid={`execution-table-case-name-${node.id}`}
+                >
+                  {node.name}
+                </Typography>
+              </Tooltip>
               {node.priority && (
                 <Chip
-                  label={node.priority}
+                  label={getPriorityLabel(node.priority, t)}
                   color={priorityColor[node.priority] || "default"}
                   size="small"
                   sx={{ ml: 1, flexShrink: 0 }}
                 />
               )}
             </>
-          ) : null}
-        </Box>
-        {/* 3: 결과 */}
+          </Box>
+        )}
+        {/* 3: 결과 — ICT-513: 아이콘만으로는 무엇인지 알 수 없어 라벨 글자를 붙인다 */}
         <Box
           sx={{
             ...responsiveColumnSx[4],
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            gap: 0.5,
+            minWidth: 0,
           }}
         >
-          {!isFolder ? getResultIcon(result) : null}
+          {!isFolder ? (
+            <>
+              {getResultIcon(result)}
+              <Typography
+                variant="caption"
+                noWrap
+                sx={{ fontWeight: 600, color: theme.palette.text.secondary }}
+                data-testid={`execution-table-result-label-${node.id}`}
+              >
+                {(() => {
+                  const label = getResultLabel(result);
+                  return t(label.key, label.fallback);
+                })()}
+              </Typography>
+            </>
+          ) : null}
         </Box>
         {/* 4: 실행일시 */}
         <Box
@@ -465,6 +507,7 @@ const ExecutionRow = memo(
                   <IconButton
                     className="copy-notes-btn"
                     size="small"
+                    aria-label={t("testcase.notes.copy", "노트 복사")}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleCopyNotes(notes);
@@ -601,6 +644,10 @@ const ExecutionRow = memo(
                     <IconButton
                       size="small"
                       onClick={() => handleCopyLink?.(node.id)}
+                      aria-label={t(
+                        "testExecution.actions.copyResultLink",
+                        "결과 입력 링크 복사",
+                      )}
                       disabled={!canEnterResults}
                       sx={{
                         p: 0.5,
@@ -621,6 +668,10 @@ const ExecutionRow = memo(
                 <IconButton
                   size="small"
                   onClick={() => handleShowPrevResults(node.id)}
+                  aria-label={t(
+                    "testExecution.actions.prevResults",
+                    "이전 결과",
+                  )}
                   sx={{
                     p: 0.5,
                     width: ACTION_ICON_SLOT,
@@ -638,6 +689,10 @@ const ExecutionRow = memo(
                   <IconButton
                     size="small"
                     onClick={() => handleAttachmentClick(resultObj.id)}
+                    aria-label={t(
+                      "testExecution.table.viewAttachments",
+                      "첨부파일 보기",
+                    )}
                     sx={{
                       p: 0.5,
                       width: ACTION_ICON_SLOT,

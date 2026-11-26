@@ -534,6 +534,7 @@ public class EnglishI18nGapTranslations {
     createTranslationIfNotExists("rag.chat.showJson", languageCode, "Show Raw JSON", createdBy);
     createTranslationIfNotExists(
         "rag.chat.stopStreaming", languageCode, "Stop Streaming", createdBy);
+    createTranslationIfNotExists("rag.chat.send", languageCode, "Send", createdBy);
     createTranslationIfNotExists(
         "rag.chat.testCaseDocumentLabel", languageCode, "Test case: {name}", createdBy);
     createTranslationIfNotExists(
@@ -777,6 +778,10 @@ public class EnglishI18nGapTranslations {
         "projectNav.sidebar.collapse", languageCode, "Collapse sidebar", createdBy);
     createTranslationIfNotExists(
         "projectNav.sidebar.expand", languageCode, "Expand sidebar", createdBy);
+    // ICT-510 narrow screens: area menu drawer and header hamburger menu
+    createTranslationIfNotExists(
+        "projectNav.sidebar.open", languageCode, "Open area menu", createdBy);
+    createTranslationIfNotExists("header.nav.menu", languageCode, "Menu", createdBy);
     // ICT-491 화면 밀도
     createTranslationIfNotExists(
         "profile.density.title", languageCode, "Screen density", createdBy);
@@ -1328,6 +1333,43 @@ public class EnglishI18nGapTranslations {
         "Delete the tags [{tags}] inherited from the previous folder?\n"
             + "Choose 'Yes' to remove them or 'No' to keep them.",
         createdBy);
+    // ICT-511: 상태값 현지화, 아이콘 버튼의 접근 가능한 이름, 헤더 버튼 문구
+    createTranslationIfNotExists(
+        "testExecution.status.cancelled", languageCode, "Cancelled", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.status.aborted", languageCode, "Aborted", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.charter.status.active", languageCode, "Active", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.charter.status.archived", languageCode, "Archived", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.button.importExport", languageCode, "Import/Export", createdBy);
+    createTranslationIfNotExists(
+        "header.aria.userMenu", languageCode, "User menu", createdBy);
+    createTranslationIfNotExists(
+        "header.theme.switchToLight", languageCode, "Switch to light theme", createdBy);
+    createTranslationIfNotExists(
+        "header.theme.switchToDark", languageCode, "Switch to dark theme", createdBy);
+    createTranslationIfNotExists(
+        "project.card.moreActions", languageCode, "Project menu", createdBy);
+    createTranslationIfNotExists(
+        "project.card.moreActionsFor", languageCode, "Menu for project {name}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.button.add", languageCode, "Add", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moreActions", languageCode, "Actions", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moreActionsFor", languageCode, "Actions for {name}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.expand", languageCode, "Expand {name}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.collapse", languageCode, "Collapse {name}", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moveUp", languageCode, "Move up", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moveDown", languageCode, "Move down", createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.button.title", languageCode, "Move or copy selected items to another project", createdBy);
 
     log.info("i18n gap en 번역 초기화 완료");
   }

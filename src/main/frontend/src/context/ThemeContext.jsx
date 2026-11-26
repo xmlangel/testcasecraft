@@ -163,6 +163,35 @@ const createMaterial3Theme = (mode) => {
   });
 };
 
+// 본문 글꼴. Bricolage Grotesque·JetBrains Mono 에는 한글 글자가 없어서 한글이 OS 기본 글꼴로
+// 넘어가 macOS·Windows 에서 다르게 보였다(ICT-509). 한글은 Pretendard 가 받도록 바로 뒤에 둔다.
+export const FONT_KO_FALLBACK =
+  "'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif";
+export const FONT_BODY = `'Bricolage Grotesque', ${FONT_KO_FALLBACK}`;
+// 고정폭은 ID·버전·코드처럼 영숫자만 담는 곳에만 쓴다.
+export const FONT_MONO = `'JetBrains Mono', ${FONT_KO_FALLBACK}`;
+
+// 글자·흰 글자 버튼 배경에 쓰는 주 색. 시안 #06B6D4 는 흰 배경에서 글자 대비가 2.3:1 이라
+// 기준(4.5:1)에 못 미쳤다(ICT-509). 라이트 모드는 진한 톤을 주 색으로 쓰고, 넓은 면 장식에만 시안을 남긴다.
+export const PRIMARY_LIGHT_MODE = {
+  main: "#0E7490", // 흰 배경 대비 5.4:1
+  light: "#06B6D4",
+  dark: "#155E75",
+  contrastText: "#FFFFFF",
+};
+export const PRIMARY_DARK_MODE = {
+  main: "#22D3EE", // 어두운 배경 #0F172A 대비 10:1
+  light: "#67E8F9",
+  dark: "#06B6D4",
+  contrastText: "#0F172A",
+};
+
+/** 키보드 포커스 링. 라이트·다크 배경 모두에서 3:1 이상 보이는 색을 쓴다. */
+export const focusRing = (isLight) => ({
+  outline: `2px solid ${isLight ? "#0E7490" : "#67E8F9"}`,
+  outlineOffset: 2,
+});
+
 // 테스트에서 팔레트·컴포넌트 오버라이드를 직접 확인할 수 있도록 내보낸다
 export const createAppTheme = (mode) => {
   const isLight = mode === "light";
@@ -170,18 +199,12 @@ export const createAppTheme = (mode) => {
   return createTheme({
     palette: {
       mode,
-      primary: {
-        main: "#06B6D4", // Cyan
-        light: "#22D3EE",
-        dark: "#0891B2",
-        contrastText: "#FFFFFF",
-      },
-      secondary: {
-        main: "#0EA5E9", // Sky
-        light: "#38BDF8",
-        dark: "#0284C7",
-        contrastText: "#FFFFFF",
-      },
+      primary: isLight ? PRIMARY_LIGHT_MODE : PRIMARY_DARK_MODE,
+      // 라이트 모드 보조 색도 글자로 쓸 때 4.5:1 을 넘기게 진한 톤으로 (ICT-509).
+      // #0EA5E9 글자는 흰 배경 2.8:1, 칩 글자 #0284C7 은 3.9:1 이었다.
+      secondary: isLight
+        ? { main: "#0369A1", light: "#0EA5E9", dark: "#075985", contrastText: "#FFFFFF" }
+        : { main: "#38BDF8", light: "#7DD3FC", dark: "#0EA5E9", contrastText: "#0F172A" },
       background: {
         default: isLight ? "#F8FAFC" : "#0F172A",
         paper: isLight ? "rgba(255, 255, 255, 0.7)" : "rgba(15, 23, 42, 0.7)",
@@ -193,7 +216,8 @@ export const createAppTheme = (mode) => {
       success: {
         main: "#10B981",
         light: "#34D399",
-        dark: "#059669",
+        // 라이트 모드 칩·글자에 쓰는 진한 톤. #059669 는 흰 배경 대비 3.8:1 이었다 (ICT-509)
+        dark: isLight ? "#047857" : "#059669",
       },
       error: {
         main: "#EF4444",
@@ -203,7 +227,8 @@ export const createAppTheme = (mode) => {
       warning: {
         main: "#F59E0B",
         light: "#FBBF24",
-        dark: "#D97706",
+        // #D97706 은 흰 배경 대비 3.2:1 이었다 (ICT-509)
+        dark: isLight ? "#B45309" : "#D97706",
       },
       info: {
         main: "#3B82F6",
@@ -214,72 +239,72 @@ export const createAppTheme = (mode) => {
     },
 
     typography: {
-      fontFamily: "'Bricolage Grotesque', sans-serif",
+      fontFamily: FONT_BODY,
       h1: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "4.5rem",
         fontWeight: 800,
         lineHeight: 1.2,
         letterSpacing: "-0.02em",
       },
       h2: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "3.75rem",
         fontWeight: 700,
         lineHeight: 1.25,
         letterSpacing: "-0.01em",
       },
       h3: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "3rem",
         fontWeight: 700,
         lineHeight: 1.3,
         letterSpacing: "0em",
       },
       h4: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "2.125rem",
         fontWeight: 600,
         lineHeight: 1.35,
         letterSpacing: "0.01em",
       },
       h5: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "1.5rem",
         fontWeight: 500,
         lineHeight: 1.4,
         letterSpacing: "0em",
       },
       h6: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "1.25rem",
         fontWeight: 500,
         lineHeight: 1.5,
         letterSpacing: "0.01em",
       },
       body1: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "1rem",
         fontWeight: 400,
         lineHeight: 1.6,
         letterSpacing: "0.01em",
       },
       body2: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "0.875rem",
         fontWeight: 400,
         lineHeight: 1.5,
         letterSpacing: "0.01em",
       },
       caption: {
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_BODY,  // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
         fontSize: "0.75rem",
         fontWeight: 400,
         lineHeight: 1.5,
         letterSpacing: "0.02em",
       },
       button: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "0.875rem",
         fontWeight: 600,
         lineHeight: 1.75,
@@ -287,7 +312,7 @@ export const createAppTheme = (mode) => {
         textTransform: "uppercase",
       },
       overline: {
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_BODY,  // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
         fontSize: "0.75rem",
         fontWeight: 500,
         lineHeight: 2,
@@ -295,14 +320,14 @@ export const createAppTheme = (mode) => {
         textTransform: "uppercase",
       },
       subtitle1: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "1rem",
         fontWeight: 500,
         lineHeight: 1.75,
         letterSpacing: "0.01em",
       },
       subtitle2: {
-        fontFamily: "'Bricolage Grotesque', sans-serif",
+        fontFamily: FONT_BODY,
         fontSize: "0.875rem",
         fontWeight: 500,
         lineHeight: 1.57,
@@ -344,6 +369,30 @@ export const createAppTheme = (mode) => {
     ],
 
     components: {
+      // 키보드 포커스 표시 (ICT-509). MUI ButtonBase 는 outline 을 0 으로 지워
+      // Tab 으로 이동해도 어디에 있는지 보이지 않았다. 마우스 클릭에는 나타나지 않고
+      // 키보드 포커스(:focus-visible)에만 2px 링을 그린다.
+      MuiCssBaseline: {
+        styleOverrides: {
+          ":focus-visible": focusRing(isLight),
+        },
+      },
+      MuiButtonBase: {
+        styleOverrides: {
+          root: {
+            "&.Mui-focusVisible": focusRing(isLight),
+          },
+        },
+      },
+      // 머리 띠 사용자 아바타. 기본 회색 바탕(#BDBDBD)에 흰 글자는 1.8:1 이었다 (ICT-509)
+      MuiAvatar: {
+        styleOverrides: {
+          colorDefault: {
+            backgroundColor: isLight ? "#475569" : "#CBD5E1",
+            color: isLight ? "#FFFFFF" : "#0F172A",
+          },
+        },
+      },
       MuiPaper: {
         styleOverrides: {
           root: {
@@ -380,17 +429,23 @@ export const createAppTheme = (mode) => {
               transform: "translateY(-2px)",
             },
           },
+          // 흰 글자가 얹히므로 그라데이션 양 끝 모두 흰 글자 대비 4.5:1 이상인 진한 톤을 쓴다 (ICT-509).
+          // 예전 #06B6D4→#0EA5E9 는 흰 글자 대비 2.4~2.8:1 이었다.
           contained: {
-            background: "linear-gradient(135deg, #06B6D4 0%, #0EA5E9 100%)",
-            color: "#FFFFFF",
+            background: isLight
+              ? "linear-gradient(135deg, #0E7490 0%, #0369A1 100%)"
+              : "linear-gradient(135deg, #22D3EE 0%, #38BDF8 100%)",
+            color: isLight ? "#FFFFFF" : "#0F172A",
             "&:hover": {
-              background: "linear-gradient(135deg, #22D3EE 0%, #38BDF8 100%)",
+              background: isLight
+                ? "linear-gradient(135deg, #155E75 0%, #075985 100%)"
+                : "linear-gradient(135deg, #67E8F9 0%, #7DD3FC 100%)",
             },
           },
           outlined: {
             borderWidth: 2,
-            borderColor: "#06B6D4",
-            color: "#06B6D4",
+            borderColor: isLight ? "#0E7490" : "#22D3EE",
+            color: isLight ? "#0E7490" : "#22D3EE",
             background: isLight
               ? "rgba(6, 182, 212, 0.05)"
               : "rgba(6, 182, 212, 0.1)",
@@ -447,7 +502,7 @@ export const createAppTheme = (mode) => {
           root: {
             borderRadius: 12,
             fontWeight: 500,
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: FONT_BODY,  // 한글 문장이 들어가므로 본문 글꼴 (ICT-509)
             backdropFilter: "blur(10px)",
           },
           // 채움형 칩은 색을 지정하지 않은 것만 시안으로 물들인다.
@@ -459,7 +514,8 @@ export const createAppTheme = (mode) => {
             if (!chipColor || chipColor === "default") {
               return {
                 backgroundColor: "rgba(6, 182, 212, 0.15)",
-                color: "#0891B2",
+                // #0891B2 는 이 배경에서 3.2:1 이었다. 진한 톤으로 4.5:1 을 넘긴다 (ICT-509)
+                color: isLight ? "#155E75" : "#67E8F9",
               };
             }
             const paletteColor = chipTheme.palette[chipColor];
@@ -473,6 +529,15 @@ export const createAppTheme = (mode) => {
               },
             };
           },
+          // 테두리형 칩의 글자도 라이트 모드에서는 진한 톤을 쓴다 (ICT-509).
+          // 기본값은 palette.main 이라 상단 JIRA 배지(success) 글자가 흰 배경 대비 2.4:1 이었다.
+          outlined: ({ ownerState, theme: chipTheme }) => {
+            const chipColor = ownerState?.color;
+            if (!isLight || !chipColor || chipColor === "default") return {};
+            const paletteColor = chipTheme.palette[chipColor];
+            if (!paletteColor?.dark) return {};
+            return { color: paletteColor.dark };
+          },
         },
       },
 
@@ -482,7 +547,7 @@ export const createAppTheme = (mode) => {
             borderBottom: isLight
               ? "1px solid rgba(226, 232, 240, 0.8)"
               : "1px solid rgba(71, 85, 105, 0.8)",
-            fontFamily: "'Bricolage Grotesque', sans-serif",
+            fontFamily: FONT_BODY,
           },
           head: {
             fontWeight: 600,

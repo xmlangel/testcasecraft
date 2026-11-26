@@ -54,10 +54,10 @@ public class KoreanRequirementTranslations {
     create("requirement.linkedCases", lang, "연결된 테스트케이스", by);
     create("requirement.noLinkedCases", lang, "연결된 테스트케이스가 없습니다.", by);
     create("requirement.report.cases", lang, "테스트케이스 결과", by);
-    create("requirement.report.execution", lang, "테스트실행", by);
+    create("requirement.report.execution", lang, "테스트 실행", by);
     create("requirement.report.latestAll", lang, "플랜 전체 (TC별 최신 결과)", by);
     create("requirement.report.pickPlan", lang, "리포트를 볼 테스트플랜을 고르세요.", by);
-    create("requirement.report.plan", lang, "테스트플랜", by);
+    create("requirement.report.plan", lang, "테스트 플랜", by);
     create("requirement.report.verdict", lang, "판정", by);
     create("requirement.searchCases", lang, "테스트케이스 검색", by);
     create("requirement.spec.add", lang, "요구사항 문서 추가", by);
@@ -153,6 +153,14 @@ public class KoreanRequirementTranslations {
     Optional<Translation> existing =
         translationRepository.findByTranslationKeyAndLanguage(translationKey, language);
     if (existing.isPresent()) {
+      // 용어 표기를 고친 값(예: 테스트실행 → 테스트 실행, ICT-510)이 기존 DB 에도 반영되도록
+      // 다른 한국어 시드와 같이 값이 다르면 덮어쓴다.
+      Translation current = existing.get();
+      if (!value.equals(current.getValue())) {
+        current.setValue(value);
+        current.setUpdatedBy(createdBy);
+        translationRepository.save(current);
+      }
       return;
     }
     Translation translation = new Translation();

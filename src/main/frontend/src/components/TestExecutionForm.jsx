@@ -29,12 +29,14 @@ import {
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
+  FilterList as FilterListIcon,
   Info as InfoIcon,
   Assessment as AssessmentIcon,
 } from "@mui/icons-material";
 import { alpha } from "@mui/material/styles";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useTranslation } from "../context/I18nContext.jsx";
+import { getExecutionStatusLabel } from "../utils/statusLabels";
 import { useAuth } from "../context/AuthContext.jsx";
 import useProjectRole from "../hooks/useProjectRole.js";
 import {
@@ -311,15 +313,24 @@ const TestExecutionForm = ({
   }, [executionId, collapsedFolders]);
 
   // Accordion state
+  // ICT-513: 필터는 아코디언 한 겹이다(안쪽 「필터」 접기를 없앴다). 예전에는 바깥이
+  // 펼쳐져 있어도 안쪽이 접혀 있어 입력란이 보이지 않았으므로, 같은 첫 모습을 지키려고
+  // 필터 칸은 저장된 값과 관계없이 적용 중인 필터가 있을 때만 펼친 채로 시작한다.
   const [accordionExpanded, setAccordionExpanded] = useState(() => {
     const saved = localStorage.getItem("testcase-manager-execution-accordion");
-    return saved
+    const base = saved
       ? JSON.parse(saved)
       : {
           executionSummary: true,
           filters: true,
           list: true,
         };
+    return {
+      ...base,
+      filters: Object.values(readSavedFilters(executionId)).some(
+        filterHasValue,
+      ),
+    };
   });
 
   const handleAccordionChange = (panel) => (event, isExpanded) => {
@@ -1719,7 +1730,7 @@ const TestExecutionForm = ({
                   sx={{ display: "flex", gap: 2, ml: 2, alignItems: "center" }}
                 >
                   <Chip
-                    label={execution.status}
+                    label={getExecutionStatusLabel(execution.status, t)}
                     size="small"
                     icon={
                       isInProgressStatus(execution.status) ? (
@@ -1818,13 +1829,25 @@ const TestExecutionForm = ({
             onChange={handleAccordionChange("filters")}
             sx={{ ...COMPACT_ACCORDION_SX, mb: 1 }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                {t("testExecution.sections.filters", "필터")}
-              </Typography>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              data-testid="execution-filter-accordion-summary"
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <FilterListIcon color="primary" fontSize="small" />
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {t("testExecution.sections.filters", "필터")}
+                </Typography>
+                {Object.values(filters).some(filterHasValue) && (
+                  <Typography variant="caption" color="primary">
+                    ({t("testExecution.filter.active", "적용 중")})
+                  </Typography>
+                )}
+              </Box>
             </AccordionSummary>
             <AccordionDetails>
               <TestExecutionFilterPanel
+                embedded
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onApply={handleFilterApply}

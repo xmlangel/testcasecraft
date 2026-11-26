@@ -395,13 +395,14 @@ public class KoreanI18nGapTranslations {
         "rag.chat.documentFallback", languageCode, "문서 {index}", createdBy);
     createTranslationIfNotExists(
         "rag.chat.documentTooltip", languageCode, "문서 상세 정보 보기", createdBy);
-    createTranslationIfNotExists(
-        "rag.chat.generatedTestCases", languageCode, "생성된 테스트 케이스 ({count})", createdBy);
+    seedIndex.upsertTranslation(
+        "rag.chat.generatedTestCases", languageCode, "생성된 테스트케이스 ({count})", createdBy, true);
     createTranslationIfNotExists("rag.chat.hideJson", languageCode, "JSON 원본 숨기기", createdBy);
-    createTranslationIfNotExists(
-        "rag.chat.jsonHidden", languageCode, "테스트 케이스 데이터가 감지되었습니다.", createdBy);
+    seedIndex.upsertTranslation(
+        "rag.chat.jsonHidden", languageCode, "테스트케이스 데이터가 감지되었습니다.", createdBy, true);
     createTranslationIfNotExists("rag.chat.showJson", languageCode, "JSON 원본 보기", createdBy);
     createTranslationIfNotExists("rag.chat.stopStreaming", languageCode, "전송 중지", createdBy);
+    createTranslationIfNotExists("rag.chat.send", languageCode, "보내기", createdBy);
     createTranslationIfNotExists(
         "rag.chat.testCaseDocumentLabel", languageCode, "테스트케이스: {name}", createdBy);
     createTranslationIfNotExists(
@@ -475,8 +476,8 @@ public class KoreanI18nGapTranslations {
         "testCase.export.pdfSuccess", languageCode, "PDF 파일이 다운로드되었습니다: {filename}", createdBy);
     createTranslationIfNotExists("testCase.form.tags", languageCode, "태그", createdBy);
     createTranslationIfNotExists("testCase.priority.label", languageCode, "우선순위", createdBy);
-    createTranslationIfNotExists(
-        "testCaseResult.page.loadingData", languageCode, "테스트 케이스 정보를 불러오는 중입니다...", createdBy);
+    seedIndex.upsertTranslation(
+        "testCaseResult.page.loadingData", languageCode, "테스트케이스 정보를 불러오는 중입니다...", createdBy, true);
     createTranslationIfNotExists(
         "testExecution.actions.copyResultLink", languageCode, "결과 입력 링크 복사", createdBy);
     createTranslationIfNotExists(
@@ -589,6 +590,9 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("projectNav.sidebar.aria", languageCode, "프로젝트 영역", createdBy);
     createTranslationIfNotExists("projectNav.sidebar.collapse", languageCode, "사이드바 접기", createdBy);
     createTranslationIfNotExists("projectNav.sidebar.expand", languageCode, "사이드바 펼치기", createdBy);
+    // ICT-510 좁은 화면: 영역 메뉴 서랍·상단 햄버거 메뉴
+    createTranslationIfNotExists("projectNav.sidebar.open", languageCode, "영역 메뉴 열기", createdBy);
+    createTranslationIfNotExists("header.nav.menu", languageCode, "메뉴", createdBy);
     // ICT-491 화면 밀도
     createTranslationIfNotExists("profile.density.title", languageCode, "화면 밀도", createdBy);
     createTranslationIfNotExists(
@@ -627,8 +631,8 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testExecution.sections.filters", languageCode, "필터", createdBy);
     createTranslationIfNotExists(
         "testExecution.sections.list", languageCode, "테스트 실행 목록", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.sections.caseList", languageCode, "테스트 케이스 실행 목록", createdBy);
+    seedIndex.upsertTranslation(
+        "testExecution.sections.caseList", languageCode, "테스트케이스 실행 목록", createdBy, true);
     createTranslationIfNotExists("testExecution.summary.cases", languageCode, "건", createdBy);
     createTranslationIfNotExists("testExecution.summary.total", languageCode, "총", createdBy);
     createTranslationIfNotExists("testExecution.table.id", languageCode, "ID", createdBy);
@@ -715,8 +719,8 @@ public class KoreanI18nGapTranslations {
         "testResult.filteredCases.col.action", languageCode, "이동", createdBy);
     createTranslationIfNotExists(
         "testResult.filteredCases.col.folder", languageCode, "폴더 경로", createdBy);
-    createTranslationIfNotExists(
-        "testResult.filteredCases.col.testCase", languageCode, "테스트 케이스", createdBy);
+    seedIndex.upsertTranslation(
+        "testResult.filteredCases.col.testCase", languageCode, "테스트케이스", createdBy, true);
     createTranslationIfNotExists(
         "testResult.filteredCases.col.testPlan", languageCode, "테스트 플랜", createdBy);
     createTranslationIfNotExists(
@@ -759,8 +763,8 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.jiraDialog.col.jiraKey", languageCode, "JIRA 이슈", createdBy);
     createTranslationIfNotExists("testResult.jiraDialog.col.result", languageCode, "결과", createdBy);
-    createTranslationIfNotExists(
-        "testResult.jiraDialog.col.testCase", languageCode, "테스트 케이스", createdBy);
+    seedIndex.upsertTranslation(
+        "testResult.jiraDialog.col.testCase", languageCode, "테스트케이스", createdBy, true);
     createTranslationIfNotExists(
         "testResult.jiraDialog.count", languageCode, "{count}건", createdBy);
     createTranslationIfNotExists(
@@ -828,11 +832,11 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testcase.column.tags", languageCode, "태그", createdBy);
     createTranslationIfNotExists("testcase.column.updatedBy", languageCode, "수정자", createdBy);
     createTranslationIfNotExists("testcase.description", languageCode, "설명", createdBy);
-    createTranslationIfNotExists(
+    seedIndex.upsertTranslation(
         "testcase.dialog.delete.folderWarning",
         languageCode,
-        "폴더를 삭제하면 하위 테스트 케이스도 모두 삭제됩니다.",
-        createdBy);
+        "폴더를 삭제하면 하위 테스트케이스도 모두 삭제됩니다.",
+        createdBy, true);
     createTranslationIfNotExists("testcase.expectedResults", languageCode, "예상 결과 (전체)", createdBy);
     createTranslationIfNotExists("testcase.field.description", languageCode, "설명", createdBy);
     createTranslationIfNotExists(
@@ -1031,6 +1035,45 @@ public class KoreanI18nGapTranslations {
         languageCode,
         "이전 폴더의 태그 [{tags}]를 삭제하시겠습니까?\n'예'를 선택하면 해당 태그가 삭제되고, '아니오'를 선택하면 유지됩니다.",
         createdBy);
+    // ICT-511: 상태값 현지화, 아이콘 버튼의 접근 가능한 이름, 헤더 버튼 문구
+    createTranslationIfNotExists(
+        "testExecution.status.cancelled", languageCode, "취소됨", createdBy);
+    createTranslationIfNotExists(
+        "testExecution.status.aborted", languageCode, "중단됨", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.charter.status.active", languageCode, "활성", createdBy);
+    createTranslationIfNotExists(
+        "exploratory.charter.status.archived", languageCode, "보관됨", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.button.importExport", languageCode, "가져오기/내보내기", createdBy);
+    createTranslationIfNotExists(
+        "header.aria.userMenu", languageCode, "사용자 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "header.theme.switchToLight", languageCode, "밝은 테마로 전환", createdBy);
+    createTranslationIfNotExists(
+        "header.theme.switchToDark", languageCode, "어두운 테마로 전환", createdBy);
+    createTranslationIfNotExists(
+        "project.card.moreActions", languageCode, "프로젝트 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "project.card.moreActionsFor", languageCode, "{name} 프로젝트 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.button.add", languageCode, "추가", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moreActions", languageCode, "작업 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moreActionsFor", languageCode, "{name} 작업 메뉴", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.expand", languageCode, "{name} 펼치기", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.collapse", languageCode, "{name} 접기", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moveUp", languageCode, "위로 이동", createdBy);
+    createTranslationIfNotExists(
+        "testcase.tree.node.moveDown", languageCode, "아래로 이동", createdBy);
+    createTranslationIfNotExists(
+        "testcase.crossProject.button.title", languageCode, "선택 항목을 다른 프로젝트로 이동/복사", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.button.export", languageCode, "내보내기", createdBy);
 
     log.info("i18n gap ko 번역 초기화 완료");
   }

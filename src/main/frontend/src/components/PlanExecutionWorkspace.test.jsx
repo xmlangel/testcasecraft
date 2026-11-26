@@ -57,9 +57,10 @@ vi.mock("../hooks/useProjectRole.js", () => ({
 
 // 플랜 편집·실행 상세는 별도 컴포넌트라 여기서는 자리만 확인한다
 vi.mock("./TestPlanForm.jsx", () => ({
-  default: ({ testPlanId, inline, onSave, onCancel }) => (
+  default: ({ testPlanId, inline, startInViewMode, onSave, onCancel }) => (
     <div data-testid="stub-plan-form">
-      plan={String(testPlanId)} inline={String(Boolean(inline))}
+      plan={String(testPlanId)} inline={String(Boolean(inline))} view=
+      {String(Boolean(startInViewMode))}
       <button type="button" onClick={() => onSave?.("tp9")}>
         저장 흉내
       </button>
@@ -347,6 +348,29 @@ describe("PlanExecutionWorkspace", () => {
     );
   });
 
+  // ICT-510: 목록 머리 줄(260px)에 제목·건수·글자 버튼이 함께 들어가 제목이
+  // "테스트 플...", "테스트실..." 로 잘렸다. 만들기 버튼을 아이콘으로 바꾸고 제목은 줄지 않게 한다.
+  it("플랜 목록 머리: 제목은 줄지 않고, 만들기 입구는 이름 있는 아이콘 버튼이다", () => {
+    setup({ mode: "plans" });
+    const title = screen.getByTestId("workspace-list-title");
+    expect(title).toHaveTextContent("테스트플랜");
+    expect(title).toHaveStyle({ flexShrink: "0" });
+    const create = screen.getByTestId("workspace-new-plan");
+    expect(create).toHaveAccessibleName("플랜 만들기");
+    // 글자 라벨은 버튼 안에 그리지 않는다(이름은 aria-label·툴팁으로 전달)
+    expect(create).not.toHaveTextContent("플랜 만들기");
+  });
+
+  it("실행 목록 머리: 제목은 줄지 않고, 만들기 입구는 이름 있는 아이콘 버튼이다", async () => {
+    setup({ mode: "executions" });
+    const create = await screen.findByTestId("workspace-new-execution-top");
+    expect(create).toHaveAccessibleName("실행 만들기");
+    expect(create).not.toHaveTextContent("실행 만들기");
+    const title = screen.getByTestId("workspace-list-title");
+    expect(title).toHaveTextContent("테스트실행");
+    expect(title).toHaveStyle({ flexShrink: "0" });
+  });
+
   it("편집 가능한 역할에는 플랜 만들기 입구가 있다", () => {
     setup({ mode: "plans" });
     expect(screen.getByTestId("workspace-new-plan")).toBeInTheDocument();
@@ -466,7 +490,10 @@ describe("PlanExecutionWorkspace", () => {
         expect(screen.getByTestId("stub-execution-form")).toBeInTheDocument(),
       );
 
-      fireEvent.click(screen.getByTestId("workspace-execution-delete-ex1"));
+      fireEvent.click(screen.getByTestId("workspace-execution-menu-ex1"));
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      );
       // 확인 전에는 지우지 않는다
       expect(deleteMock).not.toHaveBeenCalled();
       fireEvent.click(screen.getByTestId("workspace-execution-delete-confirm"));
@@ -482,6 +509,10 @@ describe("PlanExecutionWorkspace", () => {
 
     it("삭제 버튼을 눌러도 실행 상세가 열리지 않고, 취소하면 지우지 않는다", async () => {
       setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-menu-ex1"),
+      );
+      expect(screen.queryByTestId("stub-execution-form")).toBeNull();
       fireEvent.click(
         await screen.findByTestId("workspace-execution-delete-ex1"),
       );
@@ -503,6 +534,9 @@ describe("PlanExecutionWorkspace", () => {
       setup();
       fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
       fireEvent.click(
+        await screen.findByTestId("workspace-execution-menu-ex1"),
+      );
+      fireEvent.click(
         await screen.findByTestId("workspace-execution-delete-ex1"),
       );
       fireEvent.click(screen.getByTestId("workspace-execution-delete-confirm"));
@@ -520,6 +554,9 @@ describe("PlanExecutionWorkspace", () => {
         new Error("이 작업을 수행할 권한이 없습니다."),
       );
       setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-menu-ex1"),
+      );
       fireEvent.click(
         await screen.findByTestId("workspace-execution-delete-ex1"),
       );
@@ -542,7 +579,142 @@ describe("PlanExecutionWorkspace", () => {
         expect(
           screen.queryByTestId("workspace-execution-delete-ex1"),
         ).toBeNull();
+        expect(screen.queryByTestId("workspace-execution-menu-ex1")).toBeNull();
       },
     );
+  });
+
+  // ICT-513: 휴지통을 항목마다 늘 보이지 않고 ⋮ 메뉴 안으로 옮긴다
+  describe("실행 항목 메뉴 (ICT-513)", () => {
+    it("실행 목록에는 삭제 버튼이 바로 보이지 않고, ⋮ 메뉴를 열어야 「삭제」가 나온다", async () => {
+      setup({ mode: "executions" });
+      const menuButton = await screen.findByTestId(
+        "workspace-execution-menu-ex1",
+      );
+      expect(menuButton).toHaveAttribute(
+        "aria-label",
+        expect.stringContaining("실행 메뉴"),
+      );
+      expect(screen.queryByTestId("workspace-execution-delete-ex1")).toBeNull();
+
+      fireEvent.click(menuButton);
+      const item = await screen.findByTestId("workspace-execution-delete-ex1");
+      expect(item).toHaveAttribute("role", "menuitem");
+      expect(item).toHaveTextContent("삭제");
+    });
+
+    it("플랜 트리의 실행 항목도 ⋮ 메뉴 안에 삭제가 있다", async () => {
+      setup();
+      fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
+      await screen.findByTestId("workspace-execution-menu-ex1");
+      expect(screen.queryByTestId("workspace-execution-delete-ex1")).toBeNull();
+      fireEvent.click(screen.getByTestId("workspace-execution-menu-ex1"));
+      expect(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      ).toBeInTheDocument();
+    });
+
+    it("메뉴의 삭제를 눌러도 곧바로 지우지 않고 확인 창을 거친다", async () => {
+      setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-menu-ex1"),
+      );
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      );
+      expect(
+        await screen.findByTestId("workspace-execution-delete-confirm"),
+      ).toBeInTheDocument();
+      expect(deleteMock).not.toHaveBeenCalled();
+      // 메뉴를 여닫는 동안 실행 상세가 열리지 않는다
+      expect(screen.queryByTestId("stub-execution-form")).toBeNull();
+    });
+  });
+
+  // ICT-513: 플랜을 누르면 수정 폼이 아니라 읽기 화면으로 연다
+  it("플랜을 고르면 상세 열의 플랜 폼을 읽기 화면으로 연다", async () => {
+    setup();
+    fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
+    expect(await screen.findByTestId("stub-plan-form")).toHaveTextContent(
+      "view=true",
+    );
+  });
+
+  it("새 플랜 폼은 읽기 화면이 아니라 바로 입력 화면이다", async () => {
+    setup();
+    fireEvent.click(screen.getByTestId("workspace-new-plan"));
+    expect(await screen.findByTestId("stub-plan-form")).toHaveTextContent(
+      "view=false",
+    );
+  });
+
+  // ICT-514(리뷰 P1-8): 아무것도 고르지 않은 상세 영역은 넓은 칸 좌상단에 회색 문장
+  // 한 줄뿐이었다. 다른 화면과 같은 빈 상태(아이콘·제목·설명)와, 쓰기 권한이 있으면
+  // 목록 머리의 만들기와 같은 동작 버튼을 가운데에 보여야 한다.
+  describe("상세 영역 빈 상태 (EmptyState)", () => {
+    it("플랜 영역: 고르지 않으면 EmptyState 로 안내하고 플랜 만들기를 둔다", async () => {
+      setup({ mode: "plans" });
+      const empty = screen.getByTestId("workspace-detail-empty");
+      expect(empty).toBeInTheDocument();
+      expect(
+        screen.getByTestId("workspace-detail-empty-title"),
+      ).toHaveTextContent("플랜을 고르면 내용이 여기에 열립니다.");
+      expect(screen.getByTestId("workspace-detail-empty-icon")).toBeTruthy();
+
+      fireEvent.click(screen.getByTestId("workspace-detail-empty-action"));
+      const form = await screen.findByTestId("stub-plan-form");
+      expect(form).toHaveTextContent("plan=null");
+    });
+
+    it("실행 영역: 고르지 않으면 EmptyState 와 실행 만들기를 두고, 누르면 실행 폼이 열린다", async () => {
+      setup({ mode: "executions" });
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("workspace-detail-empty-title"),
+        ).toHaveTextContent("실행을 고르면 상세가 여기에 열립니다."),
+      );
+      const action = screen.getByTestId("workspace-detail-empty-action");
+      expect(action).toHaveTextContent("실행 만들기");
+      fireEvent.click(action);
+      expect(
+        await screen.findByTestId("stub-execution-form"),
+      ).toHaveTextContent("exec=null");
+    });
+
+    it("실행이 하나도 없으면 '실행이 없습니다'를 제목으로 보인다", async () => {
+      getMock.mockResolvedValue({ json: async () => [] });
+      setup({ mode: "executions" });
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("workspace-detail-empty-title"),
+        ).toHaveTextContent("실행이 없습니다."),
+      );
+      expect(
+        screen.getByTestId("workspace-detail-empty-description"),
+      ).toHaveTextContent("실행을 고르면 상세가 여기에 열립니다.");
+    });
+
+    it("플랜이 하나도 없으면 '등록된 테스트 플랜이 없습니다'를 제목으로 보인다", () => {
+      const saved = appContext.testPlans;
+      appContext.testPlans = [];
+      try {
+        setup({ mode: "plans" });
+        expect(
+          screen.getByTestId("workspace-detail-empty-title"),
+        ).toHaveTextContent("등록된 테스트 플랜이 없습니다.");
+        expect(
+          screen.getByTestId("workspace-detail-empty-action"),
+        ).toHaveTextContent("플랜 만들기");
+      } finally {
+        appContext.testPlans = saved;
+      }
+    });
+
+    it("조회 전용 역할에는 빈 상태에도 만들기 버튼이 없다", () => {
+      roleState.projectRole = "VIEWER";
+      setup({ mode: "plans" });
+      expect(screen.getByTestId("workspace-detail-empty")).toBeInTheDocument();
+      expect(screen.queryByTestId("workspace-detail-empty-action")).toBeNull();
+    });
   });
 });

@@ -1,6 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import ProjectSidebar from "./ProjectSidebar.jsx";
+import { mockViewportWidth } from "../test/utils/mockMatchMedia.js";
 
 vi.mock("../context/I18nContext.jsx", () => ({
   useI18n: () => ({ t: (_key, def) => def }),
@@ -138,5 +145,105 @@ describe("ProjectSidebar", () => {
     appContextValue.value = undefined;
     expect(() => setup({ counts: undefined })).not.toThrow();
     expect(screen.getByTestId("tab-testcases")).toHaveTextContent("0");
+  });
+});
+
+/**
+ * ICT-510 좁은 화면 전환.
+ *
+ * 1024px 미만에서 폭 184px 사이드바가 390px 화면의 절반을 차지했다. 그 폭에서는
+ * 사이드바 대신 여는 버튼 한 줄을 두고, 항목은 임시 서랍(Drawer)에서 고른다.
+ * 1024px 이상은 이전 사이드바 그대로여야 한다.
+ */
+describe("ProjectSidebar 좁은 화면 (ICT-510)", () => {
+  let restoreViewport;
+
+  beforeEach(() => {
+    navModeState.sidebarCollapsed = false;
+    navModeState.toggleSidebarCollapsed = vi.fn();
+    appContextValue.value = undefined;
+  });
+
+  afterEach(() => {
+    restoreViewport?.();
+    restoreViewport = undefined;
+  });
+
+  const setup = (props = {}) =>
+    render(
+      <ProjectSidebar
+        tabIndex={1}
+        onSelect={vi.fn()}
+        counts={{ testCases: 964, testPlans: 3, testExecutions: 7 }}
+        {...props}
+      />,
+    );
+
+  it("390px 에서는 고정 사이드바 대신 햄버거 버튼과 현재 영역 이름을 그린다", () => {
+    restoreViewport = mockViewportWidth(390);
+    setup();
+    expect(screen.queryByTestId("project-sidebar")).toBeNull();
+    expect(
+      screen.getByTestId("project-sidebar-drawer-toggle"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("project-sidebar-compact-bar")).toHaveTextContent(
+      "테스트케이스",
+    );
+    // 서랍은 닫혀 있어 항목이 아직 없다
+    expect(screen.queryByTestId("project-sidebar-drawer")).toBeNull();
+  });
+
+  it("햄버거를 누르면 서랍에 항목이 라벨·배지와 함께 펼쳐진다", () => {
+    restoreViewport = mockViewportWidth(390);
+    setup();
+    fireEvent.click(screen.getByTestId("project-sidebar-drawer-toggle"));
+    const drawer = screen.getByTestId("project-sidebar-drawer");
+    expect(within(drawer).getByTestId("tab-testplans")).toHaveTextContent("3");
+    expect(within(drawer).getByTestId("tab-dashboard")).toBeInTheDocument();
+  });
+
+  it("서랍은 접힘 설정과 무관하게 라벨을 보여 준다", () => {
+    navModeState.sidebarCollapsed = true;
+    restoreViewport = mockViewportWidth(768);
+    setup();
+    fireEvent.click(screen.getByTestId("project-sidebar-drawer-toggle"));
+    expect(screen.getByTestId("tab-testcases")).toHaveTextContent(
+      "테스트케이스",
+    );
+  });
+
+  it("서랍에서 항목을 고르면 같은 tabIndex 로 이동하고 서랍이 닫힌다", async () => {
+    restoreViewport = mockViewportWidth(390);
+    const onSelect = vi.fn();
+    setup({ onSelect });
+    fireEvent.click(screen.getByTestId("project-sidebar-drawer-toggle"));
+    fireEvent.click(screen.getByTestId("tab-executions"));
+    expect(onSelect).toHaveBeenCalledWith(3);
+    await waitFor(() =>
+      expect(screen.queryByTestId("project-sidebar-drawer")).toBeNull(),
+    );
+  });
+
+  it("1023px 은 서랍, 1024px 은 기존 사이드바", () => {
+    restoreViewport = mockViewportWidth(1023);
+    const { unmount } = setup();
+    expect(
+      screen.getByTestId("project-sidebar-drawer-toggle"),
+    ).toBeInTheDocument();
+    unmount();
+    restoreViewport();
+
+    restoreViewport = mockViewportWidth(1024);
+    setup();
+    expect(screen.getByTestId("project-sidebar")).toBeInTheDocument();
+    expect(screen.queryByTestId("project-sidebar-drawer-toggle")).toBeNull();
+  });
+
+  it("1440px 에서는 이전과 같은 고정 사이드바를 그린다", () => {
+    restoreViewport = mockViewportWidth(1440);
+    setup();
+    expect(screen.getByTestId("project-sidebar")).toBeInTheDocument();
+    expect(screen.getByTestId("tab-testcases")).toHaveTextContent("964");
+    expect(screen.queryByTestId("project-sidebar-drawer-toggle")).toBeNull();
   });
 });

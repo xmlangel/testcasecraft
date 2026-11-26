@@ -26,6 +26,7 @@ import {
 } from "recharts";
 import { Info } from "@mui/icons-material";
 import { RESULT_COLORS } from "../constants/statusColors";
+import { legendTextFormatter } from "./common/chartLegend.jsx";
 
 /**
  * ICT-187: 테스트 결과 바차트 컴포넌트
@@ -262,7 +263,7 @@ function TestResultBarChart({
                 }}
               />
               <ReTooltip content={<CustomTooltip />} />
-              <Legend />
+              <Legend formatter={legendTextFormatter} />
 
               {/* 스택된 바 차트 */}
               <Bar

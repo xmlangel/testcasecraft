@@ -131,6 +131,7 @@ function ChatControls({
                 <IconButton
                   size="small"
                   onClick={() => projectId && onRefreshThreads(projectId)}
+                  aria-label={t("rag.chat.refreshThreads", "스레드 새로 고침")}
                   disabled={threadLoading}
                 >
                   <RefreshIcon fontSize="small" />

@@ -105,7 +105,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists("junit.upload.max", languageCode, "최대", createdBy);
     createTranslationIfNotExists("junit.detail.upload", languageCode, "업로드", createdBy);
     createTranslationIfNotExists("junit.detail.unknownUploader", languageCode, "알 수 없음", createdBy);
-    createTranslationIfNotExists("junit.editor.title", languageCode, "테스트 케이스 편집", createdBy);
+    createTranslationIfNotExists("junit.editor.title", languageCode, "테스트케이스 편집", createdBy);
     createTranslationIfNotExists("junit.editor.viewMode", languageCode, "(보기 모드)", createdBy);
     createTranslationIfNotExists("junit.editor.editMode", languageCode, "(편집 모드)", createdBy);
     createTranslationIfNotExists(
@@ -129,13 +129,13 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "junit.editor.tagsHelp", languageCode, "쉼표로 구분하여 여러 태그를 입력할 수 있습니다", createdBy);
     createTranslationIfNotExists("junit.editor.notes", languageCode, "노트", createdBy);
     createTranslationIfNotExists(
-        "junit.editor.notesPlaceholder", languageCode, "테스트 케이스에 대한 추가 메모를 입력하세요", createdBy);
+        "junit.editor.notesPlaceholder", languageCode, "테스트케이스에 대한 추가 메모를 입력하세요", createdBy);
     createTranslationIfNotExists("junit.editor.preview", languageCode, "미리보기", createdBy);
     createTranslationIfNotExists("junit.editor.saving", languageCode, "저장 중...", createdBy);
     createTranslationIfNotExists(
-        "junit.editor.error.noTestCase", languageCode, "테스트 케이스를 찾을 수 없습니다", createdBy);
+        "junit.editor.error.noTestCase", languageCode, "테스트케이스를 찾을 수 없습니다", createdBy);
     createTranslationIfNotExists(
-        "junit.editor.error.saveFailed", languageCode, "테스트 케이스 저장에 실패했습니다", createdBy);
+        "junit.editor.error.saveFailed", languageCode, "테스트케이스 저장에 실패했습니다", createdBy);
 
     // 추가 JUnit 편집기 번역
     createTranslationIfNotExists(
@@ -152,7 +152,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "junit.editor.userDefinedTitleHelp",
         languageCode,
-        "테스트 케이스에 대한 사용자 정의 제목을 입력하세요.",
+        "테스트케이스에 대한 사용자 정의 제목을 입력하세요.",
         createdBy);
     createTranslationIfNotExists(
         "junit.editor.userDefinedStatus", languageCode, "사용자 정의 상태", createdBy);
@@ -269,7 +269,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "rag.similar.description",
         languageCode,
-        "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트 케이스 또는 문서를 찾아줍니다.",
+        "키워드나 설명을 입력하면 RAG 시스템이 유사한 테스트케이스 또는 문서를 찾아줍니다.",
         createdBy);
     createTranslationIfNotExists("rag.similar.searchQuery", languageCode, "검색어", createdBy);
     createTranslationIfNotExists(
@@ -872,11 +872,11 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
         "admin.llmConfig.tab.configList", languageCode, "LLM 설정 목록", createdBy);
     createTranslationIfNotExists("admin.llmConfig.tab.template", languageCode, "기본 템플릿", createdBy);
     createTranslationIfNotExists(
-        "admin.llmConfig.template.title", languageCode, "📋 테스트 케이스 생성 기본 템플릿", createdBy);
+        "admin.llmConfig.template.title", languageCode, "📋 테스트케이스 생성 기본 템플릿", createdBy);
     createTranslationIfNotExists(
         "admin.llmConfig.template.description1",
         languageCode,
-        "이 템플릿은 새로운 LLM 설정 생성 시 자동으로 설정되며, AI에게 테스트 케이스 생성을 요청할 때 참고 형식으로 사용됩니다.",
+        "이 템플릿은 새로운 LLM 설정 생성 시 자동으로 설정되며, AI에게 테스트케이스 생성을 요청할 때 참고 형식으로 사용됩니다.",
         createdBy);
     createTranslationIfNotExists(
         "admin.llmConfig.template.description2",
@@ -905,7 +905,7 @@ public class KoreanAdvancedFeaturesAndCommonUITranslations {
     createTranslationIfNotExists(
         "admin.llmConfig.template.usage3",
         languageCode,
-        "3. RAG 채팅에서 \"테스트 케이스\"를 포함한 요청 시 자동으로 템플릿을 참고합니다.",
+        "3. RAG 채팅에서 \"테스트케이스\"를 포함한 요청 시 자동으로 템플릿을 참고합니다.",
         createdBy);
 
     // 공통 문서 등록 요청 키들

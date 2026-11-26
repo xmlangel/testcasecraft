@@ -1,6 +1,6 @@
 // src/components/ProjectSidebar.jsx
 
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -12,6 +12,8 @@ import {
   Divider,
   IconButton,
   Tooltip,
+  Drawer,
+  useMediaQuery,
 } from "@mui/material";
 import {
   FormatListBulleted as FormatListBulletedIcon,
@@ -25,6 +27,7 @@ import {
   Rule as RuleIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Menu as MenuIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../context/I18nContext.jsx";
 import { useNavMode } from "../context/NavModeContext.jsx";
@@ -35,9 +38,12 @@ import {
 } from "./navigation/projectNavItems.js";
 import { CHROME_TYPOGRAPHY } from "../styles/layoutConstants";
 import { CHROME_ICON_SX } from "./common/iconSizes.js";
+import { COMPACT_NAV_QUERY } from "../styles/responsive.js";
 
 const EXPANDED_WIDTH = 184;
 const COLLAPSED_WIDTH = 56;
+// ICT-510: 1024px 미만 서랍 폭. 펼친 사이드바보다 조금 넓혀 라벨·배지가 한 줄에 든다.
+const DRAWER_WIDTH = 240;
 
 const ICONS = {
   dashboard: DashboardIcon,
@@ -108,6 +114,131 @@ function ProjectSidebar({
 
   const items = getVisibleNavItems({ isRagEnabled, showExploratory });
   const width = sidebarCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+  // ICT-510: 1024px 미만에서는 고정 폭 사이드바가 본문을 밀어내므로 서랍으로 바꾼다.
+  const isCompact = useMediaQuery(COMPACT_NAV_QUERY);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // collapsed: 아이콘만 보이는 접힌 목록인지. onItemSelect: 항목을 고른 뒤 할 일.
+  const renderItems = (collapsed, onItemSelect) => (
+    <List dense sx={{ py: 0.5, flexGrow: 1, ...CHROME_ICON_SX }}>
+      {items.map((item, itemIndex) => {
+        // 보이는 항목의 위치가 곧 tabIndex — 가로 탭(MUI Tabs)의 값 규칙과 같다.
+        const Icon = ICONS[item.icon] || DashboardIcon;
+        const selected = tabIndex === itemIndex;
+        const label = t(item.i18nKey, item.label);
+        const count = item.countKey
+          ? effectiveCounts[item.countKey]
+          : undefined;
+
+        return (
+          <ListItemButton
+            key={item.key}
+            selected={selected}
+            onClick={() => onItemSelect(itemIndex)}
+            data-testid={item.testId}
+            title={collapsed ? label : undefined}
+            sx={{
+              ...CHROME_ICON_SX,
+              minHeight: 40,
+              px: 1.25,
+              borderLeft: 3,
+              borderColor: selected ? "primary.main" : "transparent",
+              justifyContent: collapsed ? "center" : "flex-start",
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: 0,
+                mr: collapsed ? 0 : 1.25,
+                color: selected ? "primary.main" : "inherit",
+              }}
+            >
+              <Icon fontSize="small" />
+            </ListItemIcon>
+            {!collapsed && (
+              <ListItemText
+                primary={
+                  <Box
+                    component="span"
+                    sx={{ display: "flex", alignItems: "center" }}
+                  >
+                    <Box
+                      component="span"
+                      sx={
+                        selected
+                          ? CHROME_TYPOGRAPHY.navItemSelected
+                          : CHROME_TYPOGRAPHY.navItem
+                      }
+                    >
+                      {label}
+                    </Box>
+                    {typeof count === "number" && <CountBadge count={count} />}
+                  </Box>
+                }
+                sx={{ my: 0 }}
+              />
+            )}
+          </ListItemButton>
+        );
+      })}
+    </List>
+  );
+
+  if (isCompact) {
+    const currentItem = items[tabIndex];
+    const currentLabel = currentItem
+      ? t(currentItem.i18nKey, currentItem.label)
+      : null;
+    return (
+      <>
+        <Box
+          data-testid="project-sidebar-compact-bar"
+          sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1 }}
+        >
+          <Tooltip title={t("projectNav.sidebar.open", "영역 메뉴 열기")}>
+            <IconButton
+              size="small"
+              onClick={() => setDrawerOpen(true)}
+              aria-label={t("projectNav.sidebar.open", "영역 메뉴 열기")}
+              aria-controls={drawerOpen ? "project-sidebar-drawer" : undefined}
+              aria-expanded={drawerOpen}
+              data-testid="project-sidebar-drawer-toggle"
+            >
+              <MenuIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          {currentLabel && (
+            <Typography
+              component="span"
+              noWrap
+              sx={{ ...CHROME_TYPOGRAPHY.navItemSelected, minWidth: 0 }}
+            >
+              {currentLabel}
+            </Typography>
+          )}
+        </Box>
+        <Drawer
+          variant="temporary"
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+        >
+          <Box
+            component="nav"
+            id="project-sidebar-drawer"
+            aria-label={t("projectNav.sidebar.aria", "프로젝트 영역")}
+            data-testid="project-sidebar-drawer"
+            sx={{ width: DRAWER_WIDTH, whiteSpace: "nowrap" }}
+          >
+            {renderItems(false, (itemIndex) => {
+              setDrawerOpen(false);
+              onSelect(itemIndex);
+            })}
+          </Box>
+        </Drawer>
+      </>
+    );
+  }
 
   return (
     <Box
@@ -125,70 +256,7 @@ function ProjectSidebar({
         transition: "width 0.15s ease",
       }}
     >
-      <List dense sx={{ py: 0.5, flexGrow: 1, ...CHROME_ICON_SX }}>
-        {items.map((item, itemIndex) => {
-          // 보이는 항목의 위치가 곧 tabIndex — 가로 탭(MUI Tabs)의 값 규칙과 같다.
-          const Icon = ICONS[item.icon] || DashboardIcon;
-          const selected = tabIndex === itemIndex;
-          const label = t(item.i18nKey, item.label);
-          const count = item.countKey
-            ? effectiveCounts[item.countKey]
-            : undefined;
-
-          return (
-            <ListItemButton
-              key={item.key}
-              selected={selected}
-              onClick={() => onSelect(itemIndex)}
-              data-testid={item.testId}
-              title={sidebarCollapsed ? label : undefined}
-              sx={{
-                ...CHROME_ICON_SX,
-                minHeight: 40,
-                px: 1.25,
-                borderLeft: 3,
-                borderColor: selected ? "primary.main" : "transparent",
-                justifyContent: sidebarCollapsed ? "center" : "flex-start",
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 0,
-                  mr: sidebarCollapsed ? 0 : 1.25,
-                  color: selected ? "primary.main" : "inherit",
-                }}
-              >
-                <Icon fontSize="small" />
-              </ListItemIcon>
-              {!sidebarCollapsed && (
-                <ListItemText
-                  primary={
-                    <Box
-                      component="span"
-                      sx={{ display: "flex", alignItems: "center" }}
-                    >
-                      <Box
-                        component="span"
-                        sx={
-                          selected
-                            ? CHROME_TYPOGRAPHY.navItemSelected
-                            : CHROME_TYPOGRAPHY.navItem
-                        }
-                      >
-                        {label}
-                      </Box>
-                      {typeof count === "number" && (
-                        <CountBadge count={count} />
-                      )}
-                    </Box>
-                  }
-                  sx={{ my: 0 }}
-                />
-              )}
-            </ListItemButton>
-          );
-        })}
-      </List>
+      {renderItems(sidebarCollapsed, onSelect)}
 
       <Divider />
       <Box

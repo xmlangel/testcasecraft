@@ -204,7 +204,7 @@ public class KoreanTestResultTranslations {
         "testResult.column.jiraStatus", languageCode, "JIRA 상태", createdBy);
 
     createTranslationIfNotExists(
-        "testResult.chart.total", languageCode, "총 테스트 케이스: {total}건", createdBy);
+        "testResult.chart.total", languageCode, "총 테스트케이스: {total}건", createdBy);
     createTranslationIfNotExists(
         "testResult.chart.percentageView", languageCode, "퍼센트 보기", createdBy);
     createTranslationIfNotExists(
@@ -237,13 +237,13 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists("testResult.pieChart.count", languageCode, "개수", createdBy);
     createTranslationIfNotExists("testResult.pieChart.percentage", languageCode, "비율", createdBy);
     createTranslationIfNotExists(
-        "testResult.pieChart.totalTestCases", languageCode, "총 테스트 케이스: {total}건", createdBy);
+        "testResult.pieChart.totalTestCases", languageCode, "총 테스트케이스: {total}건", createdBy);
 
     // 필터링된 케이스 다이얼로그 (FilteredCasesDialog)
     createTranslationIfNotExists(
-        "testResult.filteredCases.failTitle", languageCode, "실패 테스트 케이스", createdBy);
+        "testResult.filteredCases.failTitle", languageCode, "실패 테스트케이스", createdBy);
     createTranslationIfNotExists(
-        "testResult.filteredCases.notRunTitle", languageCode, "미실행 테스트 케이스", createdBy);
+        "testResult.filteredCases.notRunTitle", languageCode, "미실행 테스트케이스", createdBy);
     createTranslationIfNotExists(
         "testResult.filteredCases.goToResult", languageCode, "결과 상세 보기", createdBy);
     createTranslationIfNotExists(
@@ -435,13 +435,13 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists(
         "testResult.detailReport.searchPlaceholder",
         languageCode,
-        "테스트 케이스명, 폴더 경로, 실행자 등",
+        "테스트케이스명, 폴더 경로, 실행자 등",
         createdBy);
     createTranslationIfNotExists("testResult.form.title", languageCode, "테스트 결과 입력", createdBy);
     createTranslationIfNotExists(
         "testResult.pieChart.title", languageCode, "테스트 결과 파이차트", createdBy);
     createTranslationIfNotExists(
-        "testResult.error.testCaseLoadFailed", languageCode, "테스트 케이스 로드 실패", createdBy);
+        "testResult.error.testCaseLoadFailed", languageCode, "테스트케이스 로드 실패", createdBy);
     createTranslationIfNotExists("testResult.error.saveFailed", languageCode, "저장 실패", createdBy);
     createTranslationIfNotExists(
         "testResult.error.resultRequired", languageCode, "테스트 결과는 필수입니다", createdBy);
@@ -452,7 +452,7 @@ public class KoreanTestResultTranslations {
     createTranslationIfNotExists("testResult.pieChart.count", languageCode, "개수", createdBy);
     createTranslationIfNotExists("testResult.pieChart.percentage", languageCode, "비율", createdBy);
     createTranslationIfNotExists(
-        "testResult.pieChart.totalTestCases", languageCode, "총 테스트 케이스", createdBy);
+        "testResult.pieChart.totalTestCases", languageCode, "총 테스트케이스", createdBy);
     createTranslationIfNotExists(
         "testResult.statistics.noData", languageCode, "통계 데이터 없음", createdBy);
     createTranslationIfNotExists("testResult.form.preCondition", languageCode, "사전 조건", createdBy);

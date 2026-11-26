@@ -236,11 +236,11 @@ public class KoreanI18nHardcodedTranslations {
         "admin.llmConfig.setAsDefaultTooltip", languageCode, "기본 설정으로 지정", createdBy);
     createTranslationIfNotExists(
         "admin.llmConfig.status.connected", languageCode, "연결 성공", createdBy);
-    createTranslationIfNotExists(
+    seedIndex.upsertTranslation(
         "admin.llmConfig.template.description",
         languageCode,
-        "AI에게 테스트 케이스 생성을 요청할 때 이 템플릿을 참고합니다",
-        createdBy);
+        "AI에게 테스트케이스 생성을 요청할 때 이 템플릿을 참고합니다",
+        createdBy, true);
     createTranslationIfNotExists(
         "admin.systemSettings.ragToggleDescription", languageCode, "RAG(AI) 기능 활성화 토글", createdBy);
     createTranslationIfNotExists("chat.source.chunk", languageCode, " - 청크 #{number}", createdBy);
@@ -689,8 +689,8 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("preset.editDialog.confirm", languageCode, "수정", createdBy);
     createTranslationIfNotExists("preset.editDialog.title", languageCode, "프리셋 이름 수정", createdBy);
     createTranslationIfNotExists("preset.editName", languageCode, "이름 수정", createdBy);
-    createTranslationIfNotExists(
-        "preset.failedOnly.desc", languageCode, "실패한 테스트 케이스만 표시", createdBy);
+    seedIndex.upsertTranslation(
+        "preset.failedOnly.desc", languageCode, "실패한 테스트케이스만 표시", createdBy, true);
     createTranslationIfNotExists("preset.failedOnly.name", languageCode, "실패 케이스만", createdBy);
     createTranslationIfNotExists(
         "preset.loadError", languageCode, "프리셋을 불러오는 중 오류가 발생했습니다.", createdBy);
@@ -709,8 +709,8 @@ public class KoreanI18nHardcodedTranslations {
         "preset.saveError", languageCode, "프리셋 저장 중 오류가 발생했습니다.", createdBy);
     createTranslationIfNotExists("preset.title", languageCode, "필터 프리셋", createdBy);
     createTranslationIfNotExists("preset.userDefined", languageCode, "사용자 정의 프리셋", createdBy);
-    createTranslationIfNotExists(
-        "preset.withJira.desc", languageCode, "JIRA 이슈가 연결된 테스트 케이스", createdBy);
+    seedIndex.upsertTranslation(
+        "preset.withJira.desc", languageCode, "JIRA 이슈가 연결된 테스트케이스", createdBy, true);
     createTranslationIfNotExists("preset.withJira.name", languageCode, "JIRA 연동", createdBy);
     createTranslationIfNotExists(
         "projectManager.memberLoadError", languageCode, "멤버 목록 조회 실패", createdBy);
@@ -984,11 +984,11 @@ public class KoreanI18nHardcodedTranslations {
         "testExecution.prevResults.deleteSuccess", languageCode, "테스트 결과가 삭제되었습니다.", createdBy);
     createTranslationIfNotExists(
         "testExecution.prevResults.unknownError", languageCode, "알 수 없는 오류", createdBy);
-    createTranslationIfNotExists(
+    seedIndex.upsertTranslation(
         "testExecution.success.immediateStart",
         languageCode,
-        "테스트 실행 '{name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트 케이스별 결과를 입력할 수 있습니다.",
-        createdBy);
+        "테스트 실행 '{name}'이 성공적으로 저장되고 시작되었습니다. 이제 테스트케이스별 결과를 입력할 수 있습니다.",
+        createdBy, true);
     createTranslationIfNotExists("testResult.chart.cases", languageCode, "건", createdBy);
     createTranslationIfNotExists(
         "testResult.detailReport.advancedFilter", languageCode, "고급 필터", createdBy);
@@ -1012,8 +1012,8 @@ public class KoreanI18nHardcodedTranslations {
         "testResult.detailReport.columnNotes", languageCode, "비고", createdBy);
     createTranslationIfNotExists(
         "testResult.detailReport.columnResult", languageCode, "결과", createdBy);
-    createTranslationIfNotExists(
-        "testResult.detailReport.columnTestCase", languageCode, "테스트 케이스", createdBy);
+    seedIndex.upsertTranslation(
+        "testResult.detailReport.columnTestCase", languageCode, "테스트케이스", createdBy, true);
     createTranslationIfNotExists(
         "testResult.detailReport.custom", languageCode, "사용자 정의", createdBy);
     createTranslationIfNotExists(
@@ -1066,8 +1066,8 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists(
         "testResult.detailReport.title", languageCode, "상세 리포트", createdBy);
     createTranslationIfNotExists("testResult.detailReport.today", languageCode, "오늘", createdBy);
-    createTranslationIfNotExists(
-        "testResult.detailReport.totalTestCases", languageCode, "총 테스트 케이스", createdBy);
+    seedIndex.upsertTranslation(
+        "testResult.detailReport.totalTestCases", languageCode, "총 테스트케이스", createdBy, true);
     createTranslationIfNotExists(
         "testResult.detailReport.useRegex", languageCode, "정규표현식 사용", createdBy);
     createTranslationIfNotExists(
@@ -1255,8 +1255,8 @@ public class KoreanI18nHardcodedTranslations {
     createTranslationIfNotExists("testcase.details.executor", languageCode, "실행자", createdBy);
     createTranslationIfNotExists("testcase.details.folderPath", languageCode, "폴더 경로", createdBy);
     createTranslationIfNotExists("testcase.details.result", languageCode, "실행 결과", createdBy);
-    createTranslationIfNotExists(
-        "testcase.details.title", languageCode, "테스트 케이스 상세 정보", createdBy);
+    seedIndex.upsertTranslation(
+        "testcase.details.title", languageCode, "테스트케이스 상세 정보", createdBy, true);
     createTranslationIfNotExists(
         "testcase.dragMultiple", languageCode, "{name} 외 {count}개", createdBy);
     createTranslationIfNotExists("testcase.dragToMove", languageCode, "드래그해서 위치 이동", createdBy);

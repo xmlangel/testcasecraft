@@ -381,6 +381,10 @@ public class EnglishTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.button.exitFullscreen", languageCode, "Exit Fullscreen", createdBy);
     createTranslationIfNotExists(
+        "testcase.spreadsheet.button.expandCells", languageCode, "Show long cells in full", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.button.collapseCells", languageCode, "Clamp long cells to 3 lines", createdBy);
+    createTranslationIfNotExists(
         "testcase.spreadsheet.column.createdBy", languageCode, "Created By", createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.column.updatedBy", languageCode, "Updated By", createdBy);
@@ -839,6 +843,9 @@ public class EnglishTestCaseAndAutomationTranslations {
         "testPlan.form.title.create", languageCode, "Create New Test Plan", createdBy);
     createTranslationIfNotExists(
         "testPlan.form.title.edit", languageCode, "Edit Test Plan", createdBy);
+    createTranslationIfNotExists("testPlan.form.title.view", languageCode, "Test Plan", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.executionActions", languageCode, "Execution actions", createdBy);
     createTranslationIfNotExists("testPlan.form.planName", languageCode, "Plan Name", createdBy);
     createTranslationIfNotExists(
         "testPlan.form.description", languageCode, "Description", createdBy);
