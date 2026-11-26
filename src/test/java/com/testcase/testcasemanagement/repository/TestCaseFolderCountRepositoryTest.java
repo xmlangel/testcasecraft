@@ -95,4 +95,35 @@ public class TestCaseFolderCountRepositoryTest extends AbstractTestNGSpringConte
     assertEquals(testCaseRepository.countTestCasesOnlyByProjectId(project.getId()), 2L);
     assertEquals(testCaseRepository.countFoldersByProjectId(project.getId()), 0L);
   }
+
+  /**
+   * 프로젝트 목록 카드의 테스트케이스 수도 폴더를 빼고 센다 (ICT-512).
+   *
+   * <p>카드가 폴더까지 세어 834(케이스 775 + 폴더 59)로 보이고, 사이드바·트리의 775 와 달랐다.
+   */
+  @Test
+  public void countTestCasesOnlyByProjectIds_목록_카드도_폴더를_세지_않는다() {
+    persist("루트 폴더", "folder", null);
+    persist("시스템 폴더", "systemFolder", null);
+    persist("케이스 1", "testcase", 1);
+    persist("케이스 2", "testcase", 2);
+
+    java.util.List<Object[]> rows =
+        testCaseRepository.countTestCasesOnlyByProjectIds(java.util.List.of(project.getId()));
+
+    assertEquals(rows.size(), 1);
+    assertEquals(rows.get(0)[0], project.getId());
+    assertEquals(((Number) rows.get(0)[1]).longValue(), 2L);
+  }
+
+  /** 케이스가 하나도 없고 폴더만 있는 프로젝트는 목록 결과에 나오지 않아 카드에서 0 으로 보인다. */
+  @Test
+  public void countTestCasesOnlyByProjectIds_폴더만_있으면_행이_없다() {
+    persist("빈 폴더", "folder", null);
+
+    java.util.List<Object[]> rows =
+        testCaseRepository.countTestCasesOnlyByProjectIds(java.util.List.of(project.getId()));
+
+    assertEquals(rows.size(), 0);
+  }
 }

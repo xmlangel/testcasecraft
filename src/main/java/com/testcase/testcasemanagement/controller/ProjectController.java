@@ -163,7 +163,7 @@ public class ProjectController {
 
     // 배치 카운트 조회 (N+1 문제 해결)
     Map<String, Long> testCaseCounts =
-        convertToCountMap(testCaseRepository.countByProjectIds(projectIds));
+        convertToCountMap(testCaseRepository.countTestCasesOnlyByProjectIds(projectIds));
     Map<String, Long> testPlanCounts =
         convertToCountMap(testPlanRepository.countByProjectIds(projectIds));
     Map<String, Long> testExecutionCounts =
@@ -847,7 +847,9 @@ public class ProjectController {
         projects.stream()
             .map(
                 project -> {
-                  long testCaseCount = testCaseRepository.countByProjectId(project.getId());
+                  // 폴더를 빼고 케이스만 센다 (ICT-512)
+                  long testCaseCount =
+                      testCaseRepository.countTestCasesOnlyByProjectId(project.getId());
                   return new ProjectWithTestCaseCountDto(project, testCaseCount);
                 })
             .collect(Collectors.toList());
