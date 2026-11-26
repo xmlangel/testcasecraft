@@ -270,14 +270,15 @@ const RichMarkdownEditor = ({
   );
 
   return (
-    <Box sx={{ mt: label ? 2 : 0 }}>
+    // ICT-496: 라벨 위·아래 간격을 줄인다(위 16→12px, 라벨~입력칸 16→8px)
+    <Box sx={{ mt: label ? 1.5 : 0 }}>
       {label && (
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 1,
+            mb: 0.5,
           }}
         >
           <Typography variant="subtitle2" color={error ? "error" : "inherit"}>
@@ -288,7 +289,7 @@ const RichMarkdownEditor = ({
 
       <Box
         sx={{
-          mt: 1,
+          mt: label ? 0.5 : 1,
           border: `1px solid ${borderColor}`,
           borderRadius: 1,
           overflow: "hidden",

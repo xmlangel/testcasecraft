@@ -4,7 +4,10 @@ import PropTypes from "prop-types";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { debugLog } from "../../utils/logger";
 import testCaseService from "../../services/testCaseService.js";
-import { normalizeExecutionType } from "../../utils/executionType.js";
+import {
+  normalizeExecutionType,
+  withExecutionTypeFields,
+} from "../../utils/executionType.js";
 import {
   Box,
   Typography,
@@ -297,13 +300,7 @@ const TestCaseDatasheetGrid = ({
         width: 200,
         editable: true,
       },
-      {
-        field: "isAutomated",
-        headerName: t("testcase.spreadsheet.column.isAutomated", "자동화"),
-        width: 100,
-        type: "boolean",
-        editable: true,
-      },
+      // ICT-494 tl-5: 「자동화」 열은 실행 유형(Type)으로 합쳤다. 저장할 때 실행 유형에서 정한다.
       {
         field: "executionType",
         headerName: "Type",
@@ -504,8 +501,10 @@ const TestCaseDatasheetGrid = ({
           preCondition: row.preCondition,
           postCondition: row.postCondition,
           expectedResults: row.expectedResults,
-          isAutomated: row.isAutomated,
-          executionType: row.executionType,
+          ...withExecutionTypeFields({
+            executionType: row.executionType,
+            isAutomated: row.isAutomated,
+          }),
           testTechnique: row.testTechnique,
           steps: steps,
           projectId: projectId,

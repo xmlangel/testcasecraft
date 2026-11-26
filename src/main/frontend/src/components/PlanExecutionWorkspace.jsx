@@ -54,6 +54,8 @@ import {
 
 const LIST_WIDTH = 260;
 const LIST_COLLAPSED_WIDTH = 44;
+// 목록 칸과 상세 칸 사이 간격(gap: 1)
+const LIST_GAP_WIDTH = 8;
 /** 실행 영역 목록을 한 번에 가져오는 개수 (서버 기본 정렬 createdAt DESC) */
 const EXECUTIONS_PAGE_SIZE = 50;
 
@@ -125,6 +127,9 @@ function PlanExecutionWorkspace({
   const [errorDetail, setErrorDetail] = useState(null);
   const [filterText, setFilterText] = useState("");
   const [listCollapsed, setListCollapsed] = useState(false);
+  // ICT-492: 실행 화면이 1단(결과 칸을 전체 폭으로 겹침)일 때 왼쪽 목록을 잠시 감춘다.
+  // 사용자가 정한 접힘(listCollapsed)은 바꾸지 않는다.
+  const [listHiddenByLayout, setListHiddenByLayout] = useState(false);
   // 실행 영역 목록 (executions 모드 전용 — 프로젝트의 실행을 최신순으로)
   const [projectExecutions, setProjectExecutions] = useState([]);
   const [execListLoading, setExecListLoading] = useState(false);
@@ -975,6 +980,11 @@ function PlanExecutionWorkspace({
           executionId={selectedExecutionId}
           projectId={projectId}
           embedded
+          listReserveWidth={
+            (listCollapsed ? LIST_COLLAPSED_WIDTH : LIST_WIDTH) + LIST_GAP_WIDTH
+          }
+          listHiddenByLayout={listHiddenByLayout}
+          onListHiddenByLayoutChange={setListHiddenByLayout}
           onCancel={() => setSelectedExecutionId(null)}
           onSave={handleAfterExecutionSaved}
         />
@@ -1008,13 +1018,16 @@ function PlanExecutionWorkspace({
         </Alert>
       )}
       <Box sx={{ display: "flex", gap: 1, alignItems: "stretch" }}>
-        {listPane}
+        {listHiddenByLayout && selectedExecutionId ? null : listPane}
         <Paper
           variant="outlined"
-          sx={{ ...paneSx, flexGrow: 1, minWidth: 0 }}
+          // ICT-492: 실행 화면의 결과 칸(나란히·겹침)은 창 스크롤을 따라 화면 위에 붙어(sticky) 있어야 한다.
+          // overflow hidden·auto 는 스크롤 상자를 새로 만들어 sticky 가 이 칸 안에서만 동작하고, 목록을
+          // 내려서 누르면 결과 칸이 화면 위쪽 밖에 남았다. clip 은 모서리만 자르고 스크롤 상자를 만들지 않는다.
+          sx={{ ...paneSx, overflow: "clip", flexGrow: 1, minWidth: 0 }}
           data-testid="workspace-detail-pane"
         >
-          <Box sx={{ overflowY: "auto", flexGrow: 1 }}>{detail}</Box>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>{detail}</Box>
         </Paper>
       </Box>
       <Dialog

@@ -30,3 +30,43 @@ export const normalizeExecutionType = (executionType, isAutomated) => {
   }
   return ALIASES[raw.toLowerCase()] || raw;
 };
+
+// ICT-494 tl-5: 화면에서는 실행 유형 하나만 고른다. 자동화 여부(isAutomated)는 실행 유형을 따른다.
+// Automation·Hybrid 는 자동화, Manual 은 수동이다. DB 열 isAutomated 는 그대로 두고 저장할 때 함께 맞춘다.
+const AUTOMATED_EXECUTION_TYPES = Object.freeze(["Automation", "Hybrid"]);
+
+/** 실행 유형이 자동화(Automation·Hybrid)인지 */
+export const isAutomatedExecutionType = (executionType) =>
+  AUTOMATED_EXECUTION_TYPES.includes(normalizeExecutionType(executionType));
+
+/**
+ * 케이스를 자동화 케이스로 볼지. 실행 유형이 있으면 실행 유형을 따르고,
+ * 비어 있으면 isAutomated 로 정한다(normalizeExecutionType 과 같은 규칙).
+ */
+export const isAutomatedCase = (testCase) =>
+  isAutomatedExecutionType(
+    normalizeExecutionType(testCase?.executionType, testCase?.isAutomated),
+  );
+
+/**
+ * 실행 유형을 바꿀 때 함께 저장할 두 값. isAutomated 는 실행 유형에서 정한다.
+ * 알 수 없는 실행 유형이면 그대로 두고 isAutomated 는 false 로 둔다.
+ */
+export const executionTypeFields = (executionType) => {
+  const normalized = normalizeExecutionType(executionType);
+  return {
+    executionType: normalized,
+    isAutomated: isAutomatedExecutionType(normalized),
+  };
+};
+
+/**
+ * 저장할 케이스 값. isAutomated 를 실행 유형에 맞춘다.
+ * 두 값이 어긋난 예전 케이스(isAutomated=true + Manual 등)도 다시 저장하면 실행 유형 쪽으로 맞춰진다.
+ */
+export const withExecutionTypeFields = (testCase) => ({
+  ...testCase,
+  ...executionTypeFields(
+    normalizeExecutionType(testCase?.executionType, testCase?.isAutomated),
+  ),
+});

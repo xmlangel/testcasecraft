@@ -37,6 +37,44 @@ const PRIORITY_COLOR = {
 // 텍스트 셀 공통: 최대 길이 초과 시 말줄임(…) + 전체 내용 툴팁
 const MAX_CELL_TEXT_LENGTH = 100;
 
+// ICT-495 cl-1: 이름·ID·소유자는 줄바꿈·말줄임 없이 한 줄로 전부 그린다.
+// 표가 칸보다 넓어지면 TableContainer 의 가로 스크롤로 끝까지 본다.
+const SINGLE_LINE_SX = { whiteSpace: "nowrap" };
+
+const SingleLineText = ({ text, color = "text.primary", sx, ...rest }) => (
+  <Typography
+    variant="body2"
+    color={color}
+    sx={{ ...SINGLE_LINE_SX, ...sx }}
+    {...rest}
+  >
+    {text || ""}
+  </Typography>
+);
+
+SingleLineText.propTypes = {
+  text: PropTypes.string,
+  color: PropTypes.string,
+  sx: PropTypes.object,
+};
+
+// ID 열은 `XXX-XXXX`(8글자) 폭까지만 보인다. 열 폭을 내용 폭으로 줄여(width 1%) 표의 남는 폭을
+// 나눠 받지 않게 하고, 더 긴 ID 는 말줄임하고 전체 값은 title 로 보인다.
+const ID_COLUMN_SX = { ...SINGLE_LINE_SX, width: "1%", pl: 0.5 };
+
+// 형태 아이콘·즐겨찾기 열은 아이콘 폭만 쓴다. 칸 좌우 여백(기본 16px)을 줄여 아이콘·별·ID 가 붙어 보이게 한다.
+const TYPE_ICON_COLUMN_SX = { width: "1%", pl: 1.5, pr: 0.5 };
+const FAVORITE_COLUMN_SX = { width: "1%", px: 0 };
+const ID_TEXT_SX = {
+  fontFamily: "monospace",
+  maxWidth: "8.5ch",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
+// 설명·기대결과처럼 여러 줄인 열은 폭을 묶어 두고 그 안에서 줄바꿈한다(가로로 끝없이 늘지 않게)
+const MULTI_LINE_CELL_SX = { minWidth: 200, maxWidth: 320 };
+
 const TruncatedText = ({ text, color = "text.primary" }) => {
   const fullText = text || "";
   const isTruncated = fullText.length > MAX_CELL_TEXT_LENGTH;
@@ -140,6 +178,8 @@ const FolderCaseList = ({
   onToggleFavorite,
   selectedId,
   compact = false,
+  // ICT-494 tl-1: 3단 가운데 칸이 좁을 때 우선순위 열을 감춘다(우선순위는 상세 칸에 남는다)
+  hidePriority = false,
   latestResults,
 }) => {
   const { t } = useI18n();
@@ -230,6 +270,10 @@ const FolderCaseList = ({
   // 3단 분할(ICT-491)의 가운데 칸은 좁으므로 ID·이름·우선순위만 남긴다(compact)
   const showFolderColumn = !compact && (Boolean(rows) || hasNestedCases);
   const showDetailColumns = !compact;
+  const showPriority = !hidePriority;
+  // 3단 가운데 칸(compact)에서는 소유자를 빼고 우선순위·최근 결과까지만 보인다(ICT-496)
+  const showOwner = !compact;
+  // 좁은 칸에서는 아이콘·즐겨찾기 열을 줄여 이름 열 자리를 남긴다
   // 경로 기준: 가상 목록은 전체 경로, 폴더 선택 시 선택 폴더 기준 상대 경로
   const pathBaseId = rows ? null : folder.id;
 
@@ -273,47 +317,56 @@ const FolderCaseList = ({
           </Typography>
         </Paper>
       ) : (
-        <TableContainer component={Paper} variant="outlined">
-          {/* table-layout: fixed — 이름 등 컬럼이 내용(특히 공백 없는 한글)에
-              따라 0폭으로 짜부라져 한 글자씩 줄바꿈되는 현상 방지.
-              모든 컬럼에 명시적 너비를 부여한다. */}
-          <Table size="small" sx={{ tableLayout: "fixed" }}>
+        <TableContainer
+          component={Paper}
+          variant="outlined"
+          sx={{ overflowX: "auto" }}
+          data-testid="folder-case-table-container"
+        >
+          {/* ICT-495 cl-1: table-layout: auto — 이름·ID·소유자를 한 줄로 두고 그 길이만큼
+              열이 늘어난다. 칸보다 넓어지면 위 컨테이너에 가로 스크롤이 생긴다.
+              (예전 fixed 배치는 좁은 칸에서 이름을 한 글자씩 줄바꿈했다) */}
+          <Table
+            size="small"
+            sx={{ tableLayout: "auto", minWidth: "100%" }}
+            data-testid="folder-case-table"
+          >
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: 48 }} />
-                {showFavorite && <TableCell sx={{ width: 48 }} />}
+                <TableCell sx={TYPE_ICON_COLUMN_SX} />
+                {showFavorite && <TableCell sx={FAVORITE_COLUMN_SX} />}
                 {showFolderColumn && (
-                  <TableCell sx={{ width: "20%" }}>
+                  <TableCell sx={SINGLE_LINE_SX}>
                     {t("testcase.folderList.column.folder", "폴더")}
                   </TableCell>
                 )}
-                <TableCell sx={{ width: 96 }}>
+                <TableCell sx={ID_COLUMN_SX}>
                   {t("testcase.folderList.column.id", "ID")}
                 </TableCell>
-                <TableCell
-                  sx={{
-                    width: compact ? "auto" : showFolderColumn ? "28%" : "34%",
-                  }}
-                >
+                <TableCell sx={SINGLE_LINE_SX}>
                   {t("testcase.folderList.column.name", "이름")}
                 </TableCell>
                 {showDetailColumns && (
-                  <TableCell sx={{ width: showFolderColumn ? "22%" : "28%" }}>
+                  <TableCell sx={MULTI_LINE_CELL_SX}>
                     {t("testcase.folderList.column.description", "설명")}
                   </TableCell>
                 )}
                 {showDetailColumns && (
-                  <TableCell sx={{ width: showFolderColumn ? "22%" : "28%" }}>
+                  <TableCell sx={MULTI_LINE_CELL_SX}>
                     {t("testcase.folderList.column.expectedResult", "기대결과")}
                   </TableCell>
                 )}
-                <TableCell sx={{ width: compact ? 88 : 110 }}>
-                  {t("testcase.folderList.column.priority", "우선순위")}
-                </TableCell>
-                <TableCell sx={{ width: compact ? 88 : 120 }}>
-                  {t("testcase.folderList.column.owner", "소유자")}
-                </TableCell>
-                <TableCell sx={{ width: compact ? 64 : 80 }}>
+                {showPriority && (
+                  <TableCell sx={SINGLE_LINE_SX}>
+                    {t("testcase.folderList.column.priority", "우선순위")}
+                  </TableCell>
+                )}
+                {showOwner && (
+                  <TableCell sx={SINGLE_LINE_SX}>
+                    {t("testcase.folderList.column.owner", "소유자")}
+                  </TableCell>
+                )}
+                <TableCell sx={{ ...SINGLE_LINE_SX, width: compact ? 64 : 80 }}>
                   {t("testcase.folderList.column.latestResult", "최근 결과")}
                 </TableCell>
               </TableRow>
@@ -334,7 +387,7 @@ const FolderCaseList = ({
                     sx={{ cursor: "pointer" }}
                     data-testid={`folder-case-row-${item.id}`}
                   >
-                    <TableCell>
+                    <TableCell sx={TYPE_ICON_COLUMN_SX}>
                       {isChildFolder ? (
                         <FolderIcon fontSize="small" color="primary" />
                       ) : (
@@ -342,7 +395,7 @@ const FolderCaseList = ({
                       )}
                     </TableCell>
                     {showFavorite && (
-                      <TableCell>
+                      <TableCell sx={FAVORITE_COLUMN_SX}>
                         {!isChildFolder &&
                           (() => {
                             const active =
@@ -420,6 +473,7 @@ const FolderCaseList = ({
                                 variant="body2"
                                 color="text.secondary"
                                 noWrap
+                                sx={{ maxWidth: 240 }}
                               >
                                 {path.map((p) => p.name).join(" › ")}
                               </Typography>
@@ -428,16 +482,17 @@ const FolderCaseList = ({
                         })()}
                       </TableCell>
                     )}
-                    <TableCell data-testid={`folder-case-id-${item.id}`}>
+                    <TableCell
+                      sx={ID_COLUMN_SX}
+                      data-testid={`folder-case-id-${item.id}`}
+                    >
                       {!isChildFolder && item.displayId && (
-                        <Typography
-                          variant="body2"
+                        <SingleLineText
+                          text={item.displayId}
                           color="text.secondary"
-                          noWrap
-                          sx={{ fontFamily: "monospace" }}
-                        >
-                          {item.displayId}
-                        </Typography>
+                          title={item.displayId}
+                          sx={ID_TEXT_SX}
+                        />
                       )}
                     </TableCell>
                     <TableCell>
@@ -467,53 +522,63 @@ const FolderCaseList = ({
                               }}
                             />
                           </Tooltip>
-                          <TruncatedText text={item.name} />
+                          <SingleLineText
+                            text={item.name}
+                            data-testid={`folder-case-name-${item.id}`}
+                          />
                         </Box>
                       ) : (
-                        <TruncatedText text={item.name} />
+                        <SingleLineText
+                          text={item.name}
+                          data-testid={`folder-case-name-${item.id}`}
+                        />
                       )}
                     </TableCell>
                     {showDetailColumns && (
                       <TableCell>
-                        <TruncatedText
-                          text={item.description}
-                          color="text.secondary"
-                        />
+                        <Box sx={MULTI_LINE_CELL_SX}>
+                          <TruncatedText
+                            text={item.description}
+                            color="text.secondary"
+                          />
+                        </Box>
                       </TableCell>
                     )}
                     {showDetailColumns && (
                       <TableCell>
                         {!isChildFolder && (
-                          <TruncatedText
-                            text={getExpectedResults(item)}
+                          <Box sx={MULTI_LINE_CELL_SX}>
+                            <TruncatedText
+                              text={getExpectedResults(item)}
+                              color="text.secondary"
+                            />
+                          </Box>
+                        )}
+                      </TableCell>
+                    )}
+                    {showPriority && (
+                      <TableCell>
+                        {!isChildFolder && item.priority && (
+                          <Chip
+                            label={item.priority}
+                            size="small"
+                            color={PRIORITY_COLOR[item.priority] || "default"}
+                            variant="outlined"
+                          />
+                        )}
+                      </TableCell>
+                    )}
+                    {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정) */}
+                    {showOwner && (
+                      <TableCell data-testid={`folder-case-owner-${item.id}`}>
+                        {!isChildFolder && item.createdBy && (
+                          <SingleLineText
+                            text={item.createdBy}
                             color="text.secondary"
                           />
                         )}
                       </TableCell>
                     )}
-                    <TableCell>
-                      {!isChildFolder && item.priority && (
-                        <Chip
-                          label={item.priority}
-                          size="small"
-                          color={PRIORITY_COLOR[item.priority] || "default"}
-                          variant="outlined"
-                        />
-                      )}
-                    </TableCell>
-                    {/* 소유자: 담당자 필드가 없어 작성자(createdBy)로 대신한다(ICT-491 결정) */}
-                    <TableCell data-testid={`folder-case-owner-${item.id}`}>
-                      {!isChildFolder && item.createdBy && (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          noWrap
-                          title={item.createdBy}
-                        >
-                          {item.createdBy}
-                        </Typography>
-                      )}
-                    </TableCell>
                     <TableCell>
                       {!isChildFolder && (
                         <LatestResultBar
@@ -543,6 +608,7 @@ FolderCaseList.propTypes = {
   onToggleFavorite: PropTypes.func,
   selectedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   compact: PropTypes.bool,
+  hidePriority: PropTypes.bool,
   latestResults: PropTypes.object,
 };
 
