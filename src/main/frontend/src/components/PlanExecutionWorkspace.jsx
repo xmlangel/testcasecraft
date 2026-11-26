@@ -24,6 +24,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Menu,
+  MenuItem,
+  ListItemIcon,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -36,6 +39,7 @@ import {
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
   Delete as DeleteIcon,
+  MoreVert as MoreVertIcon,
 } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext.jsx";
 import { useI18n } from "../context/I18nContext.jsx";
@@ -140,6 +144,8 @@ function PlanExecutionWorkspace({
   const [executionToDelete, setExecutionToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+  // ICT-513: 실행 항목의 ⋮ 메뉴 — 열린 동안 기준 버튼과 대상 실행을 기억한다
+  const [executionMenu, setExecutionMenu] = useState(null);
 
   const plansOfProject = useMemo(
     () =>
@@ -409,9 +415,17 @@ function PlanExecutionWorkspace({
     setCreatingExecution(true);
   };
 
-  const handleRequestDeleteExecution = (event, exec) => {
+  const handleOpenExecutionMenu = (event, exec) => {
     // 행을 누른 것으로 처리되면 상세가 열리므로 막는다
     event.stopPropagation();
+    setExecutionMenu({ anchorEl: event.currentTarget, exec });
+  };
+
+  const handleCloseExecutionMenu = () => setExecutionMenu(null);
+
+  // 메뉴의 「삭제」는 곧바로 지우지 않고 기존 확인 창을 연다
+  const handleRequestDeleteExecution = (exec) => {
+    setExecutionMenu(null);
     setDeleteError(null);
     setExecutionToDelete(exec);
   };
@@ -453,20 +467,27 @@ function PlanExecutionWorkspace({
     }
   };
 
-  const renderDeleteExecutionButton = (exec) =>
-    canEdit && (
-      <Tooltip title={t("testExecution.list.delete.title", "테스트 실행 삭제")}>
+  // ICT-513: 빨간 휴지통을 항목마다 늘 보이던 것을 ⋮ 메뉴 안의 「삭제」로 옮겼다.
+  // 메뉴는 목록 밖에 하나만 둔다 — 항목 안에 두면 메뉴 클릭이 포털을 건너 행까지
+  // 올라가 실행 상세가 열린다.
+  const renderExecutionMenuButton = (exec) => {
+    if (!canEdit) return null;
+    const label = t("testPlan.workspace.executionActions", "실행 메뉴");
+    return (
+      <Tooltip title={label}>
         <IconButton
           size="small"
-          aria-label="delete"
-          onClick={(event) => handleRequestDeleteExecution(event, exec)}
-          data-testid={`workspace-execution-delete-${exec.id}`}
-          sx={{ ml: 0.5, alignSelf: "center", color: "error.main" }}
+          aria-label={`${label} ${exec.name || ""}`.trim()}
+          aria-haspopup="menu"
+          onClick={(event) => handleOpenExecutionMenu(event, exec)}
+          data-testid={`workspace-execution-menu-${exec.id}`}
+          sx={{ ml: 0.5, alignSelf: "center", color: "action.active" }}
         >
-          <DeleteIcon fontSize="small" />
+          <MoreVertIcon fontSize="small" />
         </IconButton>
       </Tooltip>
     );
+  };
 
   const handleAfterExecutionSaved = () => {
     setCreatingExecution(false);
@@ -575,7 +596,7 @@ function PlanExecutionWorkspace({
                 </Box>
               }
             />
-            {renderDeleteExecutionButton(exec)}
+            {renderExecutionMenuButton(exec)}
           </ListItemButton>
         );
       })}
@@ -858,7 +879,7 @@ function PlanExecutionWorkspace({
                                   }}
                                 />
                               )}
-                              {renderDeleteExecutionButton(exec)}
+                              {renderExecutionMenuButton(exec)}
                             </ListItemButton>
                           );
                         })
@@ -997,6 +1018,7 @@ function PlanExecutionWorkspace({
           key={selectedPlanId}
           testPlanId={selectedPlanId}
           inline
+          startInViewMode
           onCancel={() => setSelectedPlanId(null)}
           onSave={() => loadPlanExecutions(selectedPlanId)}
         />
@@ -1030,6 +1052,28 @@ function PlanExecutionWorkspace({
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>{detail}</Box>
         </Paper>
       </Box>
+      <Menu
+        anchorEl={executionMenu?.anchorEl || null}
+        open={Boolean(executionMenu)}
+        onClose={handleCloseExecutionMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem
+          onClick={() => handleRequestDeleteExecution(executionMenu?.exec)}
+          data-testid={
+            executionMenu?.exec
+              ? `workspace-execution-delete-${executionMenu.exec.id}`
+              : undefined
+          }
+          sx={{ color: "error.main" }}
+        >
+          <ListItemIcon sx={{ color: "inherit" }}>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          {t("testExecution.list.delete.delete", "삭제")}
+        </MenuItem>
+      </Menu>
       <Dialog
         open={Boolean(executionToDelete)}
         onClose={handleCloseDeleteDialog}

@@ -57,9 +57,10 @@ vi.mock("../hooks/useProjectRole.js", () => ({
 
 // 플랜 편집·실행 상세는 별도 컴포넌트라 여기서는 자리만 확인한다
 vi.mock("./TestPlanForm.jsx", () => ({
-  default: ({ testPlanId, inline, onSave, onCancel }) => (
+  default: ({ testPlanId, inline, startInViewMode, onSave, onCancel }) => (
     <div data-testid="stub-plan-form">
-      plan={String(testPlanId)} inline={String(Boolean(inline))}
+      plan={String(testPlanId)} inline={String(Boolean(inline))} view=
+      {String(Boolean(startInViewMode))}
       <button type="button" onClick={() => onSave?.("tp9")}>
         저장 흉내
       </button>
@@ -466,7 +467,10 @@ describe("PlanExecutionWorkspace", () => {
         expect(screen.getByTestId("stub-execution-form")).toBeInTheDocument(),
       );
 
-      fireEvent.click(screen.getByTestId("workspace-execution-delete-ex1"));
+      fireEvent.click(screen.getByTestId("workspace-execution-menu-ex1"));
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      );
       // 확인 전에는 지우지 않는다
       expect(deleteMock).not.toHaveBeenCalled();
       fireEvent.click(screen.getByTestId("workspace-execution-delete-confirm"));
@@ -482,6 +486,10 @@ describe("PlanExecutionWorkspace", () => {
 
     it("삭제 버튼을 눌러도 실행 상세가 열리지 않고, 취소하면 지우지 않는다", async () => {
       setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-menu-ex1"),
+      );
+      expect(screen.queryByTestId("stub-execution-form")).toBeNull();
       fireEvent.click(
         await screen.findByTestId("workspace-execution-delete-ex1"),
       );
@@ -503,6 +511,9 @@ describe("PlanExecutionWorkspace", () => {
       setup();
       fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
       fireEvent.click(
+        await screen.findByTestId("workspace-execution-menu-ex1"),
+      );
+      fireEvent.click(
         await screen.findByTestId("workspace-execution-delete-ex1"),
       );
       fireEvent.click(screen.getByTestId("workspace-execution-delete-confirm"));
@@ -520,6 +531,9 @@ describe("PlanExecutionWorkspace", () => {
         new Error("이 작업을 수행할 권한이 없습니다."),
       );
       setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-menu-ex1"),
+      );
       fireEvent.click(
         await screen.findByTestId("workspace-execution-delete-ex1"),
       );
@@ -542,7 +556,72 @@ describe("PlanExecutionWorkspace", () => {
         expect(
           screen.queryByTestId("workspace-execution-delete-ex1"),
         ).toBeNull();
+        expect(screen.queryByTestId("workspace-execution-menu-ex1")).toBeNull();
       },
+    );
+  });
+
+  // ICT-513: 휴지통을 항목마다 늘 보이지 않고 ⋮ 메뉴 안으로 옮긴다
+  describe("실행 항목 메뉴 (ICT-513)", () => {
+    it("실행 목록에는 삭제 버튼이 바로 보이지 않고, ⋮ 메뉴를 열어야 「삭제」가 나온다", async () => {
+      setup({ mode: "executions" });
+      const menuButton = await screen.findByTestId(
+        "workspace-execution-menu-ex1",
+      );
+      expect(menuButton).toHaveAttribute(
+        "aria-label",
+        expect.stringContaining("실행 메뉴"),
+      );
+      expect(screen.queryByTestId("workspace-execution-delete-ex1")).toBeNull();
+
+      fireEvent.click(menuButton);
+      const item = await screen.findByTestId("workspace-execution-delete-ex1");
+      expect(item).toHaveAttribute("role", "menuitem");
+      expect(item).toHaveTextContent("삭제");
+    });
+
+    it("플랜 트리의 실행 항목도 ⋮ 메뉴 안에 삭제가 있다", async () => {
+      setup();
+      fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
+      await screen.findByTestId("workspace-execution-menu-ex1");
+      expect(screen.queryByTestId("workspace-execution-delete-ex1")).toBeNull();
+      fireEvent.click(screen.getByTestId("workspace-execution-menu-ex1"));
+      expect(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      ).toBeInTheDocument();
+    });
+
+    it("메뉴의 삭제를 눌러도 곧바로 지우지 않고 확인 창을 거친다", async () => {
+      setup({ mode: "executions" });
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-menu-ex1"),
+      );
+      fireEvent.click(
+        await screen.findByTestId("workspace-execution-delete-ex1"),
+      );
+      expect(
+        await screen.findByTestId("workspace-execution-delete-confirm"),
+      ).toBeInTheDocument();
+      expect(deleteMock).not.toHaveBeenCalled();
+      // 메뉴를 여닫는 동안 실행 상세가 열리지 않는다
+      expect(screen.queryByTestId("stub-execution-form")).toBeNull();
+    });
+  });
+
+  // ICT-513: 플랜을 누르면 수정 폼이 아니라 읽기 화면으로 연다
+  it("플랜을 고르면 상세 열의 플랜 폼을 읽기 화면으로 연다", async () => {
+    setup();
+    fireEvent.click(screen.getByTestId("workspace-primary-item-tp1"));
+    expect(await screen.findByTestId("stub-plan-form")).toHaveTextContent(
+      "view=true",
+    );
+  });
+
+  it("새 플랜 폼은 읽기 화면이 아니라 바로 입력 화면이다", async () => {
+    setup();
+    fireEvent.click(screen.getByTestId("workspace-new-plan"));
+    expect(await screen.findByTestId("stub-plan-form")).toHaveTextContent(
+      "view=false",
     );
   });
 });

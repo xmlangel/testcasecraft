@@ -21,6 +21,12 @@ public class TestPlanKeysInitializer {
         "testPlan.form.title.create", "testPlan", "새 테스트 플랜 생성", "새 테스트 플랜 생성");
     createTranslationKeyIfNotExists(
         "testPlan.form.title.edit", "testPlan", "테스트 플랜 수정", "테스트 플랜 수정");
+    // ICT-513: 플랜을 고르면 읽기 화면으로 열고, 수정 버튼을 눌러야 편집한다
+    createTranslationKeyIfNotExists(
+        "testPlan.form.title.view", "testPlan", "테스트 플랜 보기 제목", "테스트 플랜");
+    // ICT-513: 실행 항목의 ⋮ 메뉴 버튼 이름
+    createTranslationKeyIfNotExists(
+        "testPlan.workspace.executionActions", "testPlan", "실행 항목 메뉴 버튼", "실행 메뉴");
     createTranslationKeyIfNotExists("testPlan.form.planName", "testPlan", "플랜 이름", "플랜 이름");
     createTranslationKeyIfNotExists("testPlan.form.description", "testPlan", "설명", "설명");
     createTranslationKeyIfNotExists(

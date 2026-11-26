@@ -491,6 +491,9 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testPlan.form.title.create", languageCode, "새 테스트 플랜 생성", createdBy);
     createTranslationIfNotExists("testPlan.form.title.edit", languageCode, "테스트 플랜 수정", createdBy);
+    createTranslationIfNotExists("testPlan.form.title.view", languageCode, "테스트 플랜", createdBy);
+    createTranslationIfNotExists(
+        "testPlan.workspace.executionActions", languageCode, "실행 메뉴", createdBy);
     createTranslationIfNotExists("testPlan.form.planName", languageCode, "플랜 이름", createdBy);
     createTranslationIfNotExists("testPlan.form.description", languageCode, "설명", createdBy);
     createTranslationIfNotExists(
