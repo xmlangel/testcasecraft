@@ -777,6 +777,10 @@ public class EnglishI18nGapTranslations {
         "projectNav.sidebar.collapse", languageCode, "Collapse sidebar", createdBy);
     createTranslationIfNotExists(
         "projectNav.sidebar.expand", languageCode, "Expand sidebar", createdBy);
+    // ICT-510 narrow screens: area menu drawer and header hamburger menu
+    createTranslationIfNotExists(
+        "projectNav.sidebar.open", languageCode, "Open area menu", createdBy);
+    createTranslationIfNotExists("header.nav.menu", languageCode, "Menu", createdBy);
     // ICT-491 화면 밀도
     createTranslationIfNotExists(
         "profile.density.title", languageCode, "Screen density", createdBy);

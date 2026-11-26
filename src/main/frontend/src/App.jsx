@@ -39,6 +39,11 @@ import { useNavMode } from "./context/NavModeContext.jsx";
 import ProjectManager from "./components/ProjectManager.jsx";
 import ProjectHeader from "./components/ProjectHeader.jsx";
 import ProjectSidebar from "./components/ProjectSidebar.jsx";
+import AppHeaderNav from "./components/AppHeaderNav.jsx";
+import TestCaseWorkspaceFrame, {
+  useSinglePaneLayout,
+} from "./components/TestCase/TestCaseWorkspaceFrame.jsx";
+import { COMPACT_NAV_MEDIA } from "./styles/responsive.js";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { getVisibleNavItems } from "./components/navigation/projectNavItems.js";
 
@@ -47,7 +52,6 @@ const PlanExecutionWorkspace = React.lazy(
   () => import("./components/PlanExecutionWorkspace.jsx"),
 );
 const TestCaseTree = React.lazy(() => import("./components/TestCaseTree.jsx"));
-import Resizer from "./components/common/Resizer.jsx";
 const TestCaseHybridForm = React.lazy(
   () => import("./components/TestCase/TestCaseHybridForm.jsx"),
 );
@@ -133,9 +137,6 @@ import SessionExpiryDialog from "./components/common/SessionExpiryDialog.jsx";
 import JiraIssueRedirect from "./components/JiraIntegration/JiraIssueRedirect.jsx";
 
 import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  KeyboardArrowDown as KeyboardArrowDownIcon,
   Brightness4 as Brightness4Icon,
   Brightness7 as Brightness7Icon,
   HelpOutline as HelpOutlineIcon,
@@ -189,6 +190,21 @@ function loadUIState() {
     return {};
   }
 }
+
+// 상단 바 오른쪽 아이콘 칸. 좁은 화면에서도 줄어들지 않고 간격만 좁힌다(ICT-510).
+const HEADER_ICON_SLOT_SX = {
+  ml: 1,
+  flexShrink: 0,
+  [COMPACT_NAV_MEDIA]: { ml: 0 },
+};
+
+// 사이드바 모드의 좌측 메뉴 + 본문 줄. 1024px 미만에서는 사이드바가 서랍과 여는 버튼 한 줄로
+// 바뀌므로 세로로 쌓는다(ICT-510).
+const SIDEBAR_ROW_SX = {
+  display: "flex",
+  alignItems: "stretch",
+  [COMPACT_NAV_MEDIA]: { flexDirection: "column" },
+};
 
 const AppContent = () => {
   const theme = useTheme();
@@ -266,7 +282,6 @@ const AppContent = () => {
   const [editingTestExecutionId, setEditingTestExecutionId] = useState(null);
   const [projectSelectionOpen, setProjectSelectionOpen] = useState(true);
   const [initialLoad, setInitialLoad] = useState(false);
-  const [managementAnchorEl, setManagementAnchorEl] = useState(null);
   const [
     selectedTestPlanIdForNewExecution,
     setSelectedTestPlanIdForNewExecution,
@@ -343,7 +358,10 @@ const AppContent = () => {
   const [treeHiddenByLayout, setTreeHiddenByLayout] = useState(false);
   const treeShown = treeVisible && !treeHiddenByLayout;
   // 트리 칸 + 폭 조절 막대(6px) + 입력 영역 왼쪽 여백(8px)
-  const treeReserveWidth = treeVisible ? treeWidth + 14 : 0;
+  // ICT-510: 768px 미만 1단에서는 트리가 상세 위에 있어 옆 폭을 차지하지 않는다.
+  const isSinglePaneLayout = useSinglePaneLayout();
+  const treeReserveWidth =
+    treeVisible && !isSinglePaneLayout ? treeWidth + 14 : 0;
 
   // 트리 토글 핸들러 (ICT-315)
   const handleTreeToggle = () => {
@@ -814,19 +832,6 @@ const AppContent = () => {
     setProfileDialogOpen(false);
   };
 
-  const handleManagementMenuOpen = (event) => {
-    setManagementAnchorEl(event.currentTarget);
-  };
-
-  const handleManagementMenuClose = () => {
-    setManagementAnchorEl(null);
-  };
-
-  const handleManagementNavigate = (targetPath) => {
-    navigate(targetPath);
-    handleManagementMenuClose();
-  };
-
   // ProtectedRoute에서 이미 인증을 확인했으므로 user는 항상 존재함
 
   // 관리 메뉴 접근 권한 확인 함수
@@ -891,6 +896,9 @@ const AppContent = () => {
               display: "flex",
               alignItems: "center",
               flexGrow: 1,
+              // ICT-510: 좁은 화면에서는 로고가 줄어들고 오른쪽 아이콘 버튼은 화면 안에 남는다
+              minWidth: 0,
+              overflow: "hidden",
               cursor: "pointer",
               "&:hover": {
                 opacity: 0.8,
@@ -906,6 +914,8 @@ const AppContent = () => {
                 height: headerHeight - 4,
                 width: "auto",
                 objectFit: "contain",
+                minWidth: 0,
+                maxWidth: "100%",
               }}
             />
             <Typography
@@ -919,99 +929,39 @@ const AppContent = () => {
                 opacity: 0.7,
                 letterSpacing: "0.05em",
                 fontFamily: "monospace",
+                [COMPACT_NAV_MEDIA]: { display: "none" },
               }}
             >
               v{APP_VERSION}
             </Typography>
           </Box>
-          {hasSystemAdminAccess(user) && (
-            <Button color="inherit" onClick={() => navigate("/dashboard")}>
-              {t("header.nav.dashboard")}
-            </Button>
-          )}
-          {hasSystemAdminAccess(user) && (
-            <>
-              <Button
-                color="inherit"
-                onClick={handleManagementMenuOpen}
-                endIcon={<KeyboardArrowDownIcon />}
-                aria-haspopup="true"
-                aria-controls={
-                  Boolean(managementAnchorEl) ? "management-menu" : undefined
-                }
-              >
-                {t("header.nav.managementMenu", "관리 메뉴")}
-              </Button>
-              <Menu
-                id="management-menu"
-                anchorEl={managementAnchorEl}
-                open={Boolean(managementAnchorEl)}
-                onClose={handleManagementMenuClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                transformOrigin={{ vertical: "top", horizontal: "left" }}
-                PaperProps={{
-                  sx: { minWidth: 200, mt: 1 },
-                }}
-                slotProps={{
-                  list: { dense: true },
-                }}
-              >
-                <MenuItem
-                  onClick={() => handleManagementNavigate("/organizations")}
-                >
-                  <Typography variant="body2">
-                    {t("header.nav.organizationManagement")}
-                  </Typography>
-                </MenuItem>
-                <MenuItem onClick={() => handleManagementNavigate("/users")}>
-                  <Typography variant="body2">
-                    {t("header.nav.userManagement")}
-                  </Typography>
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleManagementNavigate("/mail-settings")}
-                >
-                  <Typography variant="body2">
-                    {t("header.nav.mailSettings")}
-                  </Typography>
-                </MenuItem>
-                {/* <MenuItem onClick={() => handleManagementNavigate('/translation-management')}>
-                  <Typography variant="body2">
-                    {t('header.nav.translationManagement')}
-                  </Typography>
-                </MenuItem> */}
-                <MenuItem
-                  onClick={() => handleManagementNavigate("/llm-config")}
-                >
-                  <Typography variant="body2">
-                    {t("header.nav.llmConfig", "LLM 설정")}
-                  </Typography>
-                </MenuItem>
-                <MenuItem
-                  onClick={() => handleManagementNavigate("/scheduler")}
-                >
-                  <Typography variant="body2">
-                    {t("header.nav.schedulerManagement", "스케줄러 관리")}
-                  </Typography>
-                </MenuItem>
-              </Menu>
-            </>
-          )}
-          <Button
-            color="inherit"
-            onClick={() => navigate("/projects")}
-            data-testid="project-selection-nav"
-          >
-            {t("header.nav.projectSelection")}
-          </Button>
+          {/* 대시보드 · 관리 메뉴 · 프로젝트 선택. 1024px 미만에서는 햄버거 하나로 묶인다(ICT-510). */}
+          <AppHeaderNav
+            isAdmin={hasSystemAdminAccess(user)}
+            onNavigate={navigate}
+          />
 
           {/* JIRA 상태 인디케이터 */}
-          <Box sx={{ ml: 2, mr: 1 }}>
+          <Box
+            sx={{
+              ml: 2,
+              mr: 1,
+              flexShrink: 0,
+              [COMPACT_NAV_MEDIA]: { ml: 0.5, mr: 0 },
+            }}
+          >
             <JiraStatusIndicator compact={true} />
           </Box>
 
-          {/* 사용자 매뉴얼 (한/영) — 새 탭으로 열기 */}
-          <Box sx={{ ml: 1 }}>
+          {/* 사용자 매뉴얼 (한/영) — 새 탭으로 열기.
+              좁은 화면에서는 숨긴다. 같은 항목이 사용자 메뉴에 있다(ICT-510). */}
+          <Box
+            sx={{
+              ml: 1,
+              flexShrink: 0,
+              [COMPACT_NAV_MEDIA]: { display: "none" },
+            }}
+          >
             <IconButton
               sx={CHROME_ICON_SX}
               color="inherit"
@@ -1025,7 +975,7 @@ const AppContent = () => {
           </Box>
 
           {/* 네비게이션 구조 전환 (가로 탭 ↔ 좌측 사이드바) */}
-          <Box sx={{ ml: 1 }}>
+          <Box sx={HEADER_ICON_SLOT_SX}>
             <IconButton
               sx={CHROME_ICON_SX}
               color="inherit"
@@ -1046,7 +996,7 @@ const AppContent = () => {
           </Box>
 
           {/* Dark/Light 모드 토글 버튼 */}
-          <Box sx={{ ml: 1 }}>
+          <Box sx={HEADER_ICON_SLOT_SX}>
             <IconButton
               color="inherit"
               onClick={toggleTheme}
@@ -1059,12 +1009,13 @@ const AppContent = () => {
             </IconButton>
           </Box>
 
-          <Box sx={{ ml: 1 }}>
+          <Box sx={HEADER_ICON_SLOT_SX}>
             <IconButton
               size="large"
               color="inherit"
               onClick={handleUserMenuOpen}
               aria-label="user menu"
+              sx={{ [COMPACT_NAV_MEDIA]: { p: 0.5 } }}
             >
               <Avatar>{user.name ? user.name[0] : "U"}</Avatar>
             </IconButton>
@@ -1184,7 +1135,7 @@ const AppContent = () => {
                 currentLabel={t("projectSettings.title", "프로젝트 설정")}
               />
             )}
-            <Box sx={{ display: "flex", alignItems: "stretch" }}>
+            <Box sx={SIDEBAR_ROW_SX}>
               {isSidebarMode && (
                 <ProjectSidebar
                   tabIndex={-1}
@@ -1194,7 +1145,12 @@ const AppContent = () => {
                 />
               )}
               <Box
-                sx={{ flexGrow: 1, minWidth: 0, pl: isSidebarMode ? 1.5 : 0 }}
+                sx={{
+                  flexGrow: 1,
+                  minWidth: 0,
+                  pl: isSidebarMode ? 1.5 : 0,
+                  [COMPACT_NAV_MEDIA]: { pl: 0 },
+                }}
               >
                 <ProjectSettingsPage />
               </Box>
@@ -1221,7 +1177,7 @@ const AppContent = () => {
                   showExploratoryTab={showExploratorySessionTab}
                 />
                 {/* 사이드바 모드: 좌측 영역 메뉴 + 본문. 탭 모드에서는 래퍼만 통과한다. */}
-                <Box sx={{ display: "flex", alignItems: "stretch" }}>
+                <Box sx={SIDEBAR_ROW_SX}>
                   {isSidebarMode && (
                     <ProjectSidebar
                       tabIndex={tabIndex}
@@ -1235,6 +1191,7 @@ const AppContent = () => {
                       flexGrow: 1,
                       minWidth: 0,
                       pl: isSidebarMode ? 1.5 : 0,
+                      [COMPACT_NAV_MEDIA]: { pl: 0 },
                     }}
                   >
                     {tabIndex === 0 && (
@@ -1243,109 +1200,30 @@ const AppContent = () => {
                       </Paper>
                     )}
                     {tabIndex === 1 && (
-                      <Box
-                        ref={testcaseFrameRef}
-                        sx={{
-                          display: "flex",
-                          // 측정된 시작 위치부터 화면 바닥까지(하단 여백 12px) 채움
-                          height: `calc(100vh - ${testcaseFrameTop + 12}px)`,
-                        }}
-                      >
-                        {/* 트리 토글 버튼 - ICT-315 */}
-                        {!treeVisible && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              left: 16,
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                              zIndex: 10,
-                              backgroundColor: "background.paper",
-                              boxShadow: 2,
-                              borderRadius: 1,
-                            }}
-                          >
-                            <IconButton
-                              onClick={handleTreeToggle}
-                              size="small"
-                              sx={{
-                                color: "primary.main",
-                                "&:hover": { backgroundColor: "action.hover" },
-                              }}
-                              title={t("testcase.tree.tooltip.open")}
-                            >
-                              <ChevronRightIcon />
-                            </IconButton>
-                          </Box>
-                        )}
-
-                        {/* 트리 영역 */}
-                        {treeShown && (
-                          <>
-                            <Paper
-                              sx={{
-                                width: treeWidth,
-                                minWidth,
-                                maxWidth,
-                                height: "100%",
-                                transition: "width 0.3s ease-in-out",
-                                display: "flex",
-                                flexDirection: "column",
-                                p: 2,
-                                position: "relative",
-                              }}
-                              elevation={3}
-                            >
-                              {/* 트리 닫기 버튼 */}
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  right: 8,
-                                  top: 8,
-                                  zIndex: 5,
-                                }}
-                              >
-                                <IconButton
-                                  onClick={handleTreeToggle}
-                                  size="small"
-                                  sx={{
-                                    color: "text.secondary",
-                                    "&:hover": {
-                                      backgroundColor: "action.hover",
-                                      color: "primary.main",
-                                    },
-                                  }}
-                                  title={t("testcase.tree.tooltip.close")}
-                                >
-                                  <ChevronLeftIcon />
-                                </IconButton>
-                              </Box>
-
-                              <TestCaseTree
-                                projectId={
-                                  typeof activeProject === "object"
-                                    ? activeProject.id
-                                    : activeProject
-                                }
-                                onSelectTestCase={handleSelectTestCase}
-                                selectedTestCaseId={activeTestCaseId}
-                              />
-                            </Paper>
-                            <Resizer onDrag={handleResizerDrag} />
-                          </>
-                        )}
-
-                        {/* 입력폼/스프레드시트 영역 — 페이지 프레임(100vh-180px) 안에서 내부 스크롤 */}
-                        <Box
-                          sx={{
-                            flex: 1,
-                            minWidth: 0,
-                            ml: treeShown ? 1 : 0,
-                            transition: "margin-left 0.3s ease-in-out",
-                            height: "100%",
-                            overflowY: "auto",
-                          }}
-                        >
+                      // 트리 + 상세 칸. 768px 미만에서는 1단(트리 위, 상세 아래)으로 바뀐다(ICT-510).
+                      <TestCaseWorkspaceFrame
+                        frameRef={testcaseFrameRef}
+                        // 측정된 시작 위치부터 화면 바닥까지(하단 여백 12px) 채움
+                        height={`calc(100vh - ${testcaseFrameTop + 12}px)`}
+                        treeVisible={treeVisible}
+                        treeShown={treeShown}
+                        treeWidth={treeWidth}
+                        treeMinWidth={minWidth}
+                        treeMaxWidth={maxWidth}
+                        onTreeToggle={handleTreeToggle}
+                        onResizerDrag={handleResizerDrag}
+                        tree={
+                          <TestCaseTree
+                            projectId={
+                              typeof activeProject === "object"
+                                ? activeProject.id
+                                : activeProject
+                            }
+                            onSelectTestCase={handleSelectTestCase}
+                            selectedTestCaseId={activeTestCaseId}
+                          />
+                        }
+                        detail={
                           <TestCaseHybridForm
                             projectId={
                               typeof activeProject === "object"
@@ -1358,8 +1236,8 @@ const AppContent = () => {
                             treeHiddenByLayout={treeHiddenByLayout}
                             onTreeHiddenByLayoutChange={setTreeHiddenByLayout}
                           />
-                        </Box>
-                      </Box>
+                        }
+                      />
                     )}
                     {tabIndex === 2 && isSidebarMode && (
                       <PlanExecutionWorkspace

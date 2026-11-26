@@ -347,6 +347,29 @@ describe("PlanExecutionWorkspace", () => {
     );
   });
 
+  // ICT-510: 목록 머리 줄(260px)에 제목·건수·글자 버튼이 함께 들어가 제목이
+  // "테스트 플...", "테스트실..." 로 잘렸다. 만들기 버튼을 아이콘으로 바꾸고 제목은 줄지 않게 한다.
+  it("플랜 목록 머리: 제목은 줄지 않고, 만들기 입구는 이름 있는 아이콘 버튼이다", () => {
+    setup({ mode: "plans" });
+    const title = screen.getByTestId("workspace-list-title");
+    expect(title).toHaveTextContent("테스트플랜");
+    expect(title).toHaveStyle({ flexShrink: "0" });
+    const create = screen.getByTestId("workspace-new-plan");
+    expect(create).toHaveAccessibleName("플랜 만들기");
+    // 글자 라벨은 버튼 안에 그리지 않는다(이름은 aria-label·툴팁으로 전달)
+    expect(create).not.toHaveTextContent("플랜 만들기");
+  });
+
+  it("실행 목록 머리: 제목은 줄지 않고, 만들기 입구는 이름 있는 아이콘 버튼이다", async () => {
+    setup({ mode: "executions" });
+    const create = await screen.findByTestId("workspace-new-execution-top");
+    expect(create).toHaveAccessibleName("실행 만들기");
+    expect(create).not.toHaveTextContent("실행 만들기");
+    const title = screen.getByTestId("workspace-list-title");
+    expect(title).toHaveTextContent("테스트실행");
+    expect(title).toHaveStyle({ flexShrink: "0" });
+  });
+
   it("편집 가능한 역할에는 플랜 만들기 입구가 있다", () => {
     setup({ mode: "plans" });
     expect(screen.getByTestId("workspace-new-plan")).toBeInTheDocument();
