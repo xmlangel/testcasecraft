@@ -102,7 +102,12 @@ function RequirementCoverageCharts({ coverage, specs }) {
                 ))}
               </Pie>
               <Tooltip />
-              <Legend formatter={legendTextFormatter} verticalAlign="bottom" height={28} itemSorter={null} />
+              <Legend
+                formatter={legendTextFormatter}
+                verticalAlign="bottom"
+                height={28}
+                itemSorter={null}
+              />
             </PieChart>
           </ResponsiveContainer>
           {/* 도넛 가운데: 테스트 대상 중 충족 비율(제외는 분모에서 빠진다) */}

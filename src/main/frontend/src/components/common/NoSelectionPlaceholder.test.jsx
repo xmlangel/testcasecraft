@@ -14,9 +14,9 @@ describe("NoSelectionPlaceholder", () => {
     render(<NoSelectionPlaceholder />);
     expect(screen.getByTestId("testcase-empty-state")).toBeInTheDocument();
     expect(screen.getByTestId("testcase-empty-state-icon")).toBeTruthy();
-    expect(
-      screen.getByTestId("testcase-empty-state-title"),
-    ).toHaveTextContent("폴더나 테스트 케이스를 선택해주세요.");
+    expect(screen.getByTestId("testcase-empty-state-title")).toHaveTextContent(
+      "폴더나 테스트 케이스를 선택해주세요.",
+    );
     expect(
       screen.getByTestId("testcase-empty-state-description"),
     ).toHaveTextContent("좌측 트리에서 항목을 선택하면");

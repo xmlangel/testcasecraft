@@ -19,7 +19,12 @@ describe("ChatHeader 모델 선택 상자 대비", () => {
         <ChatHeader
           isAdmin
           activeLlmConfigs={[
-            { id: "c1", provider: "OPENWEBUI", modelName: "gemma4", isDefault: true },
+            {
+              id: "c1",
+              provider: "OPENWEBUI",
+              modelName: "gemma4",
+              isDefault: true,
+            },
           ]}
           selectedLlmConfigId="c1"
           onLlmConfigChange={vi.fn()}
@@ -57,8 +62,12 @@ describe("ChatHeader 모델 선택 상자 대비", () => {
         />
       </ThemeProvider>,
     );
-    expect(screen.getByRole("button", { name: "전체화면 보기" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "전체화면 보기" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "재시도" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "대화 초기화" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "대화 초기화" }),
+    ).toBeInTheDocument();
   });
 });

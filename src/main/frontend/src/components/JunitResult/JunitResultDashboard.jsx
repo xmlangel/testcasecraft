@@ -822,7 +822,10 @@ export default function JunitResultDashboard() {
                         dense
                         icon={PieChart}
                         data-testid="junit-chart-status-empty"
-                        title={t("junit.empty.noResults", "테스트 결과가 없습니다")}
+                        title={t(
+                          "junit.empty.noResults",
+                          "테스트 결과가 없습니다",
+                        )}
                         description={t(
                           "junit.empty.uploadPrompt",
                           "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
@@ -868,7 +871,10 @@ export default function JunitResultDashboard() {
                             }}
                             itemStyle={{ color: theme.palette.text.primary }}
                           />
-                          <Legend formatter={legendTextFormatter} wrapperStyle={{ fontSize: "0.8125rem" }} />
+                          <Legend
+                            formatter={legendTextFormatter}
+                            wrapperStyle={{ fontSize: "0.8125rem" }}
+                          />
                           <Bar
                             dataKey={t("junit.stats.passed")}
                             fill={RESULT_COLORS.PASS}
@@ -892,7 +898,10 @@ export default function JunitResultDashboard() {
                         dense
                         icon={BarChart}
                         data-testid="junit-chart-recent-empty"
-                        title={t("junit.empty.noResults", "테스트 결과가 없습니다")}
+                        title={t(
+                          "junit.empty.noResults",
+                          "테스트 결과가 없습니다",
+                        )}
                         description={t(
                           "junit.empty.uploadPrompt",
                           "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",

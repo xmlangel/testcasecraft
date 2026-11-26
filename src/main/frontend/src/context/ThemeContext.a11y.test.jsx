@@ -36,12 +36,16 @@ const AA = 4.5;
 describe("주 색 대비 (ICT-509)", () => {
   it("라이트 모드 primary.main 은 흰 배경에서 4.5:1 이상이다", () => {
     const theme = createAppTheme("light");
-    expect(contrast(theme.palette.primary.main, WHITE)).toBeGreaterThanOrEqual(AA);
+    expect(contrast(theme.palette.primary.main, WHITE)).toBeGreaterThanOrEqual(
+      AA,
+    );
   });
 
   it("다크 모드 primary.main 은 어두운 배경에서 4.5:1 이상이다", () => {
     const theme = createAppTheme("dark");
-    expect(contrast(theme.palette.primary.main, DARK_BG)).toBeGreaterThanOrEqual(AA);
+    expect(
+      contrast(theme.palette.primary.main, DARK_BG),
+    ).toBeGreaterThanOrEqual(AA);
   });
 
   it("라이트 모드 채움 버튼 그라데이션 양 끝은 흰 글자 대비 4.5:1 이상이다", () => {
@@ -93,12 +97,15 @@ describe("주 색 대비 (ICT-509)", () => {
 });
 
 describe("키보드 포커스 링 (ICT-509)", () => {
-  it.each(["light", "dark"])("%s 모드 ButtonBase 에 포커스 링이 있다", (mode) => {
-    const theme = createAppTheme(mode);
-    const root = theme.components.MuiButtonBase.styleOverrides.root;
-    expect(root["&.Mui-focusVisible"]).toEqual(focusRing(mode === "light"));
-    expect(root["&.Mui-focusVisible"].outline).toMatch(/^2px solid #/);
-  });
+  it.each(["light", "dark"])(
+    "%s 모드 ButtonBase 에 포커스 링이 있다",
+    (mode) => {
+      const theme = createAppTheme(mode);
+      const root = theme.components.MuiButtonBase.styleOverrides.root;
+      expect(root["&.Mui-focusVisible"]).toEqual(focusRing(mode === "light"));
+      expect(root["&.Mui-focusVisible"].outline).toMatch(/^2px solid #/);
+    },
+  );
 
   it("전역 :focus-visible 에도 같은 링을 건다", () => {
     const theme = createAppTheme("light");
@@ -118,23 +125,28 @@ describe("키보드 포커스 링 (ICT-509)", () => {
 describe("한글 글꼴 (ICT-509)", () => {
   const theme = createAppTheme("light");
 
-  it.each(["fontFamily", "body1", "body2", "button", "caption", "overline", "h5"])(
-    "typography.%s 는 Pretendard 를 한글 대체 글꼴로 둔다",
-    (key) => {
-      const family =
-        key === "fontFamily"
-          ? theme.typography.fontFamily
-          : theme.typography[key].fontFamily;
-      expect(family).toMatch(/Pretendard/);
-    },
-  );
+  it.each([
+    "fontFamily",
+    "body1",
+    "body2",
+    "button",
+    "caption",
+    "overline",
+    "h5",
+  ])("typography.%s 는 Pretendard 를 한글 대체 글꼴로 둔다", (key) => {
+    const family =
+      key === "fontFamily"
+        ? theme.typography.fontFamily
+        : theme.typography[key].fontFamily;
+    expect(family).toMatch(/Pretendard/);
+  });
 
   it("한글 문장이 들어가는 caption·overline·칩은 고정폭 글꼴을 쓰지 않는다", () => {
     expect(theme.typography.caption.fontFamily).not.toMatch(/JetBrains Mono/);
     expect(theme.typography.overline.fontFamily).not.toMatch(/JetBrains Mono/);
-    expect(
-      theme.components.MuiChip.styleOverrides.root.fontFamily,
-    ).not.toMatch(/JetBrains Mono/);
+    expect(theme.components.MuiChip.styleOverrides.root.fontFamily).not.toMatch(
+      /JetBrains Mono/,
+    );
   });
 
   it("칩을 렌더하면 Pretendard 가 포함된 글꼴로 그린다", () => {
@@ -151,19 +163,28 @@ describe("한글 글꼴 (ICT-509)", () => {
 describe("보조 색·아바타 대비 (ICT-509 재측정 후속)", () => {
   it("라이트 모드 secondary.main·dark 는 흰 배경에서 4.5:1 이상이다", () => {
     const theme = createAppTheme("light");
-    expect(contrast(theme.palette.secondary.main, WHITE)).toBeGreaterThanOrEqual(AA);
-    expect(contrast(theme.palette.secondary.dark, WHITE)).toBeGreaterThanOrEqual(AA);
+    expect(
+      contrast(theme.palette.secondary.main, WHITE),
+    ).toBeGreaterThanOrEqual(AA);
+    expect(
+      contrast(theme.palette.secondary.dark, WHITE),
+    ).toBeGreaterThanOrEqual(AA);
   });
 
   it("다크 모드 secondary.main 은 어두운 배경에서 4.5:1 이상이다", () => {
     const theme = createAppTheme("dark");
-    expect(contrast(theme.palette.secondary.main, DARK_BG)).toBeGreaterThanOrEqual(AA);
+    expect(
+      contrast(theme.palette.secondary.main, DARK_BG),
+    ).toBeGreaterThanOrEqual(AA);
   });
 
-  it.each(["light", "dark"])("%s 모드 기본 아바타 글자는 바탕 대비 4.5:1 이상이다", (mode) => {
-    const theme = createAppTheme(mode);
-    const { backgroundColor, color } =
-      theme.components.MuiAvatar.styleOverrides.colorDefault;
-    expect(contrast(color, backgroundColor)).toBeGreaterThanOrEqual(AA);
-  });
+  it.each(["light", "dark"])(
+    "%s 모드 기본 아바타 글자는 바탕 대비 4.5:1 이상이다",
+    (mode) => {
+      const theme = createAppTheme(mode);
+      const { backgroundColor, color } =
+        theme.components.MuiAvatar.styleOverrides.colorDefault;
+      expect(contrast(color, backgroundColor)).toBeGreaterThanOrEqual(AA);
+    },
+  );
 });
