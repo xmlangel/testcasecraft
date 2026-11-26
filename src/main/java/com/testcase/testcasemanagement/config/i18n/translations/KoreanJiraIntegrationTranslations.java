@@ -240,7 +240,7 @@ public class KoreanJiraIntegrationTranslations {
     createTranslationIfNotExists(
         "jira.comment.template.title", languageCode, "테스트 결과 업데이트", createdBy);
     createTranslationIfNotExists(
-        "jira.comment.template.testCase", languageCode, "테스트 케이스:", createdBy);
+        "jira.comment.template.testCase", languageCode, "테스트케이스:", createdBy);
     createTranslationIfNotExists("jira.comment.template.result", languageCode, "결과:", createdBy);
     createTranslationIfNotExists(
         "jira.comment.template.executedAt", languageCode, "실행 시각:", createdBy);
@@ -306,7 +306,7 @@ public class KoreanJiraIntegrationTranslations {
     createTranslationIfNotExists(
         "jira.create.template.actualResult", languageCode, "### 실제 결과", createdBy);
     createTranslationIfNotExists(
-        "jira.create.template.testCase", languageCode, "**테스트 케이스**: {name}", createdBy);
+        "jira.create.template.testCase", languageCode, "**테스트케이스**: {name}", createdBy);
     createTranslationIfNotExists(
         "jira.create.template.steps", languageCode, "### 테스트 단계", createdBy);
     createTranslationIfNotExists(

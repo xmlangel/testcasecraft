@@ -64,11 +64,11 @@ public class KoreanTestExecutionTranslations {
         "'실행시작' 버튼을 클릭하면 테스트 실행이 '진행 중' 상태로 변경됩니다.",
         createdBy);
     createTranslationIfNotExists(
-        "testExecution.guide.step3.title", languageCode, "3. 테스트 케이스 실행", createdBy);
+        "testExecution.guide.step3.title", languageCode, "3. 테스트케이스 실행", createdBy);
     createTranslationIfNotExists(
         "testExecution.guide.step3.description",
         languageCode,
-        "각 테스트 케이스의 '결과입력' 버튼을 클릭하여 테스트 결과를 기록합니다.",
+        "각 테스트케이스의 '결과입력' 버튼을 클릭하여 테스트 결과를 기록합니다.",
         createdBy);
     createTranslationIfNotExists(
         "testExecution.guide.step4.title", languageCode, "4. 실행 완료", createdBy);
@@ -142,7 +142,7 @@ public class KoreanTestExecutionTranslations {
         "testExecution.form.saveAndStart", languageCode, "저장 후 시작", createdBy);
     createTranslationIfNotExists(
         "testExecution.form.executionName", languageCode, "실행명", createdBy);
-    createTranslationIfNotExists("testExecution.form.testPlan", languageCode, "테스트플랜", createdBy);
+    createTranslationIfNotExists("testExecution.form.testPlan", languageCode, "테스트 플랜", createdBy);
     createTranslationIfNotExists("testExecution.form.description", languageCode, "설명", createdBy);
     createTranslationIfNotExists("testExecution.form.progress", languageCode, "진행률", createdBy);
     createTranslationIfNotExists(
@@ -191,11 +191,11 @@ public class KoreanTestExecutionTranslations {
         "'실행시작' 버튼을 클릭하면 테스트 실행이 '진행 중' 상태로 변경됩니다.",
         createdBy);
     createTranslationIfNotExists(
-        "testExecution.guide.step3.title", languageCode, "3. 테스트 케이스 실행", createdBy);
+        "testExecution.guide.step3.title", languageCode, "3. 테스트케이스 실행", createdBy);
     createTranslationIfNotExists(
         "testExecution.guide.step3.description",
         languageCode,
-        "각 테스트 케이스의 '결과입력' 버튼을 클릭하여 테스트 결과를 기록합니다.",
+        "각 테스트케이스의 '결과입력' 버튼을 클릭하여 테스트 결과를 기록합니다.",
         createdBy);
     createTranslationIfNotExists(
         "testExecution.guide.step4.title", languageCode, "4. 실행 완료", createdBy);
@@ -255,7 +255,7 @@ public class KoreanTestExecutionTranslations {
         "테스트 실행명, 설명, 담당자 등 기본 정보를 입력합니다",
         createdBy);
     createTranslationIfNotExists(
-        "testExecution.guide.step3.title", languageCode, "단계 3: 테스트 케이스 확인", createdBy);
+        "testExecution.guide.step3.title", languageCode, "단계 3: 테스트케이스 확인", createdBy);
     createTranslationIfNotExists(
         "testExecution.guide.step3.description",
         languageCode,
@@ -273,21 +273,21 @@ public class KoreanTestExecutionTranslations {
     createTranslationIfNotExists(
         "testExecution.guide.step5.description",
         languageCode,
-        "각 테스트 케이스별로 실행 결과를 입력합니다",
+        "각 테스트케이스별로 실행 결과를 입력합니다",
         createdBy);
     createTranslationIfNotExists(
         "testExecution.guide.step6.title", languageCode, "단계 6: 실행 완료", createdBy);
     createTranslationIfNotExists(
         "testExecution.guide.step6.description",
         languageCode,
-        "모든 테스트 케이스 실행이 완료되면 전체 실행을 종료합니다",
+        "모든 테스트케이스 실행이 완료되면 전체 실행을 종료합니다",
         createdBy);
     createTranslationIfNotExists("testExecution.list.title", languageCode, "테스트 실행 목록", createdBy);
     createTranslationIfNotExists(
         "testExecution.list.delete.title", languageCode, "테스트 실행 삭제", createdBy);
     createTranslationIfNotExists(
         "testExecution.status.notStarted", languageCode, "시작 안됨", createdBy);
-    createTranslationIfNotExists("testExecution.status.inProgress", languageCode, "진행중", createdBy);
+    createTranslationIfNotExists("testExecution.status.inProgress", languageCode, "진행 중", createdBy);
     createTranslationIfNotExists("testExecution.status.completed", languageCode, "완료", createdBy);
     createTranslationIfNotExists(
         "testExecution.list.newExecution", languageCode, "새 실행", createdBy);
@@ -390,7 +390,7 @@ public class KoreanTestExecutionTranslations {
     createTranslationIfNotExists("testExecution.filter.apply", languageCode, "적용", createdBy);
     createTranslationIfNotExists("testExecution.filter.clear", languageCode, "초기화", createdBy);
     createTranslationIfNotExists(
-        "testExecution.filter.testCaseName", languageCode, "테스트 케이스명", createdBy);
+        "testExecution.filter.testCaseName", languageCode, "테스트케이스명", createdBy);
     createTranslationIfNotExists(
         "testExecution.filter.testCaseName.placeholder", languageCode, "케이스명 검색", createdBy);
 

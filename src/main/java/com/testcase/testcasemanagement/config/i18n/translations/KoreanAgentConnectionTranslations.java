@@ -31,7 +31,7 @@ public class KoreanAgentConnectionTranslations {
     create(
         "agentConnection.intro",
         lang,
-        "자연어 테스트 케이스를 브라우저에서 실행하는 외부 에이전트를 연결합니다. 에이전트는 제품 밖에서 돌고, 결과만 테스트실행으로 들어옵니다.",
+        "자연어 테스트케이스를 브라우저에서 실행하는 외부 에이전트를 연결합니다. 에이전트는 제품 밖에서 돌고, 결과만 테스트실행으로 들어옵니다.",
         by);
     create("agentConnection.unset", lang, "아직 연결된 에이전트가 없습니다.", by);
     create("agentConnection.readonly", lang, "에이전트 연동 설정은 프로젝트 매니저와 시스템 관리자만 바꿀 수 있습니다.", by);

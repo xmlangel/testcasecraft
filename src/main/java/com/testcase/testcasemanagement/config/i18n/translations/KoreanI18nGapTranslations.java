@@ -395,11 +395,11 @@ public class KoreanI18nGapTranslations {
         "rag.chat.documentFallback", languageCode, "문서 {index}", createdBy);
     createTranslationIfNotExists(
         "rag.chat.documentTooltip", languageCode, "문서 상세 정보 보기", createdBy);
-    createTranslationIfNotExists(
-        "rag.chat.generatedTestCases", languageCode, "생성된 테스트 케이스 ({count})", createdBy);
+    seedIndex.upsertTranslation(
+        "rag.chat.generatedTestCases", languageCode, "생성된 테스트케이스 ({count})", createdBy, true);
     createTranslationIfNotExists("rag.chat.hideJson", languageCode, "JSON 원본 숨기기", createdBy);
-    createTranslationIfNotExists(
-        "rag.chat.jsonHidden", languageCode, "테스트 케이스 데이터가 감지되었습니다.", createdBy);
+    seedIndex.upsertTranslation(
+        "rag.chat.jsonHidden", languageCode, "테스트케이스 데이터가 감지되었습니다.", createdBy, true);
     createTranslationIfNotExists("rag.chat.showJson", languageCode, "JSON 원본 보기", createdBy);
     createTranslationIfNotExists("rag.chat.stopStreaming", languageCode, "전송 중지", createdBy);
     createTranslationIfNotExists(
@@ -475,8 +475,8 @@ public class KoreanI18nGapTranslations {
         "testCase.export.pdfSuccess", languageCode, "PDF 파일이 다운로드되었습니다: {filename}", createdBy);
     createTranslationIfNotExists("testCase.form.tags", languageCode, "태그", createdBy);
     createTranslationIfNotExists("testCase.priority.label", languageCode, "우선순위", createdBy);
-    createTranslationIfNotExists(
-        "testCaseResult.page.loadingData", languageCode, "테스트 케이스 정보를 불러오는 중입니다...", createdBy);
+    seedIndex.upsertTranslation(
+        "testCaseResult.page.loadingData", languageCode, "테스트케이스 정보를 불러오는 중입니다...", createdBy, true);
     createTranslationIfNotExists(
         "testExecution.actions.copyResultLink", languageCode, "결과 입력 링크 복사", createdBy);
     createTranslationIfNotExists(
@@ -630,8 +630,8 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testExecution.sections.filters", languageCode, "필터", createdBy);
     createTranslationIfNotExists(
         "testExecution.sections.list", languageCode, "테스트 실행 목록", createdBy);
-    createTranslationIfNotExists(
-        "testExecution.sections.caseList", languageCode, "테스트 케이스 실행 목록", createdBy);
+    seedIndex.upsertTranslation(
+        "testExecution.sections.caseList", languageCode, "테스트케이스 실행 목록", createdBy, true);
     createTranslationIfNotExists("testExecution.summary.cases", languageCode, "건", createdBy);
     createTranslationIfNotExists("testExecution.summary.total", languageCode, "총", createdBy);
     createTranslationIfNotExists("testExecution.table.id", languageCode, "ID", createdBy);
@@ -718,8 +718,8 @@ public class KoreanI18nGapTranslations {
         "testResult.filteredCases.col.action", languageCode, "이동", createdBy);
     createTranslationIfNotExists(
         "testResult.filteredCases.col.folder", languageCode, "폴더 경로", createdBy);
-    createTranslationIfNotExists(
-        "testResult.filteredCases.col.testCase", languageCode, "테스트 케이스", createdBy);
+    seedIndex.upsertTranslation(
+        "testResult.filteredCases.col.testCase", languageCode, "테스트케이스", createdBy, true);
     createTranslationIfNotExists(
         "testResult.filteredCases.col.testPlan", languageCode, "테스트 플랜", createdBy);
     createTranslationIfNotExists(
@@ -762,8 +762,8 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists(
         "testResult.jiraDialog.col.jiraKey", languageCode, "JIRA 이슈", createdBy);
     createTranslationIfNotExists("testResult.jiraDialog.col.result", languageCode, "결과", createdBy);
-    createTranslationIfNotExists(
-        "testResult.jiraDialog.col.testCase", languageCode, "테스트 케이스", createdBy);
+    seedIndex.upsertTranslation(
+        "testResult.jiraDialog.col.testCase", languageCode, "테스트케이스", createdBy, true);
     createTranslationIfNotExists(
         "testResult.jiraDialog.count", languageCode, "{count}건", createdBy);
     createTranslationIfNotExists(
@@ -831,11 +831,11 @@ public class KoreanI18nGapTranslations {
     createTranslationIfNotExists("testcase.column.tags", languageCode, "태그", createdBy);
     createTranslationIfNotExists("testcase.column.updatedBy", languageCode, "수정자", createdBy);
     createTranslationIfNotExists("testcase.description", languageCode, "설명", createdBy);
-    createTranslationIfNotExists(
+    seedIndex.upsertTranslation(
         "testcase.dialog.delete.folderWarning",
         languageCode,
-        "폴더를 삭제하면 하위 테스트 케이스도 모두 삭제됩니다.",
-        createdBy);
+        "폴더를 삭제하면 하위 테스트케이스도 모두 삭제됩니다.",
+        createdBy, true);
     createTranslationIfNotExists("testcase.expectedResults", languageCode, "예상 결과 (전체)", createdBy);
     createTranslationIfNotExists("testcase.field.description", languageCode, "설명", createdBy);
     createTranslationIfNotExists(

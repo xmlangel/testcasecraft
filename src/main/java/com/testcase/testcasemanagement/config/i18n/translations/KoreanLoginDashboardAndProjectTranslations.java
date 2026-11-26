@@ -198,9 +198,9 @@ public class KoreanLoginDashboardAndProjectTranslations {
     createTranslationIfNotExists("projectHeader.tabs.dashboard", languageCode, "대시보드", createdBy);
     createTranslationIfNotExists("projectHeader.tabs.testCases", languageCode, "테스트케이스", createdBy);
     createTranslationIfNotExists(
-        "projectHeader.tabs.testExecution", languageCode, "테스트실행", createdBy);
+        "projectHeader.tabs.testExecution", languageCode, "테스트 실행", createdBy);
     createTranslationIfNotExists(
-        "projectHeader.tabs.testResults", languageCode, "테스트결과", createdBy);
+        "projectHeader.tabs.testResults", languageCode, "테스트 결과", createdBy);
     createTranslationIfNotExists(
         "projectHeader.tabs.automation", languageCode, "자동화 테스트", createdBy);
     createTranslationIfNotExists(
