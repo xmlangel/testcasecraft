@@ -32,6 +32,8 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   FullscreenExit as FullscreenExitIcon,
+  UnfoldMore as UnfoldMoreIcon,
+  UnfoldLess as UnfoldLessIcon,
 } from "@mui/icons-material";
 import Spreadsheet from "react-spreadsheet";
 import TestCaseImportExportDialog from "./TestCaseImportExportDialog.jsx";
@@ -69,6 +71,7 @@ import {
 } from "./Spreadsheet/components/SpreadsheetDialogs.jsx";
 import { DeleteConfirmationDialog } from "./Spreadsheet/components/DeleteConfirmationDialog.jsx";
 import KoreanAwareDataEditor from "./Spreadsheet/components/KoreanAwareDataEditor.jsx";
+import ClampedDataViewer from "./Spreadsheet/components/ClampedDataViewer.jsx";
 import SpreadsheetToolbar from "./Spreadsheet/components/SpreadsheetToolbar.jsx";
 import {
   StepMenu,
@@ -120,6 +123,9 @@ const TestCaseSpreadsheet = ({
 
   // 전체화면 상태
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // 긴 셀 펼침 상태 (ICT-514) — 기본은 셀마다 3줄까지만 보여 행 높이를 묶는다
+  const [cellsExpanded, setCellsExpanded] = useState(false);
 
   // Export 관련 상태
   const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
@@ -1109,6 +1115,21 @@ const TestCaseSpreadsheet = ({
   // 스프레드시트 컨텐츠 렌더링 함수
   const renderSpreadsheetContent = () => (
     <>
+      {/* 긴 셀 펼침 전환 (ICT-514) — 읽기 전용에서도 쓴다 */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button
+          size="small"
+          onClick={() => setCellsExpanded((prev) => !prev)}
+          startIcon={cellsExpanded ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
+          aria-pressed={cellsExpanded}
+          data-testid="spreadsheet-cells-expand-toggle"
+        >
+          {cellsExpanded
+            ? t("testcase.spreadsheet.button.collapseCells", "긴 셀 3줄로 줄이기")
+            : t("testcase.spreadsheet.button.expandCells", "긴 셀 모두 펼치기")}
+        </Button>
+      </Box>
+
       {/* 사용법 안내 - 접기/펼치기 */}
       {!readOnly && (
         <Box sx={{ mb: 2 }}>
@@ -1155,6 +1176,8 @@ const TestCaseSpreadsheet = ({
 
       {/* 스프레드시트 */}
       <Box
+        data-testid="spreadsheet-grid-container"
+        data-cells-expanded={cellsExpanded ? "true" : "false"}
         sx={{
           mt: 2,
           minHeight: 300,
@@ -1195,6 +1218,21 @@ const TestCaseSpreadsheet = ({
             wordBreak: "break-word",
             overflowWrap: "anywhere",
             verticalAlign: "top",
+          },
+          // ICT-514: 긴 셀은 기본 3줄까지만 보인다. 펼치기를 켜면 전체를 보인다.
+          "& .Spreadsheet__data-viewer--clampable": cellsExpanded
+            ? { display: "block" }
+            : {
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 3,
+                overflow: "hidden",
+              },
+          // ICT-514: 행 번호 열(모서리 칸 포함)은 라이브러리 기본 6em(약 96px)에서 줄인다.
+          "& .Spreadsheet__table tr > th:first-of-type": {
+            minWidth: "3.5em",
+            width: "3.5em",
+            maxWidth: "3.5em",
           },
           "& .Spreadsheet__cell--readonly": {
             backgroundColor:
@@ -1247,6 +1285,7 @@ const TestCaseSpreadsheet = ({
             onSelect={handleCellSelect}
             columnLabels={memoizedColumnLabels}
             DataEditor={KoreanAwareDataEditor}
+            DataViewer={ClampedDataViewer}
           />
         )}
       </Box>
@@ -1277,13 +1316,19 @@ const TestCaseSpreadsheet = ({
     <>
       <Card sx={{ minHeight: 400, display: isFullscreen ? "none" : "block" }}>
         <CardContent>
-          {/* 헤더 영역 */}
+          {/* 헤더 영역 — 상태 칩과 도구 모음을 표 위 한 줄에 둔다 (ICT-514).
+              예전에는 그림자 있는 도구 모음 카드가 sticky 로 떠서 표를 덮었다. */}
           <Box
+            data-testid="spreadsheet-header-bar"
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 2,
+              flexWrap: "wrap",
+              gap: 1,
+              mb: 1,
+              pb: 1,
+              borderBottom: `1px solid ${theme.palette.divider}`,
             }}
           >
             <Box>
@@ -1321,25 +1366,16 @@ const TestCaseSpreadsheet = ({
               </Box>
             </Box>
 
-            {/* 액션 버튼들 - 플로팅 메뉴 */}
+            {/* 액션 버튼들 — 표 위에 붙는 정적 도구 모음 */}
             {!readOnly && (
               <SpreadsheetToolbar
                 t={t}
                 sx={{
                   display: "flex",
-                  gap: 1,
-                  position: "sticky",
-                  top: 64, // AppBar 높이
-                  zIndex: 1100,
-                  backgroundColor: theme.palette.background.paper,
-                  padding: theme.spacing(1.5),
-                  borderRadius: 1,
-                  marginBottom: 2,
-                  marginX: -2, // CardContent padding 상쇄
-                  paddingX: 2,
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  gap: 0.75,
                   flexWrap: "wrap",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  borderBottom: `2px solid ${theme.palette.divider}`,
                 }}
                 isLoading={isLoading}
                 selectedRowIndex={selectedRowIndex}
@@ -1354,7 +1390,6 @@ const TestCaseSpreadsheet = ({
                 onAddFolder={handleAddFolder}
                 onDeleteRows={handleDeleteRows}
                 onValidate={handleValidateData}
-                onImportExport={() => setImportExportOpen(true)}
                 onExportMenu={handleExportMenuOpen}
                 onStepMenu={handleStepMenuOpen}
                 onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
@@ -1449,6 +1484,14 @@ const TestCaseSpreadsheet = ({
         <ExportMenu
           anchorEl={exportMenuAnchor}
           onClose={handleExportMenuClose}
+          onOpenImportExport={
+            isFullscreen
+              ? undefined
+              : () => {
+                  handleExportMenuClose();
+                  setImportExportOpen(true);
+                }
+          }
           onExportCsv={handleExportCSV}
           onExportExcel={handleExportExcel}
           onExportPdf={handleExportPDF}

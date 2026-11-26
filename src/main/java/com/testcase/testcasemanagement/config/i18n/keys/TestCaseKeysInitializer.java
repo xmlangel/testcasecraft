@@ -358,6 +358,11 @@ public class TestCaseKeysInitializer {
         "testcase.spreadsheet.button.fullscreen", "testcase", "전체화면 버튼", "전체화면");
     createTranslationKeyIfNotExists(
         "testcase.spreadsheet.button.exitFullscreen", "testcase", "전체화면 종료 버튼", "전체화면 종료");
+    // ICT-514: 긴 셀을 3줄로 줄여 보이고, 필요할 때 모두 펼친다
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.button.expandCells", "testcase", "긴 셀 펼치기 버튼", "긴 셀 모두 펼치기");
+    createTranslationKeyIfNotExists(
+        "testcase.spreadsheet.button.collapseCells", "testcase", "긴 셀 줄이기 버튼", "긴 셀 3줄로 줄이기");
 
     // 스프레드시트 컬럼 헤더
     createTranslationKeyIfNotExists(

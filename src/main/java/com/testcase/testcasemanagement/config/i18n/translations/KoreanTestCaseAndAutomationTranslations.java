@@ -63,6 +63,10 @@ public class KoreanTestCaseAndAutomationTranslations {
     createTranslationIfNotExists(
         "testcase.spreadsheet.button.exitFullscreen", languageCode, "전체화면 종료", createdBy);
     createTranslationIfNotExists(
+        "testcase.spreadsheet.button.expandCells", languageCode, "긴 셀 모두 펼치기", createdBy);
+    createTranslationIfNotExists(
+        "testcase.spreadsheet.button.collapseCells", languageCode, "긴 셀 3줄로 줄이기", createdBy);
+    createTranslationIfNotExists(
         "testcase.spreadsheet.column.createdBy", languageCode, "작성자", createdBy);
     createTranslationIfNotExists(
         "testcase.spreadsheet.column.updatedBy", languageCode, "수정자", createdBy);
