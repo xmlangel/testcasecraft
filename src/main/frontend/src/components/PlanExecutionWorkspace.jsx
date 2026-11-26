@@ -489,6 +489,9 @@ function PlanExecutionWorkspace({
   const listTitle = isExecutionsMode
     ? t("projectHeader.tabs.testExecution", "테스트실행")
     : t("testPlan.tab.label", "테스트플랜");
+  const createLabel = isExecutionsMode
+    ? t("testPlan.workspace.newExecution", "실행 만들기")
+    : t("testPlan.workspace.newPlan", "플랜 만들기");
   const listCount = isExecutionsMode
     ? projectExecutions.length
     : visiblePlans.length;
@@ -625,32 +628,43 @@ function PlanExecutionWorkspace({
       >
         {!listCollapsed && (
           <>
-            <Typography sx={CHROME_TYPOGRAPHY.paneTitle} noWrap>
+            {/* ICT-510: 제목은 줄어들지 않는다. 260px 줄에 제목·건수·글자 버튼이 함께 들어가
+                "테스트 플..." 처럼 잘렸으므로 만들기 버튼을 아이콘으로 바꿨다(이름은 툴팁·aria). */}
+            <Typography
+              sx={{ ...CHROME_TYPOGRAPHY.paneTitle, flexShrink: 0 }}
+              noWrap
+              data-testid="workspace-list-title"
+            >
               {listTitle}
             </Typography>
-            <Chip size="small" label={listCount} />
+            <Chip size="small" label={listCount} sx={{ flexShrink: 0 }} />
             <Box sx={{ flexGrow: 1 }} />
             {canEdit && (
-              <Button
-                size="small"
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={
-                  isExecutionsMode
-                    ? handleStartCreateExecution
-                    : handleStartCreatePlan
-                }
-                data-testid={
-                  isExecutionsMode
-                    ? "workspace-new-execution-top"
-                    : "workspace-new-plan"
-                }
-                sx={{ whiteSpace: "nowrap" }}
-              >
-                {isExecutionsMode
-                  ? t("testPlan.workspace.newExecution", "실행 만들기")
-                  : t("testPlan.workspace.newPlan", "플랜 만들기")}
-              </Button>
+              <Tooltip title={createLabel}>
+                <IconButton
+                  size="small"
+                  color="primary"
+                  aria-label={createLabel}
+                  onClick={
+                    isExecutionsMode
+                      ? handleStartCreateExecution
+                      : handleStartCreatePlan
+                  }
+                  data-testid={
+                    isExecutionsMode
+                      ? "workspace-new-execution-top"
+                      : "workspace-new-plan"
+                  }
+                  sx={{
+                    flexShrink: 0,
+                    bgcolor: "primary.main",
+                    color: "primary.contrastText",
+                    "&:hover": { bgcolor: "primary.dark" },
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             )}
           </>
         )}
