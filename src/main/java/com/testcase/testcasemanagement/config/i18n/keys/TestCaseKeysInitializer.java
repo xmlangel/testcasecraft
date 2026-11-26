@@ -129,6 +129,28 @@ public class TestCaseKeysInitializer {
     createTranslationKeyIfNotExists("testcase.form.button.close", "testcase", "닫기 버튼", "닫기");
     createTranslationKeyIfNotExists("testcase.form.button.create", "testcase", "버전 생성 버튼", "버전 생성");
     createTranslationKeyIfNotExists("testcase.form.button.add", "testcase", "추가 버튼", "새 케이스 추가");
+    // ICT-494 tl-2: 보기 모드의 주 동작(편집으로 전환)과 상세 머리 더보기 메뉴
+    createTranslationKeyIfNotExists("testcase.form.button.edit", "testcase", "편집 전환 버튼", "수정");
+    createTranslationKeyIfNotExists("testcase.form.button.more", "testcase", "더보기 메뉴 버튼", "더보기");
+    // ICT-494 tl-3: 상세 격자 맨 위 소유자 칸(작성자로 대신한다)
+    createTranslationKeyIfNotExists("testcase.form.owner", "testcase", "소유자 필드", "소유자");
+    // ICT-494 tl-6: 태그·RAG·연결 케이스·JUnit 을 묶는 「연결 항목」 접이식
+    createTranslationKeyIfNotExists("testcase.form.linkItems", "testcase", "연결 항목 접이식 머리", "연결 항목");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkSummary.tags", "testcase", "연결 항목 개수 - 태그", "태그");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkSummary.rag", "testcase", "연결 항목 개수 - RAG 문서", "RAG");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkSummary.linkedTestCases", "testcase", "연결 항목 개수 - 연결 케이스", "연결 케이스");
+    createTranslationKeyIfNotExists(
+        "testcase.form.linkSummary.junit", "testcase", "연결 항목 개수 - JUnit 케이스", "JUnit");
+    // ICT-495 cl-4: 상세 상단 한 줄 요약(수정자 짧은 라벨)과 식별 정보 접이식·복사 버튼
+    createTranslationKeyIfNotExists(
+        "testcase.form.updatedByShort", "testcase", "정보 요약 줄 - 수정자 짧은 라벨", "수정");
+    createTranslationKeyIfNotExists(
+        "testcase.form.identity", "testcase", "ID·Parent ID·Project ID 를 펼치는 버튼", "식별 정보");
+    createTranslationKeyIfNotExists("testcase.form.copy", "testcase", "값 복사 버튼", "복사");
+    createTranslationKeyIfNotExists("testcase.form.copied", "testcase", "복사 완료 안내", "복사됨");
 
     // 추가 폼 필드들
     createTranslationKeyIfNotExists(

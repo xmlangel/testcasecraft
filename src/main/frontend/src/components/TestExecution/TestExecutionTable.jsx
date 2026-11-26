@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback } from "react";
+import React, { memo, useState, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -31,12 +31,13 @@ import { useI18n } from "../../context/I18nContext.jsx";
 import { TestResult } from "../../models/testExecution.jsx";
 import JiraIssueLink from "./JiraIssueLink.jsx";
 import {
-  wrapName,
   getResultIcon,
   getDisplayValue,
   priorityColor,
   responsiveColumnSx,
-  gridTemplateColumns,
+  buildGridTemplateColumns,
+  gridMinWidth,
+  computeCaseNameColumnWidth,
   FOLDER_RESULT_KEYS,
 } from "./utils.jsx";
 import { useDateFormatter } from "../../hooks/useDateFormatter";
@@ -59,6 +60,9 @@ const ExecutionRow = memo(
     canRecordResults = true,
     isSelected,
     isActive = false,
+    peek = false,
+    gridColumns,
+    rowMinWidth,
     onSelectionChange,
     handleOpenResultForm,
     handleShowPrevResults,
@@ -105,8 +109,9 @@ const ExecutionRow = memo(
         data-active={isActive ? "true" : undefined}
         sx={{
           display: "grid",
-          gridTemplateColumns: gridTemplateColumns,
+          gridTemplateColumns: gridColumns,
           width: "100%",
+          minWidth: rowMinWidth,
           minHeight: 26,
           backgroundColor: isActive
             ? alpha(theme.palette.primary.main, 0.14)
@@ -149,7 +154,20 @@ const ExecutionRow = memo(
           )}
         </Box>
         {/* 2: 폴더 */}
-        <Box sx={{ ...responsiveColumnSx[2], pl: `${node.level * 20}px` }}>
+        <Box
+          sx={{
+            ...responsiveColumnSx[2],
+            pl: `${node.level * 20}px`,
+            // 좁은 보기(peek): 케이스 행의 폴더 경로는 감추고, 폴더 행 이름은 케이스명 자리로 넘겨 보인다
+            // 폴더 열 폭이 0 이므로 폴더 행은 내용 폭(max-content)으로 펼쳐 넘치게 하고,
+            // 케이스 행은 경로가 한 글자씩 접혀 행이 높아지지 않게 한 줄로 둔다.
+            ...(peek
+              ? isFolder
+                ? { overflow: "visible", width: "max-content", zIndex: 1 }
+                : { visibility: "hidden", whiteSpace: "nowrap" }
+              : null),
+          }}
+        >
           {isFolder ? (
             <>
               <Tooltip
@@ -302,9 +320,8 @@ const ExecutionRow = memo(
                   fontWeight: "bold",
                   lineHeight: 1.25,
                   color: theme.palette.primary.main,
-                  whiteSpace: "pre-line",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
+                  // ICT-498: 이름을 줄바꿈하지 않고 한 줄로 다 보인다. 열 폭이 가장 긴 이름에 맞춰져 있다.
+                  whiteSpace: "nowrap",
                   cursor: "pointer",
                   flex: 1,
                   "&:hover": {
@@ -315,7 +332,7 @@ const ExecutionRow = memo(
                 onClick={() => handleOpenResultForm(node.id)}
                 data-testid={`execution-table-case-name-${node.id}`}
               >
-                {wrapName(node.name)}
+                {node.name}
               </Typography>
               {node.priority && (
                 <Chip
@@ -657,6 +674,8 @@ const TestExecutionTable = ({
   loadMore,
   handleOpenResultForm,
   activeTestCaseId = null,
+  // ICT-492: 결과 칸이 겹쳐 목록 앞쪽만 보일 때 폴더 열을 접는다
+  peek = false,
   handleShowPrevResults,
   handleAttachmentClick,
   handleCopyLink,
@@ -677,6 +696,20 @@ const TestExecutionTable = ({
   const theme = useTheme();
   const sentinelRef = React.useRef(null);
   const [copySuccess, setCopySuccess] = useState(false);
+
+  // ICT-498: 화면에 올라온 케이스 중 가장 긴 이름이 한 줄에 들어가게 케이스명 열 폭을 정한다.
+  const caseNameWidth = useMemo(
+    () =>
+      computeCaseNameColumnWidth(visibleData, {
+        font: `bold 14px ${theme.typography.fontFamily}`,
+      }),
+    [visibleData, theme.typography.fontFamily],
+  );
+  const gridColumns = useMemo(
+    () => buildGridTemplateColumns({ peek, caseNameWidth }),
+    [peek, caseNameWidth],
+  );
+  const rowMinWidth = gridMinWidth({ peek, caseNameWidth });
 
   // 복사 핸들러
   const handleCopyNotes = useCallback(async (text) => {
@@ -714,6 +747,9 @@ const TestExecutionTable = ({
         canRecordResults={canRecordResults}
         isSelected={selectedTestCases?.has(node.id) || false}
         isActive={activeTestCaseId != null && node.id === activeTestCaseId}
+        peek={peek}
+        gridColumns={gridColumns}
+        rowMinWidth={rowMinWidth}
         onSelectionChange={onSelectionChange}
         handleOpenResultForm={handleOpenResultForm}
         handleShowPrevResults={handleShowPrevResults}
@@ -843,9 +879,9 @@ const TestExecutionTable = ({
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: gridTemplateColumns,
+              gridTemplateColumns: gridColumns,
               width: "100%",
-              // minWidth removed to allow fitting in screen
+              minWidth: rowMinWidth,
               position: "sticky",
               top: 0,
               zIndex: 1,
@@ -908,6 +944,7 @@ const TestExecutionTable = ({
                 fontSize: "1.08rem",
                 color: theme.palette.primary.main,
                 py: 0.5,
+                ...(peek ? { visibility: "hidden" } : null),
               }}
             >
               {t("testExecution.table.folder", "폴더")}
@@ -1066,6 +1103,7 @@ TestExecutionTable.propTypes = {
   loadMore: PropTypes.func.isRequired,
   handleOpenResultForm: PropTypes.func.isRequired,
   activeTestCaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  peek: PropTypes.bool,
   handleShowPrevResults: PropTypes.func.isRequired,
   handleAttachmentClick: PropTypes.func.isRequired,
   handleCopyLink: PropTypes.func,

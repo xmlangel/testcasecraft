@@ -19,8 +19,6 @@ const renderWith = (testCase) =>
         linkedDocuments={[]}
         ragDocuments={[]}
         visibility={{}}
-        testCaseInfoOpen
-        setTestCaseInfoOpen={() => {}}
         t={t}
         theme={theme}
         onChange={() => () => {}}

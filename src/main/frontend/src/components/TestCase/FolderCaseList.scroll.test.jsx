@@ -1,0 +1,97 @@
+import React from "react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+
+vi.mock("../../context/I18nContext.jsx", () => ({
+  useI18n: () => ({ t: (key, fallback) => fallback || key }),
+}));
+
+import FolderCaseList from "./FolderCaseList.jsx";
+
+const longName =
+  "결제 승인 이후 환불 요청을 다시 보냈을 때 중복 환불이 막히는지 확인한다";
+const longId = "R039691-PAYMENT-REFUND-0001";
+const longOwner = "qa-automation-account-01";
+
+const folder = { id: "f1", type: "folder", name: "폴더" };
+const items = [
+  folder,
+  {
+    id: "c1",
+    type: "testcase",
+    name: longName,
+    displayId: longId,
+    createdBy: longOwner,
+    description: "설명 ".repeat(40),
+    parentId: "f1",
+  },
+];
+
+describe("FolderCaseList 한 줄 표시·가로 스크롤 (ICT-495 cl-1, ID 열 폭)", () => {
+  it.each([
+    ["3단 compact", { compact: true }],
+    ["좁은 칸 우선순위 숨김", { compact: true, hidePriority: true }],
+    ["넓은 칸", {}],
+  ])(
+    "%s: 이름은 줄바꿈 없이 전부, ID 는 8글자 폭으로 그린다",
+    (_label, props) => {
+      render(<FolderCaseList folder={folder} items={items} {...props} />);
+
+      const name = screen.getByTestId("folder-case-name-c1");
+      expect(name).toHaveTextContent(longName);
+      expect(name).toHaveStyle({ whiteSpace: "nowrap" });
+      expect(name.textContent).not.toContain("…");
+
+      // ID 열은 XXX-XXXX 폭까지만 보이고, 긴 ID 는 말줄임하되 전체 값은 title 로 남는다
+      const id = screen.getByTestId("folder-case-id-c1");
+      expect(id).toHaveTextContent(longId);
+      expect(id).toHaveStyle({ width: "1%" });
+      expect(id.firstChild).toHaveStyle({
+        whiteSpace: "nowrap",
+        maxWidth: "8.5ch",
+        textOverflow: "ellipsis",
+      });
+      expect(id.firstChild).toHaveAttribute("title", longId);
+    },
+  );
+
+  it("넓은 칸의 소유자는 줄바꿈·말줄임 없이 전부 그린다", () => {
+    render(<FolderCaseList folder={folder} items={items} />);
+    const owner = screen.getByTestId("folder-case-owner-c1");
+    expect(owner).toHaveTextContent(longOwner);
+    expect(owner.firstChild).toHaveStyle({ whiteSpace: "nowrap" });
+    expect(owner.firstChild).not.toHaveStyle({ textOverflow: "ellipsis" });
+  });
+
+  it("형태 아이콘·즐겨찾기·ID 열은 내용 폭만 쓰고 좌우 여백을 줄인다", () => {
+    render(
+      <FolderCaseList
+        folder={folder}
+        items={items}
+        favoriteIds={new Set()}
+        onToggleFavorite={() => {}}
+      />,
+    );
+    const row = screen.getByTestId("folder-case-row-c1");
+    const [typeCell, favCell] = row.querySelectorAll("td");
+    expect(typeCell).toHaveStyle({ width: "1%", paddingRight: "4px" });
+    expect(favCell).toHaveStyle({
+      width: "1%",
+      paddingLeft: "0px",
+      paddingRight: "0px",
+    });
+    expect(screen.getByTestId("folder-case-id-c1")).toHaveStyle({
+      paddingLeft: "4px",
+    });
+  });
+
+  it("표는 고정 배치를 쓰지 않고, 컨테이너에 가로 스크롤을 둔다", () => {
+    render(<FolderCaseList folder={folder} items={items} compact />);
+    expect(screen.getByTestId("folder-case-table")).toHaveStyle({
+      tableLayout: "auto",
+    });
+    expect(screen.getByTestId("folder-case-table-container")).toHaveStyle({
+      overflowX: "auto",
+    });
+  });
+});

@@ -65,20 +65,19 @@ describe("MemoizedTreeItem 자동화 표시 (ICT-487)", () => {
   });
 });
 
-describe("MemoizedTreeItem 케이스 ID·한 줄 이름 (ICT-491)", () => {
-  it("케이스 ID 를 이름 앞에 표시한다", () => {
+describe("MemoizedTreeItem 한 줄 이름 (ICT-491 · ICT-495)", () => {
+  it("케이스 행에 ID 를 그리지 않고 이름만 보인다 (ICT-495 cl-2)", () => {
     renderItem({
       id: "c1",
       type: "testcase",
       name: "로그인",
       displayId: "TC-13",
     });
-    const id = screen.getByTestId("tree-case-id-c1");
-    const name = screen.getByTestId("tree-node-name-c1");
-    expect(id).toHaveTextContent("TC-13");
-    expect(
-      id.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    expect(screen.queryByTestId("tree-case-id-c1")).toBeNull();
+    expect(screen.queryByText("TC-13")).toBeNull();
+    expect(screen.getByTestId("tree-node-name-c1")).toHaveTextContent(
+      /^로그인$/,
+    );
   });
 
   it("긴 이름을 말줄임 없이 한 줄로 전부 그린다", () => {

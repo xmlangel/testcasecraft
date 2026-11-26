@@ -46,7 +46,10 @@ import { ExecutionStatus, TestResult } from "../models/testExecution.jsx";
 import TestResultForm from "./TestResultForm.jsx";
 import Resizer from "./common/Resizer.jsx";
 import useElementWidth from "../hooks/useElementWidth.js";
-import { fitDetailWidth } from "./TestCase/splitPane.js";
+import usePaneLayoutMode from "../hooks/usePaneLayoutMode.js";
+import useEscapeToClose from "../hooks/useEscapeToClose.js";
+import PaneLayoutSelector from "./common/PaneLayoutSelector.jsx";
+import { resolvePaneLayout } from "./TestCase/splitPane.js";
 import {
   getOrderedTestCaseIds,
   getFilteredNavTestCaseIds,
@@ -181,12 +184,20 @@ const COMPACT_ACCORDION_SX = {
 const SPLIT_WIDTH_STORAGE_KEY = "testcase-manager-execution-split-width";
 // 결과 칸이 이 폭 아래로 줄면 제목과 단계 표(No·Step·Expected·Actual·Result)가 한 글자씩 접힌다(448px 실측).
 const SPLIT_MIN_WIDTH = 560;
-const SPLIT_MAX_WIDTH = 1200;
+// ICT-498: 결과 칸의 최대 폭은 화면 폭에서 정한다(목록 칸을 EXECUTION_MAIN_DRAG_MIN_WIDTH 까지 줄일 때까지).
+// 이 값은 저장된 폭을 읽을 때 깨진 값을 거르는 상한으로만 쓴다.
+const SPLIT_MAX_WIDTH = 4000;
 const SPLIT_DEFAULT_WIDTH = 640;
 // 가운데 칸(실행 요약·케이스 목록)이 이 폭 아래로 줄면 요약의 상태·시작일시가 한 글자 폭으로
 // 눌리고 케이스 목록이 케이스명 열까지만 보인다(1600px 캡처, gg-3).
+// 1단·2단을 정할 때만 쓴다. 이 폭이 안 나오면 2단(나란히)을 1단(겹침)으로 내린다.
 const EXECUTION_MAIN_MIN_WIDTH = 640;
+// ICT-498: 사용자가 막대를 끌어 줄일 때는 체크·ID 열까지 보이는 폭(여백 32 + 체크 40 + ID 110 + 테두리·스크롤 막대)까지 허용한다.
+// 목록 표는 가로 스크롤이라 나머지 열은 밀어서 본다.
+const EXECUTION_MAIN_DRAG_MIN_WIDTH = 200;
 const RESIZER_WIDTH = 6;
+// ICT-492 배치 선택 줄 높이. 겹친 결과 칸은 이 줄 아래에서 시작해 선택과 「폭이 좁아」 표시를 가리지 않는다.
+const LAYOUT_BAR_HEIGHT = 32;
 
 const TestExecutionForm = ({
   executionId,
@@ -197,6 +208,11 @@ const TestExecutionForm = ({
   // embedded: 신규 레이아웃의 상세 영역(카드) 안에 들어간다. 페이지 배경·최대폭·
   // 최소높이를 그대로 쓰면 "카드 안에 또 페이지"처럼 보여 다른 화면과 이질감이 생긴다.
   embedded = false,
+  // ICT-492: 1단에서는 왼쪽 실행 목록을 접는다. 목록은 PlanExecutionWorkspace 가 그리므로 접어 달라고 알린다.
+  // listReserveWidth 는 목록이 펼쳐져 있을 때 접은 상태보다 더 차지하는 폭이다.
+  listReserveWidth = 0,
+  listHiddenByLayout = false,
+  onListHiddenByLayoutChange,
 }) => {
   const {
     testPlans,
@@ -325,26 +341,74 @@ const TestExecutionForm = ({
       ? saved
       : SPLIT_DEFAULT_WIDTH;
   });
-  // 가운데 칸이 최소 폭 아래로 줄지 않게 결과 칸 폭을 화면에 맞춘다.
-  // 결과 칸을 최소 폭까지 줄여도 모자라면 결과 칸을 접고, 케이스를 누르면 좁은 화면처럼
-  // 결과 화면으로 이동한다.
+  // ICT-492·497: 폭과 고른 배치로 나란히(화면 표기 2단)와 겹침(1단)을 정한다(케이스 화면과 같은 규칙).
+  // 나란히는 가운데 칸과 결과 칸을 나란히 두고, 겹침은 왼쪽 실행 목록을 접고 결과 칸을 전체 폭으로 겹친다.
+  // 겹친 칸을 닫아도 케이스 목록의 스크롤과 선택 표시는 그대로 남는다.
+  const [layoutMode, setLayoutMode] = usePaneLayoutMode();
+  const [resultOverlayOpen, setResultOverlayOpen] = useState(true);
   const [splitViewRef, splitViewWidth] = useElementWidth();
-  const resultFit = fitDetailWidth({
-    containerWidth: splitViewWidth,
+  // 1단에서 왼쪽 목록을 접으면 이 칸이 넓어진다. 단계가 오가지 않게 목록이 펼쳐져 있을 때의 폭으로 판정한다.
+  const layoutWidth = splitViewWidth
+    ? splitViewWidth - (listHiddenByLayout ? listReserveWidth : 0)
+    : 0;
+  const baseResultLayout = resolvePaneLayout({
+    mode: layoutMode,
+    containerWidth: layoutWidth,
     desiredWidth: splitWidth,
     listMinWidth: EXECUTION_MAIN_MIN_WIDTH,
     detailMinWidth: SPLIT_MIN_WIDTH,
     gutterWidth: RESIZER_WIDTH,
   });
-  const canDockResult = isSplitCapable && !resultFit.collapsed;
-  const effectiveSplitWidthRef = useRef(resultFit.width);
-  effectiveSplitWidthRef.current = resultFit.width;
+  // ICT-498: 나란히로 정해진 뒤에는 사용자가 넓힌 결과 칸 폭을 목록이 ID 열 폭이 될 때까지 그대로 준다.
+  const splitMaxWidth = layoutWidth
+    ? layoutWidth - EXECUTION_MAIN_DRAG_MIN_WIDTH - RESIZER_WIDTH
+    : SPLIT_MAX_WIDTH;
+  const resultLayout =
+    baseResultLayout.tier === 3 && layoutWidth
+      ? {
+          ...baseResultLayout,
+          width: Math.max(
+            baseResultLayout.width,
+            Math.min(splitWidth, splitMaxWidth),
+          ),
+        }
+      : baseResultLayout;
+  const splitMaxWidthRef = useRef(splitMaxWidth);
+  splitMaxWidthRef.current = splitMaxWidth;
+  const canDockResult = isSplitCapable;
+  const isResultOpen = Boolean(canDockResult && splitCaseId && execution?.id);
+  const isResultOverlay = isResultOpen && resultLayout.overlay;
+  const effectiveSplitWidthRef = useRef(resultLayout.width);
+  effectiveSplitWidthRef.current = resultLayout.width;
+
+  const wantListHidden =
+    isResultOverlay &&
+    resultOverlayOpen &&
+    resultLayout.tier === 1 &&
+    listReserveWidth > 0;
+  useEffect(() => {
+    onListHiddenByLayoutChange?.(wantListHidden);
+  }, [wantListHidden, onListHiddenByLayoutChange]);
+  useEffect(
+    () => () => onListHiddenByLayoutChange?.(false),
+    [onListHiddenByLayoutChange],
+  );
+  const closeResultOverlay = useCallback(() => setResultOverlayOpen(false), []);
+  useEscapeToClose(isResultOverlay && resultOverlayOpen, closeResultOverlay);
+  // 결과 칸을 닫는다. 겹친 칸은 감추기만 해서 케이스 선택 표시와 목록 스크롤을 남긴다.
+  const handleCloseResultPane = useCallback(() => {
+    if (isResultOverlay) {
+      setResultOverlayOpen(false);
+      return;
+    }
+    setSplitCaseId(null);
+  }, [isResultOverlay]);
   const handleSplitResize = useCallback((dx) => {
     // 막대를 왼쪽으로 끌면(dx<0) 오른쪽 결과 칸이 넓어진다.
     // 화면에 맞춰 줄어든 폭에서 출발해야 끄는 즉시 반응한다.
     setSplitWidth(() => {
       const next = Math.min(
-        SPLIT_MAX_WIDTH,
+        Math.max(SPLIT_MIN_WIDTH, splitMaxWidthRef.current),
         Math.max(SPLIT_MIN_WIDTH, effectiveSplitWidthRef.current - dx),
       );
       localStorage.setItem(SPLIT_WIDTH_STORAGE_KEY, String(next));
@@ -730,8 +794,9 @@ const TestExecutionForm = ({
       const projectId =
         execution?.testPlan?.projectId || execution?.projectId || propProjectId;
       if (canDockResult && execution?.id) {
-        // 3단 분할: 목록은 그대로 두고 오른쪽 칸에 결과 입력을 연다
+        // 분할(3단은 나란히, 2단·1단은 겹침): 목록은 그대로 두고 오른쪽 칸에 결과 입력을 연다
         setSplitCaseId(testCaseId);
+        setResultOverlayOpen(true);
       } else if (projectId && execution?.id) {
         navigate(
           `/projects/${projectId}/executions/${execution.id}/testcases/${testCaseId}/result`,
@@ -1445,83 +1510,160 @@ const TestExecutionForm = ({
     ? getFilteredNavTestCaseIds(filteredData, testCaseIds, splitCaseId)
     : [];
   const splitIndex = splitNavIds.indexOf(splitCaseId);
-  const showSplit = Boolean(canDockResult && splitCaseId && execution?.id);
+  const showSplit = isResultOpen;
+  const resultTier = resultLayout.tier;
   const splitProjectId =
     propProjectId ||
     execution?.projectId ||
     execution?.testPlan?.projectId ||
     activeProject?.id;
 
-  const splitPane = showSplit ? (
-    <>
-      <Resizer onDrag={handleSplitResize} testId="execution-result-resizer" />
+  const resultForm = showSplit ? (
+    <TestResultForm
+      // 케이스 전환 시 리마운트: 이전 케이스 입력이 다음 케이스로 섞이지 않게 한다
+      key={splitCaseId}
+      open
+      fullPage
+      embedded
+      dockedFooter
+      testCaseId={splitCaseId}
+      executionId={execution.id}
+      execution={execution}
+      currentResult={resultsMap?.get(splitCaseId)}
+      onClose={handleCloseResultPane}
+      onBack={handleCloseResultPane}
+      onSave={(updated, options = {}) =>
+        handleSaveResult(updated, { ...options, keepDialogOpen: true })
+      }
+      onNext={() => {
+        if (splitIndex >= 0 && splitIndex < splitNavIds.length - 1) {
+          setSplitCaseId(splitNavIds[splitIndex + 1]);
+        }
+      }}
+      onPrevious={() => {
+        if (splitIndex > 0) setSplitCaseId(splitNavIds[splitIndex - 1]);
+      }}
+      currentIndex={splitIndex >= 0 ? splitIndex : 0}
+      totalCount={splitNavIds.length || 1}
+      statCaseIds={testCaseIds}
+      onOpenFullPage={
+        splitProjectId
+          ? () =>
+              navigate(
+                `/projects/${splitProjectId}/executions/${execution.id}/testcases/${splitCaseId}/result`,
+              )
+          : null
+      }
+    />
+  ) : null;
+
+  // ICT-492 결과 칸: 나란히(2단)는 오른쪽에 두고, 겹침(1단)은 가운데 칸 위에 덮는다.
+  // 겹친 칸은 실행 화면 높이를 따라가고, 안쪽 칸이 화면 높이에 붙어(sticky) 따로 스크롤한다.
+  let splitPane = null;
+  if (showSplit && !isResultOverlay) {
+    splitPane = (
+      <>
+        <Resizer onDrag={handleSplitResize} testId="execution-result-resizer" />
+        <Box
+          data-testid="execution-result-pane"
+          data-overlay="false"
+          sx={{
+            width: resultLayout.width,
+            flexShrink: 0,
+            alignSelf: "flex-start",
+            position: "sticky",
+            top: 0,
+            maxHeight: "calc(100vh - 64px)",
+            overflow: "auto",
+            borderLeft: 1,
+            borderColor: "divider",
+          }}
+        >
+          {resultForm}
+        </Box>
+      </>
+    );
+  } else if (showSplit) {
+    // 배치 선택 줄은 가운데 칸 위쪽 여백(embedded p:2=16px, 단독 페이지 p:1.5=12px) 아래에 있다
+    const layoutBarTop = (embedded ? 16 : 12) + LAYOUT_BAR_HEIGHT;
+    splitPane = (
       <Box
         data-testid="execution-result-pane"
+        data-overlay="true"
+        aria-hidden={resultOverlayOpen ? undefined : true}
         sx={{
-          width: resultFit.width,
-          flexShrink: 0,
-          alignSelf: "flex-start",
-          position: "sticky",
-          top: 0,
-          maxHeight: "calc(100vh - 64px)",
-          overflow: "auto",
-          borderLeft: 1,
-          borderColor: "divider",
+          position: "absolute",
+          top: layoutBarTop,
+          bottom: 0,
+          right: 0,
+          width: "100%",
+          zIndex: 3,
+          display: resultOverlayOpen ? "flex" : "none",
+          // background.paper 는 반투명(0.7)이라 아래 목록이 비친다. 겹친 칸은 불투명한 바탕을 쓴다.
+          bgcolor: "background.default",
+          boxShadow: 8,
+          borderRadius: 1,
         }}
       >
-        <TestResultForm
-          // 케이스 전환 시 리마운트: 이전 케이스 입력이 다음 케이스로 섞이지 않게 한다
-          key={splitCaseId}
-          open
-          fullPage
-          embedded
-          dockedFooter
-          testCaseId={splitCaseId}
-          executionId={execution.id}
-          execution={execution}
-          currentResult={resultsMap?.get(splitCaseId)}
-          onClose={() => setSplitCaseId(null)}
-          onBack={() => setSplitCaseId(null)}
-          onSave={(updated, options = {}) =>
-            handleSaveResult(updated, { ...options, keepDialogOpen: true })
-          }
-          onNext={() => {
-            if (splitIndex >= 0 && splitIndex < splitNavIds.length - 1) {
-              setSplitCaseId(splitNavIds[splitIndex + 1]);
-            }
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            alignSelf: "flex-start",
+            position: "sticky",
+            top: 0,
+            maxHeight: "calc(100vh - 64px)",
+            overflow: "auto",
           }}
-          onPrevious={() => {
-            if (splitIndex > 0) setSplitCaseId(splitNavIds[splitIndex - 1]);
-          }}
-          currentIndex={splitIndex >= 0 ? splitIndex : 0}
-          totalCount={splitNavIds.length || 1}
-          statCaseIds={testCaseIds}
-          onOpenFullPage={
-            splitProjectId
-              ? () =>
-                  navigate(
-                    `/projects/${splitProjectId}/executions/${execution.id}/testcases/${splitCaseId}/result`,
-                  )
-              : null
-          }
-        />
+        >
+          {resultForm}
+        </Box>
       </Box>
-    </>
-  ) : null;
+    );
+  }
 
   return (
     <Box
       ref={splitViewRef}
-      sx={{ display: "flex", alignItems: "stretch", minWidth: 0 }}
+      sx={{
+        display: "flex",
+        alignItems: "stretch",
+        minWidth: 0,
+        position: "relative",
+        // 겹친 결과 칸은 이 칸 높이를 따른다. 케이스가 적어 짧아도 결과 입력이 눌리지 않게 한다.
+        minHeight:
+          isResultOverlay && resultOverlayOpen ? "calc(100vh - 160px)" : 0,
+      }}
       data-testid="execution-split-view"
+      data-pane-tier={showSplit ? resultTier : "none"}
     >
       <Box
         sx={{
           ...(embedded ? { p: 2 } : PAGE_CONTAINER_SX.main),
           flex: 1,
-          minWidth: showSplit ? EXECUTION_MAIN_MIN_WIDTH : 0,
+          minWidth:
+            showSplit && !isResultOverlay ? EXECUTION_MAIN_DRAG_MIN_WIDTH : 0,
+          // 줄인 칸 밖으로 요약·필터가 넘쳐 결과 칸을 덮지 않게 자른다(clip 은 스크롤 칸을 만들지 않아 sticky 가 유지된다).
+          overflowX: showSplit && !isResultOverlay ? "clip" : undefined,
         }}
       >
+        {canDockResult && execution?.id ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              height: LAYOUT_BAR_HEIGHT,
+            }}
+          >
+            <PaneLayoutSelector
+              mode={layoutMode}
+              onChange={setLayoutMode}
+              tier={resultTier}
+              downgraded={resultLayout.downgraded}
+            />
+          </Box>
+        ) : null}
         <TestExecutionHeader
           executionId={executionId}
           executionName={execution?.name}
@@ -1975,6 +2117,9 @@ const TestExecutionForm = ({
 
 TestExecutionForm.propTypes = {
   embedded: PropTypes.bool,
+  listReserveWidth: PropTypes.number,
+  listHiddenByLayout: PropTypes.bool,
+  onListHiddenByLayoutChange: PropTypes.func,
   executionId: PropTypes.string,
   projectId: PropTypes.string,
   initialTestPlanId: PropTypes.string,

@@ -55,13 +55,25 @@ import useLatestResults from "../../hooks/useLatestResults.js";
 import { CHROME_ICON_SX } from "../common/iconSizes.js";
 import Resizer from "../common/Resizer.jsx";
 import useElementWidth from "../../hooks/useElementWidth.js";
+import usePaneLayoutMode from "../../hooks/usePaneLayoutMode.js";
+import useEscapeToClose from "../../hooks/useEscapeToClose.js";
+import PaneLayoutSelector from "../common/PaneLayoutSelector.jsx";
+import useCaseAutomationFilter from "../../hooks/useCaseAutomationFilter.js";
 import {
-  clampDetailWidth,
-  fitDetailWidth,
+  AUTOMATION_FILTER,
+  matchesAutomationFilter,
+} from "../TestCaseTree/utils/treeFilter.js";
+import ProjectHeaderSlot from "../common/ProjectHeaderSlot.jsx";
+import {
+  clampListWidth,
+  detailWidthForList,
+  resolvePaneLayout,
   resolveListContextId,
+  CASE_LIST_DEFAULT_WIDTH,
+  CASE_LIST_MIN_WIDTH,
   DETAIL_PANE_DEFAULT_WIDTH,
   DETAIL_PANE_MIN_WIDTH,
-  LIST_PANE_MIN_WIDTH,
+  SPLIT_GUTTER_WIDTH,
 } from "./splitPane.js";
 
 const TestCaseHybridForm = ({
@@ -69,6 +81,11 @@ const TestCaseHybridForm = ({
   projectId,
   onSave,
   onSelectTestCase,
+  // ICT-492: 1단에서는 트리를 접는다. 트리는 App 이 그리므로 접어 달라고 알린다.
+  // treeReserveWidth 는 트리가 보일 때 차지하는 폭(트리·막대·여백)이다.
+  treeReserveWidth = 0,
+  treeHiddenByLayout = false,
+  onTreeHiddenByLayoutChange,
 }) => {
   const params = useParams();
 
@@ -248,15 +265,20 @@ const TestCaseHybridForm = ({
   const isFolderSelected = selectedItem?.type === "folder";
 
   // 폴더 케이스 목록에서 사용할 프로젝트 전체 항목 (유효성 필터만 적용)
+  // ICT-496: 트리의 자동화 필터(전체·자동화·수동)를 가운데 목록에도 건다. 폴더는 그대로 둔다.
+  const [automationFilter] = useCaseAutomationFilter();
   const folderListItems = useMemo(
     () =>
       testCases.filter(
         (tc) =>
           String(tc.projectId) === String(effectiveProjectId) &&
           tc.name &&
-          tc.name.trim().length > 0,
+          tc.name.trim().length > 0 &&
+          (automationFilter === AUTOMATION_FILTER.ALL ||
+            tc.type !== "testcase" ||
+            matchesAutomationFilter(tc, automationFilter)),
       ),
-    [testCases, effectiveProjectId],
+    [testCases, effectiveProjectId, automationFilter],
   );
 
   // 가상 노드 (전체 / 폴더 미지정) 목록 데이터
@@ -288,7 +310,8 @@ const TestCaseHybridForm = ({
   // ICT-491: 케이스를 열어도 가운데 칸의 케이스 목록을 그대로 둔다(트리 | 목록 | 상세).
   // listContextId 는 가운데 칸에 남길 목록(폴더 또는 가상 노드)이다.
   const [listContextId, setListContextId] = useState(null);
-  const [detailWidth, setDetailWidth] = useState(DETAIL_PANE_DEFAULT_WIDTH);
+  // ICT-494 tl-1: 목록 폭을 정하고 상세 칸이 나머지를 쓴다(상세가 가장 넓다).
+  const [listWidth, setListWidth] = useState(CASE_LIST_DEFAULT_WIDTH);
   const [detailMaximized, setDetailMaximized] = useState(false);
   useEffect(() => {
     setListContextId((prev) =>
@@ -330,32 +353,80 @@ const TestCaseHybridForm = ({
     inputMode === "form" &&
     selectedItem?.type === "testcase" &&
     Boolean(listContext);
-  // 가운데 목록이 최소 폭 아래로 줄지 않게 상세 칸 폭을 화면에 맞춘다.
-  // 상세를 최소 폭까지 줄여도 모자라면 목록을 접고 상세만 보인다(분할 전 화면과 같음).
+  // ICT-492: 폭과 고른 배치로 1단·2단·3단을 정한다.
+  // 3단은 목록과 상세를 나란히, 2단은 상세를 목록 위에 오른쪽으로 겹쳐(목록의 ID·이름은 남김),
+  // 1단은 트리를 접고 상세를 전체 폭으로 겹친다. 겹친 칸을 닫아도 아래 목록은 그대로 남는다.
+  const [layoutMode, setLayoutMode] = usePaneLayoutMode();
+  const [overlayOpen, setOverlayOpen] = useState(true);
+  useEffect(() => {
+    setOverlayOpen(true);
+  }, [effectiveTestCaseId]);
   const [splitViewRef, splitViewWidth] = useElementWidth();
-  const detailFit = fitDetailWidth({
-    containerWidth: splitViewWidth,
-    desiredWidth: detailWidth,
-    listMinWidth: LIST_PANE_MIN_WIDTH,
+  // 1단에서 트리를 접으면 이 칸이 넓어진다. 단계가 오가지 않게 트리가 보일 때의 폭으로 판정한다.
+  const layoutWidth = splitViewWidth
+    ? splitViewWidth - (treeHiddenByLayout ? treeReserveWidth : 0)
+    : 0;
+  const desiredDetailWidth = detailWidthForList({
+    containerWidth: layoutWidth,
+    listWidth,
+    detailMinWidth: DETAIL_PANE_MIN_WIDTH,
+    fallbackWidth: DETAIL_PANE_DEFAULT_WIDTH,
+  });
+  const paneLayout = resolvePaneLayout({
+    mode: layoutMode,
+    containerWidth: layoutWidth,
+    desiredWidth: desiredDetailWidth,
+    listMinWidth: CASE_LIST_MIN_WIDTH,
     detailMinWidth: DETAIL_PANE_MIN_WIDTH,
   });
-  const showListPane = isSplitView && !detailMaximized && !detailFit.collapsed;
-  const effectiveDetailWidthRef = useRef(detailFit.width);
-  effectiveDetailWidthRef.current = detailFit.width;
+  const showListPane = isSplitView && !detailMaximized;
+  const isOverlay = showListPane && paneLayout.overlay;
+  const detailVisible = !isOverlay || overlayOpen;
+  // 3단에서 목록이 실제로 차지하는 폭
+  const listPaneWidth =
+    layoutWidth && !paneLayout.overlay
+      ? layoutWidth - paneLayout.width - SPLIT_GUTTER_WIDTH
+      : listWidth;
+  const effectiveListWidthRef = useRef(listPaneWidth);
+  effectiveListWidthRef.current = listPaneWidth;
+
+  const wantTreeHidden =
+    isOverlay && overlayOpen && paneLayout.tier === 1 && treeReserveWidth > 0;
+  useEffect(() => {
+    onTreeHiddenByLayoutChange?.(wantTreeHidden);
+  }, [wantTreeHidden, onTreeHiddenByLayoutChange]);
+  useEffect(
+    () => () => onTreeHiddenByLayoutChange?.(false),
+    [onTreeHiddenByLayoutChange],
+  );
+
+  const closeOverlay = useCallback(() => setOverlayOpen(false), []);
+  useEscapeToClose(isOverlay && overlayOpen, closeOverlay);
+
+  const handleSelectFromList = useCallback(
+    (item) => {
+      setOverlayOpen(true);
+      onSelectTestCase?.(item);
+    },
+    [onSelectTestCase],
+  );
 
   const handleDetailResize = useCallback((dx) => {
-    // 막대는 상세 칸 왼쪽에 있으므로 오른쪽으로 끌면 상세가 좁아진다.
-    // 화면에 맞춰 줄어든 폭에서 출발해야 끄는 즉시 반응한다.
-    setDetailWidth(() =>
-      clampDetailWidth(effectiveDetailWidthRef.current - dx),
-    );
+    // 막대는 상세 칸 왼쪽에 있으므로 오른쪽으로 끌면 목록이 넓어지고 상세가 좁아진다.
+    // 화면에 맞춰 정해진 목록 폭에서 출발해야 끄는 즉시 반응한다.
+    setListWidth(() => clampListWidth(effectiveListWidthRef.current + dx));
   }, []);
 
   const handleCloseDetail = useCallback(() => {
+    // 겹친 칸은 감추기만 한다. 선택한 케이스와 목록 스크롤은 그대로 둔다.
+    if (isOverlay) {
+      setOverlayOpen(false);
+      return;
+    }
     if (!listContext || !onSelectTestCase) return;
     setDetailMaximized(false);
     onSelectTestCase(listContext.folder);
-  }, [listContext, onSelectTestCase]);
+  }, [isOverlay, listContext, onSelectTestCase]);
 
   // 선택 항목의 경로 브레드크럼 (조상 폴더 → 현재 항목)
   const breadcrumbItems = useMemo(() => {
@@ -476,8 +547,9 @@ const TestCaseHybridForm = ({
     }
   };
 
-  // ICT-491 C3: 상세 하단 고정 바의 왼쪽(이전 · n/N · 다음 · 닫기). 저장 버튼은 폼이 오른쪽에 그린다.
-  const caseNavBar = caseNav ? (
+  // ICT-495 cl-3: 이전 · n/N · 다음은 상세 머리 동작 줄의 오른쪽 끝([저장][취소] 또는 [수정] 뒤,
+  // 더보기 앞)에 둔다. 저장하지 않은 변경 확인은 goToCase 가 그대로 맡는다.
+  const caseNavControls = caseNav ? (
     <Box
       sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
       data-testid="testcase-nav"
@@ -515,7 +587,14 @@ const TestCaseHybridForm = ({
           </IconButton>
         </span>
       </Tooltip>
-      {isSplitView && (
+    </Box>
+  ) : null;
+
+  // 하단 고정 바에는 닫기만 남긴다(분할 화면에서 목록 안의 케이스를 열었을 때).
+  // 목록 밖 케이스·새 케이스는 경로 줄 오른쪽의 닫기를 쓴다.
+  const caseFooterBar =
+    caseNav && isSplitView ? (
+      <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
         <Tooltip title={t("testcase.split.close", "상세 닫기")}>
           <IconButton
             size="small"
@@ -526,9 +605,74 @@ const TestCaseHybridForm = ({
             <CloseIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-      )}
-    </Box>
-  ) : null;
+      </Box>
+    ) : null;
+
+  // 입력 모드 선택 — 편집 권한이 있을 때만 내보인다. 없으면 개별 폼만 쓴다.
+  // ICT-494 tl-2: 케이스 폼을 열면 이 전환을 폼 머리 한 줄에 아이콘으로(compact) 넣는다.
+  const renderInputModeToggle = (compact = false) =>
+    canEdit ? (
+      <ToggleButtonGroup
+        value={inputMode}
+        exclusive
+        onChange={(_, newMode) => {
+          if (newMode !== null) handleModeChange(newMode);
+        }}
+        aria-label={t("testcase.inputMode.title", "입력 모드 선택")}
+        size="small"
+        sx={{
+          "& .MuiToggleButton-root": {
+            px: compact ? 0.75 : 1.5,
+            fontWeight: 500,
+            borderColor: "divider",
+          },
+          "& .MuiToggleButton-root.Mui-selected": {
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+            fontWeight: 700,
+            boxShadow: 1,
+            "&:hover": { bgcolor: "primary.dark" },
+          },
+        }}
+      >
+        <Tooltip
+          title={t("testcase.inputMode.form.tooltip", "개별 폼으로 상세 입력")}
+        >
+          <ToggleButton
+            value="form"
+            aria-label={t("testcase.inputMode.form.ariaLabel", "폼 모드")}
+            data-testid="mode-individual-button"
+          >
+            <FormIcon fontSize="small" sx={{ mr: compact ? 0 : 0.75 }} />
+            {!compact && t("testcase.inputMode.form.title", "개별 폼")}
+          </ToggleButton>
+        </Tooltip>
+        <Tooltip
+          title={t(
+            "testcase.inputMode.spreadsheet.tooltip",
+            "스프레드시트로 일괄 입력",
+          )}
+        >
+          <ToggleButton
+            value="spreadsheet"
+            aria-label={t(
+              "testcase.inputMode.spreadsheet.ariaLabel",
+              "스프레드시트 모드",
+            )}
+            data-testid="mode-spreadsheet-button"
+          >
+            <SpreadsheetIcon fontSize="small" sx={{ mr: compact ? 0 : 0.75 }} />
+            {!compact &&
+              t("testcase.inputMode.spreadsheet.title", "스프레드시트")}
+          </ToggleButton>
+        </Tooltip>
+      </ToggleButtonGroup>
+    ) : null;
+  const showsCaseForm =
+    inputMode === "form" &&
+    effectiveTestCaseId !== undefined &&
+    !virtualListData &&
+    !isFolderSelected;
 
   const body = (
     <>
@@ -620,8 +764,8 @@ const TestCaseHybridForm = ({
         </Box>
       )}
 
-      {/* 입력 모드 선택 — 편집 권한이 있을 때만 내보인다. 없으면 개별 폼만 쓴다. */}
-      {canEdit && (
+      {/* 입력 모드 선택. 케이스 폼에서는 폼 머리 줄에 들어간다(ICT-494 tl-2). */}
+      {canEdit && !showsCaseForm && (
         <Box
           sx={{
             display: "flex",
@@ -629,63 +773,7 @@ const TestCaseHybridForm = ({
             mb: 1.5,
           }}
         >
-          <ToggleButtonGroup
-            value={inputMode}
-            exclusive
-            onChange={(_, newMode) => {
-              if (newMode !== null) handleModeChange(newMode);
-            }}
-            aria-label={t("testcase.inputMode.title", "입력 모드 선택")}
-            size="small"
-            sx={{
-              "& .MuiToggleButton-root": {
-                px: 1.5,
-                fontWeight: 500,
-                borderColor: "divider",
-              },
-              "& .MuiToggleButton-root.Mui-selected": {
-                bgcolor: "primary.main",
-                color: "primary.contrastText",
-                fontWeight: 700,
-                boxShadow: 1,
-                "&:hover": { bgcolor: "primary.dark" },
-              },
-            }}
-          >
-            <Tooltip
-              title={t(
-                "testcase.inputMode.form.tooltip",
-                "개별 폼으로 상세 입력",
-              )}
-            >
-              <ToggleButton
-                value="form"
-                aria-label={t("testcase.inputMode.form.ariaLabel", "폼 모드")}
-                data-testid="mode-individual-button"
-              >
-                <FormIcon fontSize="small" sx={{ mr: 0.75 }} />
-                {t("testcase.inputMode.form.title", "개별 폼")}
-              </ToggleButton>
-            </Tooltip>
-            <Tooltip
-              title={t(
-                "testcase.inputMode.spreadsheet.tooltip",
-                "스프레드시트로 일괄 입력",
-              )}
-            >
-              <ToggleButton
-                value="spreadsheet"
-                aria-label={t(
-                  "testcase.inputMode.spreadsheet.ariaLabel",
-                  "스프레드시트 모드",
-                )}
-                data-testid="mode-spreadsheet-button"
-              >
-                <SpreadsheetIcon fontSize="small" sx={{ mr: 0.75 }} />
-                {t("testcase.inputMode.spreadsheet.title", "스프레드시트")}
-              </ToggleButton>
-            </Tooltip>
-          </ToggleButtonGroup>
+          {renderInputModeToggle()}
         </Box>
       )}
 
@@ -776,7 +864,9 @@ const TestCaseHybridForm = ({
             testCaseId={effectiveTestCaseId}
             projectId={effectiveProjectId}
             onSave={handleFormSave}
-            footerNav={caseNavBar}
+            footerNav={caseFooterBar}
+            headerNav={caseNavControls}
+            headerExtra={renderInputModeToggle(true)}
           />
         )
       ) : inputMode === "spreadsheet" ? (
@@ -808,53 +898,126 @@ const TestCaseHybridForm = ({
     return <Box sx={CHROME_ICON_SX}>{body}</Box>;
   }
 
-  // ICT-491 3단 분할: 케이스 목록(가운데) | 폭 조절 막대 | 상세(오른쪽). 칸마다 따로 스크롤한다.
+  // ICT-491·492·497 분할: 케이스 목록 | 상세. 나란히(화면 표기 2단)와 겹침(1단) 두 가지다.
+  // 단계가 바뀌어도 목록과 상세가 다시 그려지지 않게(스크롤·입력 유지) 요소 구조를 그대로 둔다.
+  const tier = paneLayout.tier;
+  let detailSx;
+  if (!showListPane) {
+    detailSx = { flex: 1, width: "auto", overflowY: "auto" };
+  } else if (!isOverlay) {
+    detailSx = {
+      flex: "0 0 auto",
+      width: paneLayout.width,
+      overflowY: "auto",
+      pl: 1.5,
+    };
+  } else {
+    detailSx = {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      right: 0,
+      width: "100%",
+      zIndex: 3,
+      display: overlayOpen ? "flex" : "none",
+      // background.paper 는 반투명(0.7)이라 아래 목록이 비친다. 겹친 칸은 불투명한 바탕을 쓴다.
+      bgcolor: "background.default",
+      boxShadow: 8,
+      borderRadius: 1,
+    };
+  }
+
   return (
     <Box
       ref={splitViewRef}
-      sx={{ ...CHROME_ICON_SX, display: "flex", height: "100%", minHeight: 0 }}
+      sx={{
+        ...CHROME_ICON_SX,
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+      }}
       data-testid="testcase-split-view"
+      data-pane-tier={showListPane ? tier : "max"}
     >
-      {showListPane && (
-        <>
+      {/* ICT-496: 배치 전환은 프로젝트 머리 줄(북마크·설정 아이콘 옆)에 둬서 한 줄을 아낀다.
+          머리 줄이 없는 곳에서는 예전처럼 이 칸 위에 한 줄로 그린다. */}
+      <ProjectHeaderSlot
+        fallback={
           <Box
             sx={{
-              flex: 1,
-              minWidth: LIST_PANE_MIN_WIDTH,
-              overflow: "auto",
-              pr: 1,
+              display: "flex",
+              justifyContent: "flex-end",
+              mb: 0.5,
+              flexShrink: 0,
             }}
-            data-testid="testcase-list-pane"
           >
-            <FolderCaseList
-              folder={listContext.folder}
-              items={folderListItems}
-              rows={listContext.rows}
-              onSelectItem={onSelectTestCase}
-              favoriteIds={favoriteIds}
-              onToggleFavorite={(item) => toggleFavorite(item.id)}
-              latestResults={latestResults}
-              selectedId={selectedItem?.id}
-              compact
+            <PaneLayoutSelector
+              mode={layoutMode}
+              onChange={setLayoutMode}
+              tier={tier}
+              downgraded={paneLayout.downgraded}
             />
           </Box>
-          <Resizer
-            onDrag={handleDetailResize}
-            testId="testcase-detail-resizer"
-          />
-        </>
-      )}
-      <Box
-        sx={{
-          flex: showListPane ? "0 0 auto" : 1,
-          width: showListPane ? detailFit.width : "auto",
-          minWidth: 0,
-          overflowY: "auto",
-          pl: showListPane ? 1.5 : 0,
-        }}
-        data-testid="testcase-detail-pane"
+        }
       >
-        {body}
+        <PaneLayoutSelector
+          mode={layoutMode}
+          onChange={setLayoutMode}
+          tier={tier}
+          downgraded={paneLayout.downgraded}
+        />
+      </ProjectHeaderSlot>
+      <Box
+        sx={{ position: "relative", display: "flex", flex: 1, minHeight: 0 }}
+      >
+        {showListPane && (
+          <>
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: isOverlay ? 0 : CASE_LIST_MIN_WIDTH,
+                overflow: "auto",
+                pr: 1,
+              }}
+              data-testid="testcase-list-pane"
+            >
+              <FolderCaseList
+                folder={listContext.folder}
+                items={folderListItems}
+                rows={listContext.rows}
+                onSelectItem={handleSelectFromList}
+                favoriteIds={favoriteIds}
+                onToggleFavorite={(item) => toggleFavorite(item.id)}
+                latestResults={latestResults}
+                selectedId={selectedItem?.id}
+                compact
+              />
+            </Box>
+            {!isOverlay && (
+              <Resizer
+                onDrag={handleDetailResize}
+                testId="testcase-detail-resizer"
+              />
+            )}
+          </>
+        )}
+        <Box
+          sx={{ minWidth: 0, ...detailSx }}
+          data-testid="testcase-detail-pane"
+          data-overlay={isOverlay ? "true" : "false"}
+          aria-hidden={detailVisible ? undefined : true}
+        >
+          <Box
+            sx={
+              isOverlay
+                ? { flex: 1, minWidth: 0, overflowY: "auto", p: 1.5 }
+                : { display: "contents" }
+            }
+          >
+            {body}
+          </Box>
+        </Box>
       </Box>
     </Box>
   );
@@ -865,6 +1028,9 @@ TestCaseHybridForm.propTypes = {
   projectId: PropTypes.string.isRequired,
   onSave: PropTypes.func,
   onSelectTestCase: PropTypes.func,
+  treeReserveWidth: PropTypes.number,
+  treeHiddenByLayout: PropTypes.bool,
+  onTreeHiddenByLayoutChange: PropTypes.func,
 };
 
 export default TestCaseHybridForm;
