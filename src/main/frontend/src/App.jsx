@@ -127,6 +127,7 @@ import RateLimitDialog from "./components/RateLimitDialog.jsx";
 import { RAGProvider, useRAG } from "./context/RAGContext.jsx";
 import { LlmConfigProvider } from "./context/LlmConfigContext.jsx";
 import usePageViewTracker from "./hooks/usePageViewTracker.js";
+import useDocumentTitle from "./hooks/useDocumentTitle.js";
 import { SchedulerProvider } from "./context/SchedulerContext.jsx";
 import EmailVerification from "./components/EmailVerification.jsx";
 import SessionExpiryDialog from "./components/common/SessionExpiryDialog.jsx";
@@ -472,6 +473,28 @@ const AppContent = () => {
     const path = location.pathname;
     return path.match(/^\/projects\/[^\/]+\/settings/);
   };
+
+  // ICT-511: 브라우저 탭 제목을 "<화면 이름> · Testcase Craft" 로 맞춘다.
+  // 관리 화면처럼 프로젝트 밖의 경로는 제품명만 쓴다.
+  const documentScreenName = (() => {
+    const path = location.pathname;
+    if (!user || (path !== "/" && !path.startsWith("/projects"))) return null;
+    if (isProjectSettingsSection()) {
+      return t("projectSettings.title", "프로젝트 설정");
+    }
+    if (projectSelectionOpen || !activeProject) {
+      return t("header.nav.projectSelection", "프로젝트 선택");
+    }
+    const navItem = visibleNavItems[tabIndex];
+    return navItem ? t(navItem.i18nKey, navItem.label) : null;
+  })();
+  useDocumentTitle(documentScreenName);
+
+  // 헤더 테마 전환 버튼 이름. 예전에는 영어 고정 문구("Switch to Light Mode")였다.
+  const themeToggleLabel =
+    mode === "dark"
+      ? t("header.theme.switchToLight", "밝은 테마로 전환")
+      : t("header.theme.switchToDark", "어두운 테마로 전환");
 
   // URL 경로에 따른 화면 표시 결정
   React.useEffect(() => {
@@ -1016,7 +1039,7 @@ const AppContent = () => {
               sx={CHROME_ICON_SX}
               color="inherit"
               onClick={() => window.open("/manual", "_blank")}
-              aria-label="user manual"
+              aria-label={t("header.userMenu.manual", "사용자 매뉴얼")}
               data-testid="manual-help-button"
               title={t("header.userMenu.manual", "사용자 매뉴얼")}
             >
@@ -1030,7 +1053,14 @@ const AppContent = () => {
               sx={CHROME_ICON_SX}
               color="inherit"
               onClick={toggleNavMode}
-              aria-label="toggle navigation layout"
+              aria-label={
+                isSidebarMode
+                  ? t("projectNav.mode.switchToTabs", "가로 탭 구조로 보기")
+                  : t(
+                      "projectNav.mode.switchToSidebar",
+                      "좌측 메뉴 구조로 보기",
+                    )
+              }
               data-testid="nav-mode-toggle"
               title={
                 isSidebarMode
@@ -1050,10 +1080,9 @@ const AppContent = () => {
             <IconButton
               color="inherit"
               onClick={toggleTheme}
-              aria-label="toggle theme"
-              title={
-                mode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
-              }
+              aria-label={themeToggleLabel}
+              title={themeToggleLabel}
+              data-testid="theme-toggle-button"
             >
               {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
@@ -1064,7 +1093,8 @@ const AppContent = () => {
               size="large"
               color="inherit"
               onClick={handleUserMenuOpen}
-              aria-label="user menu"
+              aria-label={t("header.aria.userMenu", "사용자 메뉴")}
+              data-testid="user-menu-button"
             >
               <Avatar>{user.name ? user.name[0] : "U"}</Avatar>
             </IconButton>

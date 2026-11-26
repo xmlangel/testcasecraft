@@ -68,6 +68,17 @@ const TreeHeader = ({
 }) => {
   const { t } = useI18n();
 
+  // ICT-511: 아이콘만 있는 버튼에 화면 낭독기용 이름과 툴팁을 같은 문구로 붙인다.
+  const viewModeLabel = folderOnlyView
+    ? t("testcase.tree.button.showFullTree", "트리에 케이스도 표시")
+    : t("testcase.tree.button.folderOnly", "폴더만 표시");
+  const refreshLabel = t("testcase.tree.button.refresh", "새로고침");
+  const addLabel = t("testcase.tree.button.add", "추가");
+  const orderLabel = orderEditMode
+    ? t("testcase.tree.button.saveOrder", "순서 저장")
+    : t("testcase.tree.button.editOrder", "순서 편집");
+  const cancelOrderLabel = t("testcase.tree.button.cancel", "취소");
+
   return (
     <Box sx={{ px: 2, pt: 1, pb: 1 }}>
       <Box
@@ -200,6 +211,10 @@ const TreeHeader = ({
                     color="primary"
                     onClick={onOpenCrossProjectTransfer}
                     data-testid="cross-project-transfer-button"
+                    aria-label={t(
+                      "testcase.crossProject.button.title",
+                      "선택 항목을 다른 프로젝트로 이동/복사",
+                    )}
                   >
                     <DriveFileMoveIcon />
                   </IconButton>
@@ -218,6 +233,10 @@ const TreeHeader = ({
                   color="error"
                   onClick={onBatchDelete}
                   data-testid="batch-delete-button"
+                  aria-label={t(
+                    "testcase.tree.button.batchDelete",
+                    "선택 항목 삭제",
+                  )}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -226,71 +245,78 @@ const TreeHeader = ({
 
             {/* 트리 뷰 모드 토글 (폴더 전용 ↔ 전체) */}
             {onToggleViewMode && (
-              <IconButton
-                size="small"
-                onClick={onToggleViewMode}
-                color={folderOnlyView ? "default" : "primary"}
-                title={
-                  folderOnlyView
-                    ? t(
-                        "testcase.tree.button.showFullTree",
-                        "트리에 케이스도 표시",
-                      )
-                    : t("testcase.tree.button.folderOnly", "폴더만 표시")
-                }
-                data-testid="tree-view-mode-toggle"
-              >
-                <AccountTreeIcon />
-              </IconButton>
+              <Tooltip title={viewModeLabel}>
+                <IconButton
+                  size="small"
+                  onClick={onToggleViewMode}
+                  color={folderOnlyView ? "default" : "primary"}
+                  aria-label={viewModeLabel}
+                  aria-pressed={!folderOnlyView}
+                  data-testid="tree-view-mode-toggle"
+                >
+                  <AccountTreeIcon />
+                </IconButton>
+              </Tooltip>
             )}
 
             {/* 새로고침 버튼 */}
-            <IconButton
-              size="small"
-              onClick={onRefresh}
-              title={t("testcase.tree.button.refresh", "리프레시")}
-            >
-              <RefreshIcon />
-            </IconButton>
+            <Tooltip title={refreshLabel}>
+              <IconButton
+                size="small"
+                onClick={onRefresh}
+                aria-label={refreshLabel}
+                data-testid="tree-refresh-button"
+              >
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
 
             {!isViewer(userRole) && (
               <>
                 {/* 추가 버튼 */}
                 {canAdd(userRole) && (
-                  <IconButton
-                    size="small"
-                    onClick={onOpenAddMenu}
-                    data-testid="add-top-button"
-                  >
-                    <AddIcon />
-                  </IconButton>
+                  <Tooltip title={addLabel}>
+                    <IconButton
+                      size="small"
+                      onClick={onOpenAddMenu}
+                      aria-label={addLabel}
+                      aria-haspopup="menu"
+                      data-testid="add-top-button"
+                    >
+                      <AddIcon />
+                    </IconButton>
+                  </Tooltip>
                 )}
 
-                {/* 순서 변경/저장 버튼 */}
-                <IconButton
-                  size="small"
-                  onClick={orderEditMode ? onOrderSave : onOrderEditMode}
-                  color={orderEditMode ? "primary" : "default"}
-                  title={
-                    orderEditMode
-                      ? t("testcase.tree.button.saveOrder", "순서 저장")
-                      : t("testcase.tree.button.editOrder", "순서 편집")
-                  }
-                  disabled={orderEditMode && !orderChanged}
-                >
-                  {orderEditMode ? <SaveIcon /> : <SwapVertIcon />}
-                </IconButton>
+                {/* 순서 변경/저장 버튼 — 비활성일 때도 툴팁이 뜨도록 span 으로 감싼다 */}
+                <Tooltip title={orderLabel}>
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={orderEditMode ? onOrderSave : onOrderEditMode}
+                      color={orderEditMode ? "primary" : "default"}
+                      aria-label={orderLabel}
+                      data-testid="tree-order-button"
+                      disabled={orderEditMode && !orderChanged}
+                    >
+                      {orderEditMode ? <SaveIcon /> : <SwapVertIcon />}
+                    </IconButton>
+                  </span>
+                </Tooltip>
 
                 {/* 순서 편집 모드 취소 버튼 */}
                 {orderEditMode && (
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={onOrderCancel}
-                    title={t("testcase.tree.button.cancel", "취소")}
-                  >
-                    <CloseIcon />
-                  </IconButton>
+                  <Tooltip title={cancelOrderLabel}>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={onOrderCancel}
+                      aria-label={cancelOrderLabel}
+                      data-testid="tree-order-cancel-button"
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </Tooltip>
                 )}
               </>
             )}
@@ -323,6 +349,7 @@ const TreeHeader = ({
                   size="small"
                   onClick={() => onFilterChange("")}
                   title={t("testcase.tree.filter.clear", "필터 지우기")}
+                  aria-label={t("testcase.tree.filter.clear", "필터 지우기")}
                 >
                   <ClearIcon fontSize="small" />
                 </IconButton>

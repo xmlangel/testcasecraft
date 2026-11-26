@@ -152,7 +152,7 @@ test.describe("세션 관리 및 토큰 처리 테스트", () => {
     });
 
     // 로그인 상태 확인
-    await expect(page.locator('button[aria-label="user menu"]')).toBeVisible();
+    await expect(page.locator('button[data-testid="user-menu-button"]')).toBeVisible();
 
     // 페이지 새로고침
     await page.reload();
@@ -161,7 +161,7 @@ test.describe("세션 관리 및 토큰 처리 테스트", () => {
     await page.waitForSelector('h5:has-text("프로젝트 선택")', {
       timeout: 10000,
     });
-    await expect(page.locator('button[aria-label="user menu"]')).toBeVisible();
+    await expect(page.locator('button[data-testid="user-menu-button"]')).toBeVisible();
 
     // 토큰이 여전히 존재하는지 확인
     const accessToken = await page.evaluate(() =>
@@ -199,10 +199,10 @@ test.describe("세션 관리 및 토큰 처리 테스트", () => {
     await page2.waitForSelector('h5:has-text("프로젝트 선택")', {
       timeout: 10000,
     });
-    await expect(page2.locator('button[aria-label="user menu"]')).toBeVisible();
+    await expect(page2.locator('button[data-testid="user-menu-button"]')).toBeVisible();
 
     // 첫 번째 탭에서 로그아웃
-    await page.click('button[aria-label="user menu"]');
+    await page.click('button[data-testid="user-menu-button"]');
     await page.waitForSelector('li:has-text("로그아웃")', { timeout: 3000 });
     await page.click('li:has-text("로그아웃")');
     await page.waitForURL("**/", { timeout: 5000 });
@@ -249,7 +249,7 @@ test.describe("세션 관리 및 토큰 처리 테스트", () => {
     }
 
     // 여전히 로그인 상태인지 확인
-    await expect(page.locator('button[aria-label="user menu"]')).toBeVisible();
+    await expect(page.locator('button[data-testid="user-menu-button"]')).toBeVisible();
 
     // 토큰이 여전히 유효한지 확인
     const finalAccessToken = await page.evaluate(() =>
@@ -302,7 +302,7 @@ test.describe("세션 관리 및 토큰 처리 테스트", () => {
       // 대시보드로 직접 이동한 경우
       await page.waitForSelector("text=대시보드", { timeout: 5000 });
     }
-    await expect(page.locator('button[aria-label="user menu"]')).toBeVisible();
+    await expect(page.locator('button[data-testid="user-menu-button"]')).toBeVisible();
 
     // 새로운 토큰이 저장되었는지 확인
     const newAccessToken = await page.evaluate(() =>

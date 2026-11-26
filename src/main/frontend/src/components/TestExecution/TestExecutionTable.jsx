@@ -28,6 +28,7 @@ import {
   UnfoldLess as UnfoldLessIcon,
 } from "@mui/icons-material";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { getPriorityLabel } from "../../utils/statusLabels";
 import { TestResult } from "../../models/testExecution.jsx";
 import JiraIssueLink from "./JiraIssueLink.jsx";
 import {
@@ -336,7 +337,7 @@ const ExecutionRow = memo(
               </Typography>
               {node.priority && (
                 <Chip
-                  label={node.priority}
+                  label={getPriorityLabel(node.priority, t)}
                   color={priorityColor[node.priority] || "default"}
                   size="small"
                   sx={{ ml: 1, flexShrink: 0 }}
@@ -465,6 +466,7 @@ const ExecutionRow = memo(
                   <IconButton
                     className="copy-notes-btn"
                     size="small"
+                    aria-label={t("testcase.notes.copy", "노트 복사")}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleCopyNotes(notes);
@@ -601,6 +603,10 @@ const ExecutionRow = memo(
                     <IconButton
                       size="small"
                       onClick={() => handleCopyLink?.(node.id)}
+                      aria-label={t(
+                        "testExecution.actions.copyResultLink",
+                        "결과 입력 링크 복사",
+                      )}
                       disabled={!canEnterResults}
                       sx={{
                         p: 0.5,
@@ -621,6 +627,10 @@ const ExecutionRow = memo(
                 <IconButton
                   size="small"
                   onClick={() => handleShowPrevResults(node.id)}
+                  aria-label={t(
+                    "testExecution.actions.prevResults",
+                    "이전 결과",
+                  )}
                   sx={{
                     p: 0.5,
                     width: ACTION_ICON_SLOT,
@@ -638,6 +648,10 @@ const ExecutionRow = memo(
                   <IconButton
                     size="small"
                     onClick={() => handleAttachmentClick(resultObj.id)}
+                    aria-label={t(
+                      "testExecution.table.viewAttachments",
+                      "첨부파일 보기",
+                    )}
                     sx={{
                       p: 0.5,
                       width: ACTION_ICON_SLOT,
