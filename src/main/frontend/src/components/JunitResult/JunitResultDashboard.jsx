@@ -84,6 +84,7 @@ import agentConnectionService from "../../services/agentConnectionService.js";
 import { canRecordTestResult } from "../TestCaseTree/utils/permissionUtils.js";
 import JunitProcessingProgress from "../JUnit/JunitProcessingProgress";
 import PageTitle from "../common/PageTitle";
+import EmptyState from "../common/EmptyState.jsx";
 import apiService from "../../services/apiService.js";
 
 // 색상 팔레트 (Allure 스타일)
@@ -815,11 +816,16 @@ export default function JunitResultDashboard() {
                         </RechartsPieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <Box sx={{ textAlign: "center", py: 4 }}>
-                        <Typography color="text.secondary">
-                          {t("junit.empty.noResults", "테스트 결과가 없습니다")}
-                        </Typography>
-                      </Box>
+                      <EmptyState
+                        dense
+                        icon={PieChart}
+                        data-testid="junit-chart-status-empty"
+                        title={t("junit.empty.noResults", "테스트 결과가 없습니다")}
+                        description={t(
+                          "junit.empty.uploadPrompt",
+                          "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
+                        )}
+                      />
                     )}
                   </CardContent>
                 </Card>
@@ -880,11 +886,16 @@ export default function JunitResultDashboard() {
                         </RechartsBarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <Box sx={{ textAlign: "center", py: 4 }}>
-                        <Typography color="text.secondary">
-                          {t("junit.empty.noResults", "테스트 결과가 없습니다")}
-                        </Typography>
-                      </Box>
+                      <EmptyState
+                        dense
+                        icon={BarChart}
+                        data-testid="junit-chart-recent-empty"
+                        title={t("junit.empty.noResults", "테스트 결과가 없습니다")}
+                        description={t(
+                          "junit.empty.uploadPrompt",
+                          "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
+                        )}
+                      />
                     )}
                   </CardContent>
                 </Card>
@@ -1438,38 +1449,21 @@ export default function JunitResultDashboard() {
                     </Table>
                   </TableContainer>
                 ) : (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
-                    <CloudUpload
-                      sx={{ fontSize: 64, color: "text.secondary", mb: 2 }}
-                    />
-                    <Typography
-                      variant="h6"
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      {t("junit.empty.noResults", "테스트 결과가 없습니다")}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 2 }}
-                    >
-                      {t(
-                        "junit.empty.uploadPrompt",
-                        "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
-                      )}
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      startIcon={<CloudUpload />}
-                      onClick={() => setUploadDialogOpen(true)}
-                    >
-                      {t(
-                        "junit.empty.firstUpload",
-                        "첫 번째 테스트 결과 업로드",
-                      )}
-                    </Button>
-                  </Box>
+                  <EmptyState
+                    icon={CloudUpload}
+                    data-testid="junit-list-empty"
+                    title={t("junit.empty.noResults", "테스트 결과가 없습니다")}
+                    description={t(
+                      "junit.empty.uploadPrompt",
+                      "JUnit XML 파일을 업로드하여 테스트 결과를 분석해보세요.",
+                    )}
+                    actionIcon={<CloudUpload />}
+                    actionLabel={t(
+                      "junit.empty.firstUpload",
+                      "첫 번째 테스트 결과 업로드",
+                    )}
+                    onAction={() => setUploadDialogOpen(true)}
+                  />
                 )}
               </CardContent>
             </Card>

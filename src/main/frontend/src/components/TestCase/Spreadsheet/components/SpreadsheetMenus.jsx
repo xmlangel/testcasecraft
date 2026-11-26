@@ -1,12 +1,19 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import {
+  Divider,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 import {
   AddCircle as AddStepIcon,
   RemoveCircle as RemoveStepIcon,
   Settings as SettingsIcon,
   Download as DownloadIcon,
   GetApp as GetAppIcon,
+  Upload as UploadIcon,
 } from "@mui/icons-material";
 
 /** 스텝 수 빠른 증감 + 직접 설정 메뉴 */
@@ -69,10 +76,15 @@ StepMenu.propTypes = {
   t: PropTypes.func.isRequired,
 };
 
-/** CSV/Excel/PDF 내보내기 메뉴 */
+/**
+ * 가져오기·내보내기 메뉴 (ICT-514).
+ * onOpenImportExport 가 있으면 맨 위에 가져오기(Import/Export 대화상자) 항목을 두고,
+ * 그 아래에 CSV/Excel/PDF 내보내기를 둔다. 버튼 두 개로 나뉘어 있던 것을 하나로 합쳤다.
+ */
 export const ExportMenu = ({
   anchorEl,
   onClose,
+  onOpenImportExport,
   onExportCsv,
   onExportExcel,
   onExportPdf,
@@ -89,7 +101,22 @@ export const ExportMenu = ({
     anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
     transformOrigin={{ vertical: "top", horizontal: "left" }}
   >
-    <MenuItem onClick={onExportCsv}>
+    {onOpenImportExport && (
+      <MenuItem
+        onClick={onOpenImportExport}
+        data-testid="spreadsheet-io-menu-import"
+      >
+        <ListItemIcon>
+          <UploadIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText
+          primary={t("common.buttons.import", "가져오기")}
+          secondary={t("testcase.io.title", "테스트케이스 Import / Export")}
+        />
+      </MenuItem>
+    )}
+    {onOpenImportExport && <Divider />}
+    <MenuItem onClick={onExportCsv} data-testid="spreadsheet-io-menu-csv">
       <ListItemIcon>
         <DownloadIcon fontSize="small" />
       </ListItemIcon>
@@ -171,6 +198,7 @@ export const ExportMenu = ({
 ExportMenu.propTypes = {
   anchorEl: PropTypes.any,
   onClose: PropTypes.func,
+  onOpenImportExport: PropTypes.func,
   onExportCsv: PropTypes.func,
   onExportExcel: PropTypes.func,
   onExportPdf: PropTypes.func,

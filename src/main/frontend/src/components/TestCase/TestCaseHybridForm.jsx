@@ -34,6 +34,7 @@ import { canEditProjectContent } from "../TestCaseTree/utils/permissionUtils.js"
 import { debugLog, debugWarn } from "../../utils/logger.js";
 import TestCaseForm from "../TestCaseForm.jsx";
 import TestCaseSpreadsheet from "./TestCaseSpreadsheet.jsx";
+import InputModeSwitch from "./InputModeSwitch.jsx";
 import TestCaseDatasheetGrid from "./TestCaseDatasheetGrid.jsx";
 import FolderCaseList from "./FolderCaseList.jsx";
 import {
@@ -46,7 +47,6 @@ import {
   VIRTUAL_UNFILED_ID,
 } from "../../utils/treeUtils.jsx";
 import NoSelectionPlaceholder from "../common/NoSelectionPlaceholder.jsx";
-import InputModeSwitch from "./InputModeSwitch.jsx";
 import useBookmarks from "../../hooks/useBookmarks.js";
 import useLatestResults from "../../hooks/useLatestResults.js";
 import { CHROME_ICON_SX } from "../common/iconSizes.js";

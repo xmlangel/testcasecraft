@@ -647,4 +647,74 @@ describe("PlanExecutionWorkspace", () => {
       "view=false",
     );
   });
+
+  // ICT-514(리뷰 P1-8): 아무것도 고르지 않은 상세 영역은 넓은 칸 좌상단에 회색 문장
+  // 한 줄뿐이었다. 다른 화면과 같은 빈 상태(아이콘·제목·설명)와, 쓰기 권한이 있으면
+  // 목록 머리의 만들기와 같은 동작 버튼을 가운데에 보여야 한다.
+  describe("상세 영역 빈 상태 (EmptyState)", () => {
+    it("플랜 영역: 고르지 않으면 EmptyState 로 안내하고 플랜 만들기를 둔다", async () => {
+      setup({ mode: "plans" });
+      const empty = screen.getByTestId("workspace-detail-empty");
+      expect(empty).toBeInTheDocument();
+      expect(
+        screen.getByTestId("workspace-detail-empty-title"),
+      ).toHaveTextContent("플랜을 고르면 내용이 여기에 열립니다.");
+      expect(screen.getByTestId("workspace-detail-empty-icon")).toBeTruthy();
+
+      fireEvent.click(screen.getByTestId("workspace-detail-empty-action"));
+      const form = await screen.findByTestId("stub-plan-form");
+      expect(form).toHaveTextContent("plan=null");
+    });
+
+    it("실행 영역: 고르지 않으면 EmptyState 와 실행 만들기를 두고, 누르면 실행 폼이 열린다", async () => {
+      setup({ mode: "executions" });
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("workspace-detail-empty-title"),
+        ).toHaveTextContent("실행을 고르면 상세가 여기에 열립니다."),
+      );
+      const action = screen.getByTestId("workspace-detail-empty-action");
+      expect(action).toHaveTextContent("실행 만들기");
+      fireEvent.click(action);
+      expect(
+        await screen.findByTestId("stub-execution-form"),
+      ).toHaveTextContent("exec=null");
+    });
+
+    it("실행이 하나도 없으면 '실행이 없습니다'를 제목으로 보인다", async () => {
+      getMock.mockResolvedValue({ json: async () => [] });
+      setup({ mode: "executions" });
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("workspace-detail-empty-title"),
+        ).toHaveTextContent("실행이 없습니다."),
+      );
+      expect(
+        screen.getByTestId("workspace-detail-empty-description"),
+      ).toHaveTextContent("실행을 고르면 상세가 여기에 열립니다.");
+    });
+
+    it("플랜이 하나도 없으면 '등록된 테스트 플랜이 없습니다'를 제목으로 보인다", () => {
+      const saved = appContext.testPlans;
+      appContext.testPlans = [];
+      try {
+        setup({ mode: "plans" });
+        expect(
+          screen.getByTestId("workspace-detail-empty-title"),
+        ).toHaveTextContent("등록된 테스트 플랜이 없습니다.");
+        expect(
+          screen.getByTestId("workspace-detail-empty-action"),
+        ).toHaveTextContent("플랜 만들기");
+      } finally {
+        appContext.testPlans = saved;
+      }
+    });
+
+    it("조회 전용 역할에는 빈 상태에도 만들기 버튼이 없다", () => {
+      roleState.projectRole = "VIEWER";
+      setup({ mode: "plans" });
+      expect(screen.getByTestId("workspace-detail-empty")).toBeInTheDocument();
+      expect(screen.queryByTestId("workspace-detail-empty-action")).toBeNull();
+    });
+  });
 });
