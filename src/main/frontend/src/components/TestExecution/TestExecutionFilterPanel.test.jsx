@@ -52,4 +52,37 @@ describe("TestExecutionFilterPanel", () => {
     expect(screen.getByText(/적용 중/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "초기화" })).toBeEnabled();
   });
+
+  // ICT-513: 실행 상세는 이 패널을 「필터」 아코디언 안에 넣는다. 안쪽에 또 「필터」
+  // 머리와 접기 단추가 있으면 두 겹이 된다.
+  it("embedded 이면 안쪽 「필터」 머리와 접기 단추 없이 입력란을 바로 보인다", () => {
+    render(
+      <TestExecutionFilterPanel
+        embedded
+        filters={EMPTY}
+        onFilterChange={vi.fn()}
+        onApply={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText("필터")).toBeNull();
+    // 적용·초기화 두 단추만 있고 접기 단추는 없다
+    expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual(
+      expect.not.arrayContaining([""]),
+    );
+    expect(screen.getByLabelText("케이스 아이디")).toBeVisible();
+    expect(screen.getByRole("button", { name: "적용" })).toBeInTheDocument();
+  });
+
+  it("embedded 가 아니면 예전처럼 머리와 접기 단추가 있다 (하위 호환)", () => {
+    render(
+      <TestExecutionFilterPanel
+        filters={EMPTY}
+        onFilterChange={vi.fn()}
+        onApply={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("필터")).toBeInTheDocument();
+  });
 });
