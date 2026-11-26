@@ -289,3 +289,76 @@ describe("TestExecutionTable 3단 분할 열린 케이스 표시 (ICT-491)", () 
     );
   });
 });
+
+// ICT-513: 실행 상세 「테스트 케이스 실행 목록」 표 가독성
+describe("TestExecutionTable 표 가독성 (ICT-513)", () => {
+  const folderWithId = { ...folder("f1", "로그인"), displayId: "MCP-788" };
+
+  it("폴더 행에는 ID 칩을 달지 않고, 케이스 행에만 단다", () => {
+    renderTable({
+      visibleData: [folderWithId, testcase("tc1", "로그인 성공", "f1")],
+    });
+    expect(screen.queryByText("MCP-788")).toBeNull();
+    expect(screen.getByText("TC-tc1")).toBeInTheDocument();
+  });
+
+  it("폴더 행은 폴더 열과 케이스명 열을 합친 칸에 그린다", () => {
+    renderTable();
+    const row = screen.getByTestId("execution-row-f1");
+    const cell = screen.getByTestId("execution-table-folder-cell-f1");
+    expect(cell).toHaveStyle({ gridColumn: "span 2" });
+    // 칸을 합쳤으므로 폴더 행은 케이스 행보다 칸이 하나 적다 (열 정렬이 밀리지 않는다)
+    const caseRow = screen.getByTestId("execution-row-tc1");
+    expect(row.children.length).toBe(caseRow.children.length - 1);
+  });
+
+  it("결과 열에 아이콘과 함께 라벨 글자를 붙인다", () => {
+    renderTable({
+      visibleData: [
+        folder("f1", "로그인"),
+        testcase("tc1", "미실행 케이스", "f1"),
+        testcase("tc2", "성공 케이스", "f1"),
+        testcase("tc3", "실패 케이스", "f1"),
+      ],
+      resultsMap: new Map([
+        ["tc2", { id: "r2", result: "PASS" }],
+        ["tc3", { id: "r3", result: "FAIL" }],
+      ]),
+    });
+    expect(
+      screen.getByTestId("execution-table-result-label-tc1"),
+    ).toHaveTextContent("미실행");
+    expect(
+      screen.getByTestId("execution-table-result-label-tc2"),
+    ).toHaveTextContent("성공");
+    expect(
+      screen.getByTestId("execution-table-result-label-tc3"),
+    ).toHaveTextContent("실패");
+    expect(screen.queryByTestId("execution-table-result-label-f1")).toBeNull();
+  });
+
+  it("긴 케이스명은 두 줄까지 보이고, 마우스를 올리면 전체 이름을 툴팁으로 보인다", async () => {
+    const longName =
+      "pg_resetwal [Linux/Windows 11] With --key-unwrap-command='<cmd>' with -D with datadir";
+    renderTable({
+      visibleData: [folder("f1", "로그인"), testcase("tc1", longName, "f1")],
+    });
+    const name = screen.getByTestId("execution-table-case-name-tc1");
+    expect(name).toHaveStyle({ overflow: "hidden" });
+    // 두 줄 말줄임: 줄 수 제한(-webkit-line-clamp: 2)과 넘침 숨김
+    expect(getComputedStyle(name).getPropertyValue("-webkit-line-clamp")).toBe(
+      "2",
+    );
+    expect(getComputedStyle(name).whiteSpace).not.toBe("nowrap");
+    fireEvent.mouseOver(name);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(longName);
+  });
+
+  it("케이스 행의 폴더 경로는 한 줄로 줄이고 전체 경로는 툴팁으로 보인다", async () => {
+    renderTable();
+    const path = screen.getByTestId("execution-table-folder-path-tc1");
+    expect(path).toHaveStyle({ whiteSpace: "nowrap" });
+    fireEvent.mouseOver(path);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("부모폴더");
+  });
+});

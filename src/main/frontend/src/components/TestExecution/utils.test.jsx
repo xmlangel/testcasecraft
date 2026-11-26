@@ -18,6 +18,9 @@ import {
   computeCaseNameColumnWidth,
   CASE_NAME_COLUMN_MIN_WIDTH,
   CASE_NAME_COLUMN_EXTRA_WIDTH,
+  CASE_NAME_COLUMN_MAX_WIDTH,
+  FOLDER_COLUMN_MIN_WIDTH,
+  getResultLabel,
 } from "./utils.jsx";
 
 // 전체화면 결과 뷰가 목록 화면의 필터 순서를 그대로 따르도록 하는
@@ -427,16 +430,50 @@ describe("case name column width", () => {
 
   it("puts the measured width into the grid template and minimum row width", () => {
     const template = buildGridTemplateColumns({ caseNameWidth: 520 });
-    expect(template).toContain("minmax(520px, 3fr)");
-    expect(template).toContain("minmax(260px, 2fr)");
+    expect(template).toContain("minmax(520px, 4fr)");
+    expect(template).toContain(`minmax(${FOLDER_COLUMN_MIN_WIDTH}px, 1fr)`);
     expect(
       buildGridTemplateColumns({ peek: true, caseNameWidth: 520 }),
-    ).toMatch(/^40px 110px 0px minmax\(520px, 3fr\)/);
+    ).toMatch(/^40px 110px 0px minmax\(520px, 4fr\)/);
     expect(gridMinWidth({ caseNameWidth: 520 })).toBe(
       gridMinWidth({ caseNameWidth: 200 }) + 320,
     );
     expect(gridMinWidth({ peek: true, caseNameWidth: 520 })).toBe(
-      gridMinWidth({ caseNameWidth: 520 }) - 260,
+      gridMinWidth({ caseNameWidth: 520 }) - FOLDER_COLUMN_MIN_WIDTH,
     );
+  });
+
+  // ICT-513: 케이스명 열에 남는 폭을 몰아주고, 폴더 열은 좁힌다
+  it("gives the case name column more of the spare width than the folder column", () => {
+    const template = buildGridTemplateColumns();
+    const [, , folder, caseName] = template.match(/minmax\([^)]*\)|\S+/g);
+    const fr = (col) => Number(col.match(/(\d+)fr/)[1]);
+    expect(fr(caseName)).toBeGreaterThan(fr(folder));
+    expect(FOLDER_COLUMN_MIN_WIDTH).toBeLessThan(CASE_NAME_COLUMN_MIN_WIDTH);
+  });
+
+  // ICT-513: 아주 긴 이름 하나로 열이 끝없이 넓어지지 않는다 (넘치면 두 줄 + 말줄임)
+  it("caps the case name column minimum at the maximum width", () => {
+    expect(buildGridTemplateColumns({ caseNameWidth: 2000 })).toContain(
+      `minmax(${CASE_NAME_COLUMN_MAX_WIDTH}px, 4fr)`,
+    );
+    expect(gridMinWidth({ caseNameWidth: 2000 })).toBe(
+      gridMinWidth({ caseNameWidth: CASE_NAME_COLUMN_MAX_WIDTH }),
+    );
+  });
+});
+
+// ICT-513: 결과 열에 아이콘과 함께 붙일 라벨
+describe("result label", () => {
+  it.each([
+    ["PASS", "testResult.status.pass", "성공"],
+    ["FAIL", "testResult.status.fail", "실패"],
+    ["BLOCKED", "testResult.status.blocked", "차단됨"],
+    ["SKIPPED", "testResult.status.skipped", "건너뜀"],
+    ["NOT_RUN", "testResult.status.notRun", "미실행"],
+    ["NOTRUN", "testResult.status.notRun", "미실행"],
+    [undefined, "testResult.status.notRun", "미실행"],
+  ])("%s → %s", (result, key, fallback) => {
+    expect(getResultLabel(result)).toEqual({ key, fallback });
   });
 });
