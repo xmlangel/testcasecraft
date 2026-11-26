@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { useI18n } from "../../context/I18nContext.jsx";
 import { COVERAGE_META, flattenSpecTree } from "./requirementConstants.js";
+import { legendTextFormatter } from "../common/chartLegend.jsx";
 
 const KEYS = ["COVERED", "PARTIAL", "UNCOVERED", "EXCLUDED"];
 
@@ -101,7 +102,7 @@ function RequirementCoverageCharts({ coverage, specs }) {
                 ))}
               </Pie>
               <Tooltip />
-              <Legend verticalAlign="bottom" height={28} itemSorter={null} />
+              <Legend formatter={legendTextFormatter} verticalAlign="bottom" height={28} itemSorter={null} />
             </PieChart>
           </ResponsiveContainer>
           {/* 도넛 가운데: 테스트 대상 중 충족 비율(제외는 분모에서 빠진다) */}
@@ -149,7 +150,7 @@ function RequirementCoverageCharts({ coverage, specs }) {
                 tick={{ fontSize: 12 }}
               />
               <Tooltip />
-              <Legend itemSorter={null} />
+              <Legend formatter={legendTextFormatter} itemSorter={null} />
               {KEYS.map((key) => (
                 <Bar
                   key={key}

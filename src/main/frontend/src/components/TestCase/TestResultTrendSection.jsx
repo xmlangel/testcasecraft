@@ -63,6 +63,7 @@ import {
 import { ko } from "date-fns/locale";
 import { TREND_CHART_COLORS } from "../../constants/chartColors";
 import { useI18n } from "../../context/I18nContext.jsx";
+import { legendTextFormatter } from "../common/chartLegend.jsx";
 
 /**
  * 테스트 결과 트렌드 분석 컴포넌트
@@ -514,7 +515,7 @@ const TestResultTrendSection = ({
                 <XAxis dataKey="executor" />
                 <YAxis />
                 <RechartsTooltip />
-                <Legend />
+                <Legend formatter={legendTextFormatter} />
                 <Bar dataKey="PASS" fill="#82ca9d" name="Pass" />
                 <Bar dataKey="FAIL" fill="#ff7c7c" name="Fail" />
                 <Bar dataKey="BLOCKED" fill="#ffc658" name="Blocked" />

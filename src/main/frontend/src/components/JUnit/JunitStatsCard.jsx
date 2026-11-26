@@ -22,6 +22,7 @@ import {
   Speed as SpeedIcon,
 } from "@mui/icons-material";
 import { STATUS_COLORS, RESULT_COLORS } from "../../constants/statusColors";
+import { formatPercent, RATE_TEXT_COLOR } from "../../utils/percentFormat.js";
 
 /**
  * JUnit 통계 개요 카드 (통과/실패/에러/스킵/성공률). (JunitResultDetail 에서 추출)
@@ -97,7 +98,7 @@ const JunitStatsCard = ({
                 sx={{ height: 20, fontSize: "0.7rem" }}
               />
               <Chip
-                label={`${successRate.toFixed(1)}%`}
+                label={formatPercent(successRate)}
                 size="small"
                 color="primary"
                 sx={{ height: 20, fontSize: "0.7rem", fontWeight: "bold" }}
@@ -229,10 +230,10 @@ const JunitStatsCard = ({
                 />
                 <Typography
                   variant="h5"
-                  color="primary.main"
+                  color={RATE_TEXT_COLOR}
                   sx={{ fontWeight: "bold" }}
                 >
-                  {successRate.toFixed(1)}%
+                  {formatPercent(successRate)}
                 </Typography>
                 <Typography variant="caption" display="block">
                   {t("junit.stats.successRate")}

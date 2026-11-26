@@ -93,6 +93,8 @@ import {
   CHART_COLORS,
 } from "../../constants/statusColors";
 import { PAGE_CONTAINER_SX } from "../../styles/layoutConstants";
+import { formatPercent } from "../../utils/percentFormat.js";
+import { legendTextFormatter } from "../common/chartLegend.jsx";
 
 // 안전한 날짜 포맷팅 함수
 const formatSafeDate = (dateValue, t) => {
@@ -736,7 +738,7 @@ export default function JunitResultDashboard() {
                     >
                       <Box>
                         <Typography variant="h4" color="text.secondary">
-                          {statistics.averageSuccessRate?.toFixed(1) || 0}%
+                          {formatPercent(statistics.averageSuccessRate)}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {t("junit.stats.averageSuccessRate")}
@@ -858,7 +860,7 @@ export default function JunitResultDashboard() {
                             }}
                             itemStyle={{ color: theme.palette.text.primary }}
                           />
-                          <Legend wrapperStyle={{ fontSize: "0.8125rem" }} />
+                          <Legend formatter={legendTextFormatter} wrapperStyle={{ fontSize: "0.8125rem" }} />
                           <Bar
                             dataKey={t("junit.stats.passed")}
                             fill={RESULT_COLORS.PASS}

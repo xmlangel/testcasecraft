@@ -45,6 +45,7 @@ import { useAppContext } from "../context/AppContext";
 import { useI18n } from "../context/I18nContext";
 import { TEST_RESULT_CONFIG } from "../utils/testResultConstants";
 import ComparisonFilterPanel from "./ComparisonFilterPanel";
+import { legendTextFormatter } from "./common/chartLegend.jsx";
 
 /**
  * ICT-201: 테스트 결과 추이 분석 컴포넌트
@@ -580,7 +581,7 @@ function TestResultTrendAnalysis() {
                     <XAxis dataKey="date" />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend />
+                    <Legend formatter={legendTextFormatter} />
                     {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
                       <Line
                         key={key}
@@ -603,7 +604,7 @@ function TestResultTrendAnalysis() {
                     <XAxis dataKey="date" />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend />
+                    <Legend formatter={legendTextFormatter} />
                     {Object.entries(TEST_RESULT_CONFIG).map(([key, config]) => (
                       <Area
                         key={key}
@@ -649,7 +650,7 @@ function TestResultTrendAnalysis() {
                       }}
                       labelFormatter={(label) => `📅 ${label}`}
                     />
-                    <Legend />
+                    <Legend formatter={legendTextFormatter} />
                     {/* 전체 추이 라인 (회색으로 표시) */}
                     <Line
                       type="monotone"
@@ -765,7 +766,7 @@ function TestResultTrendAnalysis() {
                   ]}
                   labelFormatter={(label) => `📅 ${label}`}
                 />
-                <Legend />
+                <Legend formatter={legendTextFormatter} />
                 <Line
                   type="monotone"
                   dataKey="passRate"

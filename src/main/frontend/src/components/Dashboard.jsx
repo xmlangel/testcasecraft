@@ -50,6 +50,8 @@ import dashboardService, {
 import { RESULT_COLORS } from "../constants/statusColors";
 // ICT-272: 표준 레이아웃 패턴 import
 import { PAGE_CONTAINER_SX, GRID_SETTINGS } from "../styles/layoutConstants";
+import { RATE_TEXT_COLOR } from "../utils/percentFormat.js";
+import { legendTextFormatter } from "./common/chartLegend.jsx";
 
 // RESULT_LABELS는 이제 t() 함수로 번역됨
 
@@ -571,7 +573,7 @@ function Dashboard({ embedded = false }) {
                       <Typography
                         variant="h4"
                         fontWeight="bold"
-                        color="success.main"
+                        color={RATE_TEXT_COLOR}
                       >
                         <CountUp end={completeRate} duration={1} />%
                       </Typography>
@@ -653,7 +655,7 @@ function Dashboard({ embedded = false }) {
                       <XAxis dataKey="date" />
                       <YAxis />
                       <ReTooltip />
-                      <Legend />
+                      <Legend formatter={legendTextFormatter} />
                       <Line
                         type="monotone"
                         dataKey="PASS"
@@ -730,7 +732,7 @@ function Dashboard({ embedded = false }) {
                       <XAxis type="number" allowDecimals={false} />
                       <YAxis type="category" dataKey="assignee" />
                       <ReTooltip />
-                      <Legend />
+                      <Legend formatter={legendTextFormatter} />
                       <Bar
                         dataKey="PASS"
                         stackId="a"
@@ -815,7 +817,7 @@ function Dashboard({ embedded = false }) {
                       <XAxis type="number" allowDecimals={false} />
                       <YAxis type="category" dataKey="assignee" />
                       <ReTooltip />
-                      <Legend />
+                      <Legend formatter={legendTextFormatter} />
                       <Bar
                         dataKey="PASS"
                         stackId="a"
