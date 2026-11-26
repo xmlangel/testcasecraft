@@ -53,6 +53,7 @@ import {
   resolveFolderOnlyView,
   toStoredMode,
 } from "./TestCaseTree/treeViewMode.js";
+import { computeFolderCheckStates } from "./TestCaseTree/utils/folderCheckState.js";
 
 // 트리 뷰 모드 저장 키 ("folders" = 폴더 전용, "all" = 폴더+케이스 혼합)
 
@@ -321,6 +322,14 @@ const TestCaseTree = ({
     [automationCountSource],
   );
 
+  // 폴더 체크 상태는 하위 케이스 선택 정도로 정한다 (ICT-512).
+  // 플랜은 케이스 ID 만 저장하므로, 다시 열면 폴더 ID 가 checkedIds 에 없어
+  // 머리글 「775개 선택됨」과 달리 폴더 체크박스가 모두 비어 보였다.
+  const folderCheckStates = useMemo(
+    () => computeFolderCheckStates(automationCountSource, treeState.checkedIds),
+    [automationCountSource, treeState.checkedIds],
+  );
+
   // 폴더 미지정 케이스 수 (가상 노드 배지)
   const unfiledCount = useMemo(
     () => automationCountSource.filter(isUnfiledTestCase).length,
@@ -551,7 +560,10 @@ const TestCaseTree = ({
             if (!node) return null;
 
             const isSelected = treeState.selected === node.id;
-            const isChecked = treeState.checkedIds.includes(node.id);
+            const folderState = folderCheckStates.get(node.id);
+            const isChecked =
+              treeState.checkedIds.includes(node.id) || folderState === "all";
+            const isIndeterminate = !isChecked && folderState === "some";
             const isExpanded = effectiveExpanded.includes(node.id);
             const nodeOrder =
               actions.orderMap[node.id] ?? node.displayOrder ?? 0;
@@ -577,6 +589,7 @@ const TestCaseTree = ({
                   node={node}
                   isSelected={isSelected}
                   isChecked={isChecked}
+                  isIndeterminate={isIndeterminate}
                   isExpanded={isExpanded}
                   onToggle={(e) => handleToggleNode(e, node.id)}
                   selectable={selectable}

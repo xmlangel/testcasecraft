@@ -36,6 +36,7 @@ const MemoizedTreeItem = React.memo(
     siblings,
     isSelected,
     isChecked,
+    isIndeterminate = false,
     selectable,
     userRole,
     orderEditMode,
@@ -170,12 +171,12 @@ const MemoizedTreeItem = React.memo(
         <Box
           className="tree-cb-area"
           sx={{
-            width: isChecked || selectable ? 32 : 0,
+            width: isChecked || isIndeterminate || selectable ? 32 : 0,
             display: "flex",
             justifyContent: "center",
             flexShrink: 0,
             overflow: "hidden",
-            opacity: isChecked || selectable ? 1 : 0,
+            opacity: isChecked || isIndeterminate || selectable ? 1 : 0,
             transition: "width 0.15s, opacity 0.15s",
           }}
         >
@@ -183,6 +184,7 @@ const MemoizedTreeItem = React.memo(
             <Checkbox
               size="small"
               checked={isChecked}
+              indeterminate={isIndeterminate}
               onClick={(e) => e.stopPropagation()}
               onChange={(e) => onCheck(e, node.id)}
               sx={{ p: 0.5 }}
@@ -516,6 +518,7 @@ const MemoizedTreeItem = React.memo(
     return (
       prevProps.isSelected === nextProps.isSelected &&
       prevProps.isChecked === nextProps.isChecked &&
+      prevProps.isIndeterminate === nextProps.isIndeterminate &&
       prevProps.isExpanded === nextProps.isExpanded &&
       prevProps.nodeOrder === nextProps.nodeOrder &&
       prevProps.testCaseCount === nextProps.testCaseCount &&
